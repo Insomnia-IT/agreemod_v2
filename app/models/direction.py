@@ -1,4 +1,4 @@
 from pydantic import BaseModel
 
-class Direction(BaseModel):
-    ...
+
+class Direction(BaseModel): ...

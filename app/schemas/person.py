@@ -1,5 +1,3 @@
-
-
 from pydantic import BaseModel
 
 
@@ -8,5 +6,5 @@ class PersonFiltersDTO(BaseModel):
     phone_number: str
     email: str
 
-class PersonResponseSchema(BaseModel):
-    ...
+
+class PersonResponseSchema(BaseModel): ...

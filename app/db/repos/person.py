@@ -1,5 +1,3 @@
-
-
 from app.db.repos.base import BaseSqlaRepo
 from app.models.person import Person
 
