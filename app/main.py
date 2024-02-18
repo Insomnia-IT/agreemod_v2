@@ -13,8 +13,8 @@ from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from traceback_with_variables import print_exc
 
-from agreemod_v2.config import config, traceback_format
-from agreemod_v2.errors import RepresentativeError, intake_validation_error_handler
+from app.config import config, traceback_format
+from app.errors import RepresentativeError, intake_validation_error_handler
 
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "agreemod-v2"
+name = "app"
 version = "0.1.0"
 description = "Notion and Coda integration services for Insomnia"
 authors = ["Alexey Serikov <serikov.alexey42@gmail.com>"]
