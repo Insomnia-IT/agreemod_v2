@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "agreemod-v2"
+version = "0.1.0"
+description = "Notion and Coda integration services for Insomnia"
+authors = ["Alexey Serikov <serikov.alexey42@gmail.com>"]
+readme = "README.md"
+packages = [{include = "agreemod_v2"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.2"
+SQLAlchemy = "^2.0.27"
+asyncpg = "^0.29.0"
+alembic = "^1.13.1"
+venusian = "^3.1.0"
+isort = "^5.13.2"
+black = "^24.2.0"
+flake8 = "^7.0.0"
+notion-client = "^2.2.1"
+traceback-with-variables = "^2.0.4"
+uvicorn = "^0.27.1"
+pydantic-settings = "^2.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.1"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+
+line_length = 120
+include_trailing_comma = true
+lines_after_imports = 2
+lines_between_types = 1
+multi_line_output = 3
+known_localfolder = ["agreemod_v2", "tests"]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
