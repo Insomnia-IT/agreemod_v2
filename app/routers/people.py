@@ -7,7 +7,7 @@ from app.main import api_router
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
 
-router = APIRouter(prefix="/agreemod")
+router = APIRouter()
 
 
 def _get_person_filters_dto(
@@ -23,16 +23,18 @@ def _get_person_filters_dto(
 
 
 @router.get(
-    "/contacts/search",
+    "/contacts",
     summary="Поиск в базе контактов оргов и волонтёров",
     response_model=list[PersonResponseSchema],
 )
 async def get_orgs_and_volunteers(
     filters: PersonFiltersDTO = Depends(_get_person_filters_dto),
     order_by: str = Q("Поле сортировки", "nickname"),
+    limit: int = Q("Количество записей на одной странице", 20),
+    offset: int = Q("Смещение от начала", 0),
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
-    return await repo.retrieve_many(filters, order_by)
+    return await repo.retrieve_many(filters, order_by, limit, offset)
 
 
 api_router.include_router(router)
