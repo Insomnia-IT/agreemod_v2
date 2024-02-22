@@ -4,6 +4,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import config
 
+PG_URL = (
+    f"postgresql+asyncpg://{config.postgres.user}:{config.postgres.password}"
+    f"@{config.postgres.host}:{config.postgres.port}/{config.postgres.name}"
+)
 
 metadata = MetaData(
     naming_convention={
@@ -22,12 +26,12 @@ if config.TESTING:
     engine_params = dict(poolclass=NullPool)
 else:
     engine_params = dict(
-        pool_size=config.POSTGRES_MIN_POOL_SIZE,
-        max_overflow=config.POSTGRES_MIN_POOL_SIZE + config.POSTGRES_MAX_POOL_SIZE,
+        pool_size=config.postgres.MIN_POOL_SIZE,
+        max_overflow=config.postgres.MIN_POOL_SIZE + config.postgres.MAX_POOL_SIZE,
     )
 
 engine = create_async_engine(
-    config.DB_URL,
+    PG_URL,
     connect_args={"server_settings": {"jit": "off"}},
     **engine_params,
 )

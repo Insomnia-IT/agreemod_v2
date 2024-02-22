@@ -5,6 +5,12 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 
+
+class _Source(BaseModel):
+    pointer: str | None = None
+    parameter: str | None = None
+    header: str | None = None
+
 class ErrorSource:
     pointer: str | None = None
     parameter: str | None = None
@@ -51,7 +57,7 @@ class Error(BaseModel):
     detail: str | None = None
     code: str | None = None
     status_code: int | None = None
-    source: ErrorSource | None = None
+    source: _Source | None = None
     meta: dict | None = None
 
 
@@ -99,7 +105,7 @@ class RepresentativeError(Exception):
 
         _error = Error(
             status_code=self.status_code,
-            source=ErrorSource(**self.source.dict()) if self.source else None,
+            source=_Source(**self.source.dict()) if self.source else None,
             code=self.code,
             detail=self.detail,
             title=self.title,

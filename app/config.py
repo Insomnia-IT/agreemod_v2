@@ -2,7 +2,7 @@ import logging
 import typing
 
 from pydantic import BaseModel, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
 
@@ -23,13 +23,15 @@ class PostgresConfig(BaseModel):
     user: str
     password: str
     name: str
-
+    MIN_POOL_SIZE: int = 5
+    MAX_POOL_SIZE: int = 10
 
 class Config(BaseSettings):
     TITLE: str = "Notion API & Integrations"
     DESCRIPTION: str = ""
 
     DEBUG: bool = False
+    TESTING: bool = False
 
     MAJOR_VERSION: int = 0
     MINOR_VERSION: int = 1
@@ -65,10 +67,12 @@ class Config(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
 
-    class Config:
-        env_file = ".env"
-        case_insensitive = True
-        env_nested_delimiter = "__"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        env_nested_delimiter="__",
+        extra='ignore'
+    )
 
     @property
     def version(self) -> str:
