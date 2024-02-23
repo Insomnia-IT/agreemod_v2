@@ -1,10 +1,15 @@
 import asyncio
 
 from updater.config import config, logger
+from updater.notion.client import NotionClient
+
+
+class Updater:
+    pass
 
 
 async def main():
-    notion = NotionDatabase(auth=config.notion.token)
+    notion = NotionClient(token=config.notion.token)
     updater = Updater(notion=notion)
 
     while True:

@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import AnyUrl, BaseModel
 from pydantic_settings import SettingsConfigDict
 
+
 class ObjectItem(BaseModel):
     id: UUID
     object: str
@@ -31,7 +32,7 @@ class BaseNotionResponseItem(BaseModel):
                 return v["title"][0]["plain_text"]
         return ""
 
-    model_config = SettingsConfigDict(extra='allow')
+    model_config = SettingsConfigDict(extra="allow")
 
 
 # Данная модель просто демонстрирует структуру, которая будет храниться в редисе

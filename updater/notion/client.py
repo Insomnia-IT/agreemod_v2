@@ -1,7 +1,8 @@
 import logging
 
-from updater.notion.models import BaseNotionResponse
 from notion_client import AsyncClient
+
+from updater.notion.models.response import BaseNotionResponse, BaseNotionResponseItem
 
 
 logger = logging.getLogger("NotionDatabase")
@@ -14,24 +15,26 @@ class NotionClient:
     ):
         self._client = AsyncClient(auth=token)
 
-    async def query_database(self, database, filters: dict = None) -> BaseNotionResponse:
+    async def query_database(self, database, filters: dict = None) -> list[BaseNotionResponseItem]:
         complete_result = []
-        cursor = None
-        while True:
+        result = BaseNotionResponse(
+            **await self._client.databases.query(
+                database_id=database.id,
+                start_cursor=None,
+            )
+        )
+        complete_result.extend(result.results)
+        logger.info(f"{database.name}: Received {len(complete_result)} items")
+        while result.has_more:
+            # todo: обернуть вызов self.client.databases.query в проверку и бэкофф
+            cursor = result.next_cursor
             result = BaseNotionResponse(
                 **await self._client.databases.query(
                     database_id=database.id,
-                    filter=filters or database.filter,
                     start_cursor=cursor,
                 )
             )
-            # todo: обернуть вызов self.client.databases.query в проверку и бэкофф
             complete_result.extend(result.results)
-
-            if result.has_more:
-                cursor = result.next_cursor
-                logger.info(f"{database.name}: Received {len(complete_result)} items")
-            else:
-                result.results = complete_result
-                logger.info(f"{database.name}: Received {len(complete_result)} items total.")
-                return result
+            logger.info(f"{database.name}: Received {len(complete_result)} items")
+        logger.info(f"{database.name}: Received {len(complete_result)} items total.")
+        return complete_result

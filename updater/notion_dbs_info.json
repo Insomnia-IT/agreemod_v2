@@ -1,0 +1,26 @@
+{
+  "get_people": {
+    "name": "get_people",
+    "id": "c565f5fca2df40628cd91cfd59da4a9d"
+  },
+  "get_locations": {
+    "name": "get_locations",
+    "id": "ea246f2445574f2c8815036b3f4cf12b"
+  },
+  "get_directions": {
+    "name": "get_directions",
+    "id": "52a27195784548828acf94b4024a9b29"
+  },
+  "get_participants": {
+    "name": "get_participants",
+    "id": "a74526e5620f4260b3bbd3b5e4c62b53"
+  },
+  "unnamed_badges": {
+    "name": "unnamed_badges",
+    "id": "dcb0ace1c2b04375ae68ceb33279d554"
+  },
+  "location_schedules": {
+    "name": "location_schedules",
+    "id": "805ad097114c4a77a8ee11361d68959a"
+  }
+}
