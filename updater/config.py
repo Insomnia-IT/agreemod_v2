@@ -1,14 +1,15 @@
 import logging
 import os
-import typing
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
 
 class NotionConfig(BaseSettings):
     token: str = Field(alias="token")
+
+    model_config = SettingsConfigDict(extra="ignore")
 
 
 class RedisConfig(BaseSettings):
@@ -24,8 +25,12 @@ class PostgresConfig(BaseSettings):
     password: str
     name: str
 
+    model_config = SettingsConfigDict(extra="ignore")
+
 
 print(os.path.curdir)
+
+
 class Config(BaseSettings):
     NOTION_DBS_INFO: str = "notion_dbs_info.json"
     DEBUG: bool = False
@@ -35,13 +40,8 @@ class Config(BaseSettings):
     postgres: PostgresConfig
     redis: RedisConfig
 
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=False,
-        env_nested_delimiter="__",
-        extra='ignore'
-    )
 
 config = Config()
 
