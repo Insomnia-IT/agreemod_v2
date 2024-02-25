@@ -7,7 +7,7 @@ from app.db.orm import PersonORM
 from app.models.person import Person
 
 
-class PersonRepository:
+class PersonRepo:
     def __init__(self, session: AsyncSession):
         self.session = session
 
