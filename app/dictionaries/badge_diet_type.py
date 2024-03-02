@@ -1,9 +1,9 @@
 from enum import StrEnum
 
 
-class BadgesDietType(StrEnum):
+class DietType(StrEnum):
     """
-    сделан для поля diet таблицы Badges app/models/badges.py
+    сделан для поля diet таблицы badge app/models/badge.py
     """
 
     USUAL = "Без особенностей"
@@ -14,3 +14,7 @@ class BadgesDietType(StrEnum):
         if self.name == "VEGAN":
             return True
         return False
+    
+    @classmethod
+    def default(cls):
+        return cls.USUAL

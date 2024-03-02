@@ -1,9 +1,9 @@
 from enum import StrEnum
 
 
-class BadgesFeedType(StrEnum):
+class FeedType(StrEnum):
     """
-    сделан для поля feed таблицы Badges app/models/badges.py
+    сделан для поля feed таблицы badge app/models/badge.py
     """
 
     FREE = "Бесплатно"
