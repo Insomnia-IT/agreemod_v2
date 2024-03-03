@@ -1,12 +1,17 @@
+import logging
+
 from sqlalchemy import delete, update
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.db.orm import DirectionORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.direction import Direction
+from app.errors import RepresentativeError
+
+logger = logging.getLogger(__name__)
 
 
 class DirectionRepo(BaseSqlaRepo):
@@ -18,11 +23,10 @@ class DirectionRepo(BaseSqlaRepo):
         new_direction = DirectionORM.to_orm(data)
         self.session.add(new_direction)
         try:
-            await self.session.commit()
-            await self.session.refresh(new_direction)
-        except SQLAlchemyError as e:
-            await self.session.rollback()
-            raise e
+            await self.session.flush([new_direction])
+        except IntegrityError as e:
+            logger.critical(e)
+            raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
         return new_direction
 
     def create_sync(self, data: Direction):
