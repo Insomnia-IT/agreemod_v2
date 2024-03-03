@@ -5,7 +5,6 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 
-
 class _Source(BaseModel):
     pointer: str | None = None
     parameter: str | None = None

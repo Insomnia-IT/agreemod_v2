@@ -4,10 +4,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import config
 
+
 PG_URL = (
     f"postgresql+asyncpg://{config.postgres.user}:{config.postgres.password}"
     f"@{config.postgres.host}:{config.postgres.port}/{config.postgres.name}"
 )
+PG_URL_MIGRATIONS = PG_URL.replace("asyncpg", "psycopg2")
 
 metadata = MetaData(
     naming_convention={
