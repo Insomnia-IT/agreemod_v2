@@ -1,4 +1,3 @@
-from sqlalchemy import delete, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -19,27 +18,30 @@ class PersonRepo:
         new_person = PersonORM(**data.dict())
         self.session.add(new_person)
         try:
-            await self.session.commit()
-            await self.session.refresh(new_person)
+            await self.session.flush([new_person])
         except SQLAlchemyError as e:
-            await self.session.rollback()
             raise e
         return new_person
 
     async def update(self, notion_id, data: Person):
-        await self.session.execute(
-            update(PersonORM).
-            where(PersonORM.notion_id == notion_id).
-            values(**data.dict())
+        result = await self.session.execute(
+            select(PersonORM).where(
+                PersonORM.notion_id == notion_id)
         )
-        await self.session.commit()
+        existing_person = result.scalar_one()
+
+        for key, value in data.dict().items():
+            setattr(existing_person, key, value)
+
+        await self.session.flush([existing_person])
 
     async def delete(self, notion_id):
-        await self.session.execute(
-            delete(PersonORM).
-            where(PersonORM.notion_id == notion_id)
-        )
-        await self.session.commit()
+        result = await self.session.execute(select(PersonORM).where(
+            PersonORM.notion_id == notion_id
+        ))
+        existing_person = result.scalar_one()
+        await self.session.delete(existing_person)
+        await self.session.flush([existing_person])
 
     async def retrieve(self, notion_id: str) -> Person | None:
         result = await self.session.execute(select(PersonORM).filter_by(notion_id=notion_id))
