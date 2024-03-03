@@ -34,11 +34,10 @@ class DirectionRepo(BaseSqlaRepo):
         Синхронная запись данных
         """
         self.session.add(DirectionORM.to_orm(data))
-        self.session.commit()
 
-    def delete_and_create(self, data: Direction):
+    def delete_and_create_sync(self, data: Direction):
         """
-        Синхронная запись данных с удалением старых данных
+        Синхронная запись данных с удалением старых
         """
         existing_direction = self.session.query(DirectionORM).filter_by(notion_id=data.notion_id).first()
 
@@ -46,7 +45,7 @@ class DirectionRepo(BaseSqlaRepo):
             self.session.delete(existing_direction)
 
         self.session.add(DirectionORM.to_orm(data))
-        self.session.commit()
+        self.session.flush([existing_direction])
 
     async def get_by_id(self, notion_id):
         result = await self.session.execute(select(DirectionORM).filter_by(notion_id=notion_id))
@@ -59,19 +58,19 @@ class DirectionRepo(BaseSqlaRepo):
         return None
 
     async def update(self, notion_id, data: Direction):
-        await self.session.execute(
-            update(DirectionORM).
-            where(DirectionORM.notion_id == notion_id).
-            values(**data.dict())
-        )
-        await self.session.commit()
+        result = await self.session.execute(select(DirectionORM).where(DirectionORM.notion_id == notion_id))
+        existing_direction = result.scalar_one()
+
+        for key, value in data.dict().items():
+            setattr(existing_direction, key, value)
+
+        await self.session.flush([existing_direction])
 
     async def delete(self, notion_id):
         await self.session.execute(
             delete(DirectionORM).
             where(DirectionORM.notion_id == notion_id)
         )
-        await self.session.commit()
 
     async def retrieve(self, uuid: str) -> Direction | None:
         result = await self.session.execute(select(DirectionORM).filter_by(notion_id=uuid))

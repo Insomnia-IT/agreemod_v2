@@ -27,7 +27,8 @@ def poll_notion_directions(client: Client):
             try:
                 data_raw = result["properties"]
                 data = Direction.from_notion_data(data_raw, result.get('id'))
-                repo.delete_and_create(data)
+                repo.delete_and_create_sync(data)
+                session.commit()
             except Exception as e:
                 logger.critical(e)
 
