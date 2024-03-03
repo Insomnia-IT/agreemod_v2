@@ -28,8 +28,8 @@ def poll_notion_directions(client: Client):
                 data_raw = result["properties"]
                 data = Direction.from_notion_data(data_raw, result.get('id'))
                 repo.delete_and_create_sync(data)
-                session.commit()
             except Exception as e:
                 logger.critical(e)
 
+        session.commit()
         logger.info("Notion direction table data was stored to db")
