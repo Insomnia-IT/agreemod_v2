@@ -1,15 +1,15 @@
 import logging
 
 from sqlalchemy import delete, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from app.db.orm import DirectionORM
 from app.db.repos.base import BaseSqlaRepo
-from app.models.direction import Direction
 from app.errors import RepresentativeError
+from app.models.direction import Direction
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,18 @@ class DirectionRepo(BaseSqlaRepo):
         """
         Синхронная запись данных
         """
+        self.session.add(DirectionORM.to_orm(data))
+        self.session.commit()
+
+    def delete_and_create(self, data: Direction):
+        """
+        Синхронная запись данных с удалением старых данных
+        """
+        existing_direction = self.session.query(DirectionORM).filter_by(notion_id=data.notion_id).first()
+
+        if existing_direction is not None:
+            self.session.delete(existing_direction)
+
         self.session.add(DirectionORM.to_orm(data))
         self.session.commit()
 

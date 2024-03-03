@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional, Union
 
 
 class Direction(BaseModel):
