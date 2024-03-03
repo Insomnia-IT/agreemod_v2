@@ -53,21 +53,21 @@ def get_app() -> FastAPI:
         version=config.version,
         description=config.DESCRIPTION,
     )
-    app.add_middleware(
-        Middleware(
-            CORSMiddleware,
-            allow_credentials=True,
-            allow_origins=config.cors_origins,
-            allow_origin_regex=config.cors_origin_regex,
-            allow_methods=config.cors_methods,
-            allow_headers=config.cors_headers,
-        )
-    )
-    app.add_middleware(Middleware(TrustedHostMiddleware, allowed_hosts=config.allowed_hosts))
-    # todo:
-    #   log user actions middleware: Middleware(LogUserActionMiddleware),
-    #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
-    app.add_middleware(Middleware(ServerErrorMiddleware, handler=server_error_handler))
+    # app.add_middleware(
+    #     Middleware(
+    #         CORSMiddleware,
+    #         allow_credentials=True,
+    #         allow_origins=config.cors_origins,
+    #         allow_origin_regex=config.cors_origin_regex,
+    #         allow_methods=config.cors_methods,
+    #         allow_headers=config.cors_headers,
+    #     )
+    # )
+    # app.add_middleware(Middleware(TrustedHostMiddleware, allowed_hosts=config.allowed_hosts))
+    # # todo:
+    # #   log user actions middleware: Middleware(LogUserActionMiddleware),
+    # #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
+    # app.add_middleware(Middleware(ServerErrorMiddleware, handler=server_error_handler))
 
     app.include_router(api_router, prefix=config.API_PREFIX)
 

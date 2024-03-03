@@ -9,7 +9,7 @@ class Direction(BaseModel):
     notion_id: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     @classmethod
     def from_notion_data(cls, data_raw, notion_id):
