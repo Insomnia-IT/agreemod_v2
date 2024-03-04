@@ -12,6 +12,8 @@ class DirectionType(StrEnum):
     FEDERAL_LOCATION = "Федеральная локация"
     GRANT_LOCATION = "Грантовая локация"
     COMMERCIAL_LOCATION = "Коммерческая локация"
+    LATERAL_LOCATION = "Сторонняя локация"
+    RESPONSIBILITY_AREA = "Зона ответственности"
 
     @property
     def is_federal(self) -> bool:

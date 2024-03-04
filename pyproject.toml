@@ -20,6 +20,8 @@ notion-client = "^2.2.1"
 traceback-with-variables = "^2.0.4"
 uvicorn = "^0.27.1"
 pydantic-settings = "^2.2.0"
+alembic-postgresql-enum = "^1.1.2"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.1"

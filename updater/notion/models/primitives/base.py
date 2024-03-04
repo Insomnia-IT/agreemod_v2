@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Any
 
 from pydantic import AnyUrl
 from pydantic import BaseModel as BaseModel
@@ -11,7 +12,7 @@ class BaseNotionModel(BaseModel, ABC):
 
     @property
     @abstractmethod
-    def value(self): ...
+    def value(self) -> Any: ...
 
 
 class Annotations(BaseModel):

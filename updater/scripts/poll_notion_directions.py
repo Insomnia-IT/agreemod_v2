@@ -1,35 +1,46 @@
+import asyncio
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+import pydantic
 
-from app.db.meta import PG_URL_MIGRATIONS
+from app.db.meta import async_session
 from app.db.repos.direction import DirectionRepo
 from app.models.direction import Direction
-from notion_client import Client
+from updater.config import config
+from updater.notion.client import NotionClient
+from updater.notion.models.direction import Direction as NotionDirection
+
 
 logger = logging.getLogger(__name__)
-engine = create_engine(PG_URL_MIGRATIONS)
 
 
-def poll_notion_directions(client: Client):
-    database_id = "0755cd9bb4ee4c09b70a2602f5ad6590"
-    response = client.databases.query(
-        **{
-            "database_id": database_id
-        }
-    )
+class NotionDatabase(pydantic.BaseModel):
+    id: str = "0755cd9bb4ee4c09b70a2602f5ad6590"
+    name: str = "directions"
+
+
+async def poll_notion_directions(client: NotionClient):
+    database = NotionDatabase()
+    response = await client.query_database(database=database)
 
     logger.info("Received notion directions table data")
-    with Session(engine) as session:
+    async with async_session() as session:
         repo = DirectionRepo(session)
-        for result in response["results"]:
+        for item in response:
+            notion_direction = NotionDirection(notion_id=item.id, **item.properties)
             try:
-                data_raw = result["properties"]
-                data = Direction.from_notion_data(data_raw, result.get('id'))
-                repo.delete_and_create_sync(data)
-            except Exception as e:
-                logger.critical(e)
-
-        session.commit()
+                data = client.convert_model(notion_direction, Direction)
+            except pydantic.ValidationError as e:
+                logger.error(e.errors())
+            exist = await repo.retrieve(data.notion_id.hex)
+            if exist is None:
+                await repo.create(data)
+            else:
+                await repo.update(data)
+        await session.commit()
         logger.info("Notion direction table data was stored to db")
+
+
+if __name__ == "__main__":
+    client = NotionClient(token=config.notion.token)
+    asyncio.run(poll_notion_directions(client))

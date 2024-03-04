@@ -6,6 +6,10 @@ from pydantic import AnyUrl, BaseModel
 from pydantic_settings import SettingsConfigDict
 
 
+class NotionModel(BaseModel):
+    notion_id: UUID
+
+
 class ObjectItem(BaseModel):
     id: UUID
     object: str

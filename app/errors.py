@@ -10,6 +10,7 @@ class _Source(BaseModel):
     parameter: str | None = None
     header: str | None = None
 
+
 class ErrorSource:
     pointer: str | None = None
     parameter: str | None = None

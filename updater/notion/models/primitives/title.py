@@ -17,7 +17,7 @@ class Title(BaseNotionModel):
 
     @computed_field
     @property
-    def value(self):
+    def value(self) -> str:
         return ", ".join(title.plain_text for title in self.title)
 
     def __str__(self):

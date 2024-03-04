@@ -26,6 +26,7 @@ class PostgresConfig(BaseModel):
     MIN_POOL_SIZE: int = 5
     MAX_POOL_SIZE: int = 10
 
+
 class Config(BaseSettings):
     TITLE: str = "Notion API & Integrations"
     DESCRIPTION: str = ""
@@ -67,12 +68,7 @@ class Config(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=False,
-        env_nested_delimiter="__",
-        extra='ignore'
-    )
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
 
     @property
     def version(self) -> str:

@@ -1,17 +1,18 @@
+import asyncio
+
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+import venusian
 
 from alembic import context
+from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.db.meta import Base, PG_URL_MIGRATIONS
-from app.db.orm import *
+from app import models
+from app.db.meta import metadata, PG_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", PG_URL_MIGRATIONS)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -22,16 +23,38 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata
+target_metadata = metadata
+venusian.Scanner().scan(models)
 
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+def do_run_migrations(connection):
+    context.configure(
+        transaction_per_migration=True,
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_server_default=True,
+        compare_type=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
 
 
-def run_migrations_offline() -> None:
+async def run_migrations_online():
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+    venusian.Scanner().scan(__import__("app"))
+
+    async_engine = create_async_engine(PG_URL)
+
+    async with async_engine.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+async def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -43,41 +66,18 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    venusian.Scanner().scan(__import__("app"))
     context.configure(
-        url=url,
+        url=PG_URL,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={"paramstyle": "named"}
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
-
-
 if context.is_offline_mode():
-    run_migrations_offline()
+    asyncio.run(run_migrations_offline())
 else:
-    run_migrations_online()
+    asyncio.run(run_migrations_online())
