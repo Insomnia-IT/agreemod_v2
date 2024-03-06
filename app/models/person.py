@@ -1,12 +1,13 @@
 from datetime import date
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.dictionaries.diet_type import DietType
+from app.models.base import DomainModel
 
 
-class Person(BaseModel):
+class Person(DomainModel):
     name: str
     last_name: str | None = None
     first_name: str | None = None
@@ -20,4 +21,3 @@ class Person(BaseModel):
     email: str | None = None
     diet: DietType = Field(default_factory=DietType.default)
     comment: str | None = None
-    notion_id: str

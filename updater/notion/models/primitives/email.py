@@ -9,5 +9,5 @@ class Email(BaseNotionModel):
 
     @computed_field
     @property
-    def value(self):
+    def value(self) -> str:
         return self.email

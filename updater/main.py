@@ -1,10 +1,10 @@
 import asyncio
 
+from notion_client import Client as NotionDefaultClient
+
 from updater.config import config, logger
 from updater.notion.client import NotionClient
 from updater.scripts.poll_notion_directions import poll_notion_directions
-
-from notion_client import Client as NotionDefaultClient
 
 
 class Updater:

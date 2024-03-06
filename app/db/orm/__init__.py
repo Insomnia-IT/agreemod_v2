@@ -1,3 +1,3 @@
-from .directions import DirectionORM
+from .badge import BadgeORM
+from .direction import DirectionORM
 from .person import PersonORM
-from .badge_orm import BadgeORM

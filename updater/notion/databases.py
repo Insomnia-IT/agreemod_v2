@@ -4,7 +4,7 @@ from typing import Type
 
 from pydantic import BaseModel
 
-from updater.notion.models.response import BaseNotionResponseItem
+from updater.notion.models.base import BaseNotionResponseItem
 
 
 _DATABASE_REGISTRY: dict[str, Type["NotionDatabase"]] = {}

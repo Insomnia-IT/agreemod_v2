@@ -1,12 +1,12 @@
-from pydantic import BaseModel
+from app.dictionaries.direction_type import DirectionType
+from app.models.base import DomainModel
 
 
-class Direction(BaseModel):
+class Direction(DomainModel):
     name: str | None = None
-    type: str | None = None
+    type: DirectionType | None = None
     first_year: int | None = None
     last_year: int | None = None
-    notion_id: str
 
     class Config:
         from_attributes = True
@@ -18,10 +18,4 @@ class Direction(BaseModel):
         first_year = data_raw.get("Год появления", {}).get("number")
         last_year = data_raw.get("Последний год", {}).get("number")
 
-        return cls(
-            name=name,
-            type=type_,
-            first_year=first_year,
-            last_year=last_year,
-            notion_id=notion_id
-        )
+        return cls(name=name, type=type_, first_year=first_year, last_year=last_year, notion_id=notion_id)

@@ -129,7 +129,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+.docker-volumes/
+.vscode/
 # Spyder project settings
 .spyderproject
 .spyproject

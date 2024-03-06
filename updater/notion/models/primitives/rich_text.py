@@ -16,5 +16,5 @@ class RichText(BaseNotionModel):
 
     @computed_field
     @property
-    def value(self):
+    def value(self) -> str:
         return "".join(rt.plain_text for rt in self.rich_text).strip()
