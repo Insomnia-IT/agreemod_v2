@@ -1,9 +1,7 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.dialects import postgresql
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped
 
 from app.db.meta import Base
-from app.dictionaries.direction_type import DirectionType
 from app.models.direction import Direction
 
 
@@ -19,7 +17,7 @@ class DirectionORM(Base):
     __tablename__ = "direction"
 
     name: Mapped[str] = Column(String, nullable=False)
-    type: Mapped[str] = Column(postgresql.ENUM(DirectionType))
+    type: Mapped[str] = Column(String, ForeignKey("direction_type.code"), nullable=False)
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)

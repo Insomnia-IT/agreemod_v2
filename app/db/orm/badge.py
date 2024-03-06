@@ -4,13 +4,9 @@
 from typing import Self
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Mapped
 
 from app.db.meta import Base
-from app.dictionaries.diet_type import DietType
-from app.dictionaries.feed_type import FeedType
-from app.dictionaries.participation_role import ParticipationRole
 from app.models.badge import Badge
 
 
@@ -33,12 +29,12 @@ class BadgeORM(Base):
     gender: Mapped[str] = Column(String)
     phone: Mapped[str] = Column(String)
     infant: Mapped[bool] = Column(Boolean)
-    diet: Mapped[str] = Column(postgresql.ENUM(DietType))
-    feed: Mapped[str] = Column(postgresql.ENUM(FeedType))
+    diet: Mapped[str] = Column(String)
+    feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    role: Mapped[str] = Column(postgresql.ENUM(ParticipationRole), nullable=False)
-    position: Mapped[str] = Column(String)
+    participation: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False)
+    role: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
     person: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
     direction: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
@@ -61,8 +57,8 @@ class BadgeORM(Base):
             feed=model.feed,
             number=model.number,
             batch=model.batch,
+            participation=model.participation,
             role=model.role,
-            position=model.position,
             photo=model.photo,
             person=model.person,
             direction=model.direction,
@@ -83,8 +79,8 @@ class BadgeORM(Base):
             feed=self.feed,
             number=self.number,
             batch=self.batch,
+            participation=self.participation,
             role=self.role,
-            position=self.position,
             photo=self.photo,
             person=self.person,
             direction=self.direction,
@@ -105,8 +101,8 @@ class BadgeORM(Base):
             f"feed='{self.feed}', "
             f"number='{self.number}', "
             f"batch='{self.batch}', "
+            f"participation='{self.participation}', "
             f"role='{self.role}', "
-            f"position='{self.position}', "
             f"photo='{self.photo}', "
             f"person='{self.person}', "
             f"direction='{self.direction}', "

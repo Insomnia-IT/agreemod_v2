@@ -2,12 +2,9 @@ from datetime import date
 from typing import Self
 
 from sqlalchemy import ARRAY, Column, Date, String
-from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped
 
 from app.db.meta import Base
-from app.dictionaries.diet_type import DietType
-from app.dictionaries.gender import Gender
 from app.models.person import Person
 
 
@@ -19,13 +16,13 @@ class PersonORM(Base):
     first_name: Mapped[str] = Column(String)
     nickname: Mapped[str] = Column(String)
     other_names: Mapped[list[str]] = Column(ARRAY(String))
-    gender: Mapped[str] = Column(ENUM(Gender))
+    gender: Mapped[str] = Column(String)
     birth_date: Mapped[date] = Column(Date)
     city: Mapped[str] = Column(String)
     telegram: Mapped[str] = Column(String)
     phone: Mapped[str] = Column(String)
     email: Mapped[str] = Column(String)
-    diet: Mapped[str] = Column(ENUM(DietType))
+    diet: Mapped[str] = Column(String)
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
 

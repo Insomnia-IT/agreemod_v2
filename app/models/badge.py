@@ -22,7 +22,7 @@ class Badge(DomainModel):
     number: str
     batch: int
     role: str
-    position: str | None = None
+    participation: str | None = None
     photo: str | None = None
     person: str | None = None
     direction: str | None = None
