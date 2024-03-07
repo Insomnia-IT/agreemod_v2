@@ -66,10 +66,5 @@ class DirectionRepo(BaseSqlaRepo):
         return [x.to_model() for x in result]
 
     async def retrieve_all(self) -> list[Direction]:
-        result = await self.session.execute(select(DirectionORM))
-        directions = result.scalars().all()
-        direction_models = []
-        for direction in directions:
-            direction_model = direction.to_model()
-            direction_models.append(direction_model)
-        return direction_models
+        result = await self.session.scalars(select(DirectionORM).options(joinedload(DirectionORM.direction_type)))
+        return [x.to_model() for x in result]

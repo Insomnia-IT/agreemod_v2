@@ -1,8 +1,3 @@
-# import sys
-# sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
-
-from uuid import UUID
-
 from pydantic import Field
 
 from app.dictionaries.diet_type import DietType
