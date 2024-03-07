@@ -1,6 +1,6 @@
 import asyncio
 import logging
-
+import venusian
 import pydantic
 
 from app.db.meta import async_session
@@ -20,6 +20,8 @@ class NotionDatabase(pydantic.BaseModel):
 
 
 async def poll_notion_directions(client: NotionClient):
+    venusian.Scanner().scan(__import__("app"))
+
     database = NotionDatabase()
     response = await client.query_database(database=database)
 

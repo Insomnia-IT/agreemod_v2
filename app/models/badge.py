@@ -1,10 +1,13 @@
 # import sys
 # sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
 
+from uuid import UUID
 from pydantic import Field
 
 from app.dictionaries.diet_type import DietType
 from app.dictionaries.feed_type import FeedType
+from app.dictionaries.participation_role import ParticipationRole
+from app.dictionaries.participation_type import ParticipationType
 from app.models.base import DomainModel
 
 
@@ -21,9 +24,9 @@ class Badge(DomainModel):
     feed: FeedType | None = None
     number: str
     batch: int
-    role: str
-    participation: str | None = None
+    role: ParticipationRole | None
+    participation: ParticipationType
     photo: str | None = None
-    person: str | None = None
-    direction: str | None = None
+    person: UUID | None = None
+    direction: UUID | None = None
     comment: str | None = None

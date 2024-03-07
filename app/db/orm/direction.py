@@ -35,7 +35,7 @@ class DirectionORM(Base):
     def to_orm(cls, model: Direction):
         return cls(
             name=model.name,
-            type=model.type,
+            type=model.type.name,
             first_year=model.first_year,
             last_year=model.last_year,
             notion_id=model.notion_id.hex,
