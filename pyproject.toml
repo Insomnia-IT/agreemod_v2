@@ -9,7 +9,7 @@ packages = [{include = "agreemod_v2"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.109.2"
-SQLAlchemy = "^2.0.27"
+SQLAlchemy = {extras = ["asyncio"], version = "^2.0.27"}
 asyncpg = "^0.29.0"
 alembic = "^1.13.1"
 venusian = "^3.1.0"
