@@ -4,9 +4,13 @@
 from typing import Self
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 
 from app.db.meta import Base
+from app.db.orm.dictionaries.participation_role import ParticipationRoleORM
+from app.db.orm.dictionaries.participation_type import ParticipationTypeORM
+from app.db.orm.direction import DirectionORM
+from app.db.orm.person import PersonORM
 from app.models.badge import Badge
 
 
@@ -33,15 +37,20 @@ class BadgeORM(Base):
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    participation: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False)
-    role: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
+    participation_code: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False)
+    role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
-    person: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
-    direction: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
+    person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
+    direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
 
     _unique_constraint = UniqueConstraint(number)
+
+    participation: Mapped[ParticipationTypeORM] = relationship("ParticipationTypeORM")
+    role: Mapped[ParticipationRoleORM] = relationship("ParticipationRoleORM")
+    person: Mapped[PersonORM] = relationship("PersonORM")
+    direction: Mapped[DirectionORM] = relationship("DirectionORM")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -79,11 +88,11 @@ class BadgeORM(Base):
             feed=self.feed,
             number=self.number,
             batch=self.batch,
-            participation=self.participation,
-            role=self.role,
+            participation=self.participation.name,
+            role=self.role.name,
             photo=self.photo,
-            person=self.person,
-            direction=self.direction,
+            person=self.person.to_model(),
+            direction=self.direction.to_model(),
             comment=self.comment,
             notion_id=self.notion_id,
         )
@@ -101,11 +110,11 @@ class BadgeORM(Base):
             f"feed='{self.feed}', "
             f"number='{self.number}', "
             f"batch='{self.batch}', "
-            f"participation='{self.participation}', "
-            f"role='{self.role}', "
+            f"participation='{self.participation.name}', "
+            f"role='{self.role.name}', "
             f"photo='{self.photo}', "
-            f"person='{self.person}', "
-            f"direction='{self.direction}', "
+            f"person='{self.person.name}', "
+            f"direction='{self.direction.name}', "
             f"comment='{self.comment}', "
             f"notion_id='{self.notion_id}')"
         )

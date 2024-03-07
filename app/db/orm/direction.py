@@ -1,7 +1,8 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 
 from app.db.meta import Base
+from app.db.orm.dictionaries.direction_type import DirectionTypeORM
 from app.models.direction import Direction
 
 
@@ -21,6 +22,8 @@ class DirectionORM(Base):
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+
+    direction_type: Mapped[DirectionTypeORM] = relationship("DirectionTypeORM")
 
     def __repr__(self):
         return (
@@ -44,7 +47,7 @@ class DirectionORM(Base):
     def to_model(self) -> Direction:
         return Direction(
             name=self.name,
-            type=self.type,
+            type=self.direction_type.name,
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,

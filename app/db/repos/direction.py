@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 from app.db.orm import DirectionORM
 from app.db.repos.base import BaseSqlaRepo
@@ -43,7 +44,9 @@ class DirectionRepo(BaseSqlaRepo):
     #     self.session.flush([existing_direction])
 
     async def retrieve(self, notion_id):
-        result = await self.session.scalar(select(DirectionORM).filter_by(notion_id=notion_id))
+        result = await self.session.scalar(
+            select(DirectionORM).filter_by(notion_id=notion_id).options(joinedload(DirectionORM.direction_type))
+        )
         if result is None:
             return None
         return result.to_model()
@@ -57,7 +60,9 @@ class DirectionRepo(BaseSqlaRepo):
         await self.session.execute(delete(DirectionORM).where(DirectionORM.notion_id == notion_id))
 
     async def retrieve_many(self, filters: dict = None) -> list[Direction]:
-        result = await self.session.scalars(select(DirectionORM).filter_by(**filters))
+        result = await self.session.scalars(
+            select(DirectionORM).filter_by(**filters).options(joinedload(DirectionORM.direction_type))
+        )
         return [x.to_model() for x in result]
 
     async def retrieve_all(self) -> list[Direction]:

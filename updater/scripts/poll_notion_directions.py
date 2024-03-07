@@ -1,7 +1,8 @@
 import asyncio
 import logging
-import venusian
+
 import pydantic
+import venusian
 
 from app.db.meta import async_session
 from app.db.repos.direction import DirectionRepo
