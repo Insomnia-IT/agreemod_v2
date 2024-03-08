@@ -64,6 +64,8 @@ class Config(BaseSettings):
     DEFAULT_ADMIN_LOGIN: str
     DEFAULT_ADMIN_PASSWORD: str
 
+    TELEBOT_TOKEN: str = ""
+
     API_PREFIX: str = "/api/v1"
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
