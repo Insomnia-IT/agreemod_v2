@@ -15,6 +15,12 @@ class PersonRepo(BaseSqlaRepo[PersonORM]):
             return None
         return result.to_model()
 
+    async def retrieve_by_telegram(self, telegram_username) -> Person:
+        result = await self.session.scalar(select(PersonORM).filter_by(telegram=telegram_username))
+        if result is None:
+            return None
+        return result.to_model()
+
     async def create(self, data: Person):
         new_person = PersonORM.to_orm(data)
         self.session.add(new_person)

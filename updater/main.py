@@ -3,6 +3,7 @@ import asyncio
 from updater.config import config, logger
 from updater.notion.client import NotionClient
 from updater.scripts.poll_notion_directions import poll_notion_directions
+from updater.scripts.poll_notion_persons import poll_notion_person
 
 
 class Updater:
@@ -11,7 +12,14 @@ class Updater:
         self.notion = notion
 
     async def run(self):
+        await self.poll_directions()
+        await self.poll_persons()
+
+    async def poll_directions(self):
         await poll_notion_directions(self.notion)
+
+    async def poll_persons(self):
+        await poll_notion_person(self.notion)
 
 
 async def main():
