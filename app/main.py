@@ -17,9 +17,7 @@ from traceback_with_variables import print_exc
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 
-
 logger = logging.getLogger(__name__)
-
 
 api_router = APIRouter()
 
@@ -45,6 +43,7 @@ def get_app() -> FastAPI:
     docs_url = f"{config.API_PREFIX}/_docs" if config.DEBUG else None
     redoc_url = f"{config.API_PREFIX}/_redoc" if config.DEBUG else None
 
+    logger.info(f"doc url: {docs_url}")
     app = FastAPI(
         title=config.TITLE,
         debug=config.DEBUG,

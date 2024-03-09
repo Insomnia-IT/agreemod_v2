@@ -4,16 +4,16 @@ from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.main import api_router
+from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
-
 
 router = APIRouter()
 
 
 def _get_person_filters_dto(
-    telegram: str | None = Q("Ник в Телеграм", None),
-    phone_number: str | None = Q("Номер телефона", None),
-    email: str | None = Q("Почта", None),
+        telegram: str | None = Q("Ник в Телеграм", None),
+        phone_number: str | None = Q("Номер телефона", None),
+        email: str | None = Q("Почта", None),
 ) -> PersonFiltersDTO:
     return PersonFiltersDTO(
         telegram=telegram,
@@ -23,16 +23,25 @@ def _get_person_filters_dto(
 
 
 @router.get(
+    "/persons",
+    summary="Список всех служб и локаций",
+    response_model=list[Person],
+)
+async def get_directions(repo: PersonRepo = Depends(get_sqla_repo(PersonRepo))):
+    return await repo.retrieve_all()
+
+
+@router.get(
     "/contacts",
     summary="Поиск в базе контактов оргов и волонтёров",
     response_model=list[PersonResponseSchema],
 )
 async def get_orgs_and_volunteers(
-    filters: PersonFiltersDTO = Depends(_get_person_filters_dto),
-    order_by: str = Q("Поле сортировки", "nickname"),
-    limit: int = Q("Количество записей на одной странице", 20),
-    offset: int = Q("Смещение от начала", 0),
-    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+        filters: PersonFiltersDTO = Depends(_get_person_filters_dto),
+        order_by: str = Q("Поле сортировки", "nickname"),
+        limit: int = Q("Количество записей на одной странице", 20),
+        offset: int = Q("Смещение от начала", 0),
+        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
 
