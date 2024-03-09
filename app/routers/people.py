@@ -24,7 +24,7 @@ def _get_person_filters_dto(
 
 @router.get(
     "/persons",
-    summary="Список всех служб и локаций",
+    summary="Человеки",
     response_model=list[Person],
 )
 async def get_directions(
