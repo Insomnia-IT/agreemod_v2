@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
@@ -27,8 +27,12 @@ def _get_person_filters_dto(
     summary="Список всех служб и локаций",
     response_model=list[Person],
 )
-async def get_directions(repo: PersonRepo = Depends(get_sqla_repo(PersonRepo))):
-    return await repo.retrieve_all()
+async def get_directions(
+        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+        page: int = Query(1, alias="page"),
+        page_size: int = Query(10, alias="page_size")
+):
+    return await repo.retrieve_all(page=page, page_size=page_size)
 
 
 @router.get(

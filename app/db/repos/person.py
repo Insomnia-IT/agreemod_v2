@@ -18,8 +18,11 @@ class PersonRepo(BaseSqlaRepo[PersonORM]):
             return None
         return result.to_model()
 
-    async def retrieve_all(self) -> List[Person]:
-        results = await self.session.scalars(select(PersonORM))
+    async def retrieve_all(self, page: int, page_size: int) -> List[Person]:
+        offset = (page - 1) * page_size
+        results = await self.session.scalars(
+            select(PersonORM).limit(page_size).offset(offset)
+        )
         if not results:
             return []
         return [result.to_model() for result in results]
