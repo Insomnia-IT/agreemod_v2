@@ -27,7 +27,7 @@ class ArrivalORM(Base):
 
     __tablename__ = "arrival"
     id: Mapped[int] = Column(Integer, primary_key=True)
-    badge: Mapped[str] = Column(String, ForeignKey("badge.number"), nullable=False)
+    badge: Mapped[str] = Column(String, ForeignKey("badge.notion_id"), nullable=False)
     arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
     arrival_registered: Mapped[time] = Column(TIMESTAMP)
@@ -42,7 +42,7 @@ class ArrivalORM(Base):
 
     def __repr__(self):
         return (
-            f"badge='{self.badge.number}', "
+            f"badge='{self.badge.notion_id}', "
             f"arrival_date='{self.arrival_date}', "
             f"arrival_transport='{self.transport_type.code}', "
             f"arrival_registered='{self.arrival_registered}', "
@@ -56,7 +56,7 @@ class ArrivalORM(Base):
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
         return cls(
-            badge=model.badge.number,
+            badge=model.badge.notion_id,
             arrival_date=model.arrival_date,
             arrival_transport=model.transport_type.name,
             arrival_registered=model.arrival_registered,
@@ -69,7 +69,7 @@ class ArrivalORM(Base):
 
     def to_model(self) -> Arrival:
         return Arrival(
-            badge=self.badge.number,
+            badge=self.badge.notion_id,
             arrival_date=self.arrival_date,
             arrival_transport=self.transport_type.name,
             arrival_registered=self.arrival_registered,
