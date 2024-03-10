@@ -65,7 +65,7 @@ class Config(BaseSettings):
     DEFAULT_ADMIN_PASSWORD: str
 
     API_PREFIX: str = "/api/v1"
-    API_HOST: str = "0.0.0.0"
+    API_HOST: str = "127.0.0.1"
     API_PORT: int = 8000
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
