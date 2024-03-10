@@ -1,8 +1,8 @@
 from datetime import date, time
 from app.dictionaries.transport_type import TransportType
-from app.models.base import DomainModel
+from pydantic import BaseModel
 
-class Arrival(DomainModel):
+class Arrival(BaseModel):
 
     badge: str
     arrival_date: date
@@ -13,6 +13,3 @@ class Arrival(DomainModel):
     departure_registered: time | None = None
     extra_data: dict | None = None
     comment: str | None = None
-
-    class Config:
-        from_attributes = True

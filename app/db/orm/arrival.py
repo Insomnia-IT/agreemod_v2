@@ -1,6 +1,7 @@
 from typing import Self
+from datetime import date, time
 
-from sqlalchemy import Column, ForeignKey, Integer, String, Date, TIMESTAMP, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, TIMESTAMP
 from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -25,17 +26,16 @@ class ArrivalORM(Base):
     """
 
     __tablename__ = "arrival"
-    badge: Mapped[str] = Column(String, ForeignKey("badge.number"), primary_key=True, nullable=False)
-    arrival_date: Mapped[Date] = Column(Date, nullable=False)
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    badge: Mapped[str] = Column(String, ForeignKey("badge.number"), nullable=False)
+    arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
-    arrival_registered: Mapped[TIMESTAMP] = Column(TIMESTAMP)
-    departure_date: Mapped[Date] = Column(Date, nullable=False)
+    arrival_registered: Mapped[time] = Column(TIMESTAMP)
+    departure_date: Mapped[date] = Column(Date, nullable=False)
     departure_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
-    departure_registered: Mapped[TIMESTAMP] = Column(TIMESTAMP)
+    departure_registered: Mapped[time] = Column(TIMESTAMP)
     extra_data: Mapped[dict|list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
-
-    # _unique_constraint = UniqueConstraint()
 
     transport_type: Mapped[TransportTypeORM] = relationship("TransportTypeORM")
 
@@ -58,10 +58,10 @@ class ArrivalORM(Base):
         return cls(
             badge=model.badge.number,
             arrival_date=model.arrival_date,
-            arrival_transport=model.transport_type.code,
+            arrival_transport=model.transport_type.name,
             arrival_registered=model.arrival_registered,
             departure_date=model.departure_date,
-            departure_transport=model.transport_type.code,
+            departure_transport=model.transport_type.name,
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
@@ -71,10 +71,10 @@ class ArrivalORM(Base):
         return Arrival(
             badge=self.badge.number,
             arrival_date=self.arrival_date,
-            arrival_transport=self.transport_type.code,
+            arrival_transport=self.transport_type.name,
             arrival_registered=self.arrival_registered,
             departure_date=self.departure_date,
-            departure_transport=self.transport_type.code,
+            departure_transport=self.transport_type.name,
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,
