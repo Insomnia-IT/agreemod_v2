@@ -3,7 +3,6 @@ from typing import List
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
 
 from app.db.orm import PersonORM
 from app.db.repos.base import BaseSqlaRepo
@@ -20,9 +19,7 @@ class PersonRepo(BaseSqlaRepo[PersonORM]):
 
     async def retrieve_all(self, page: int, page_size: int) -> List[Person]:
         offset = (page - 1) * page_size
-        results = await self.session.scalars(
-            select(PersonORM).limit(page_size).offset(offset)
-        )
+        results = await self.session.scalars(select(PersonORM).limit(page_size).offset(offset))
         if not results:
             return []
         return [result.to_model() for result in results]

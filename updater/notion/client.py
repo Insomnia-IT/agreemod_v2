@@ -11,21 +11,19 @@ from updater.notion.databases import NotionDatabase
 from updater.notion.models.base import BaseNotionResponse, BaseNotionResponseItem, NotionModel
 from updater.notion.models.primitives.base import BaseNotionModel
 
+
 logger = logging.getLogger("NotionDatabase")
 
 
 class NotionClient:
     def __init__(
-            self,
-            token: str,
+        self,
+        token: str,
     ):
         self._client = AsyncClient(auth=token)
 
     async def query_database(
-            self,
-            database: NotionDatabase,
-            filters: dict = None,
-            mock=False
+        self, database: NotionDatabase, filters: dict = None, mock=False
     ) -> list[BaseNotionResponseItem]:
         """
         Метод читает данные из таблиц Notion.
@@ -86,7 +84,7 @@ class NotionClient:
     def load_mocked_persons():
         mock_path = os.path.join("mocks", "notion_response_persons.pickle")
         if os.path.exists(mock_path):
-            with open(mock_path, 'rb') as f:
+            with open(mock_path, "rb") as f:
                 return pickle.load(f)
         else:
             return None
@@ -94,5 +92,5 @@ class NotionClient:
     @staticmethod
     def save_persons_mock(data):
         mock_path = os.path.join("mocks", "notion_response_persons.pickle")
-        with open(mock_path, 'wb') as f:
+        with open(mock_path, "wb") as f:
             pickle.dump(data, f)

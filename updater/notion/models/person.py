@@ -1,8 +1,10 @@
 import datetime
 
-from pydantic import Field
+from pydantic import ConfigDict, Field, field_validator
 
+from app.dictionaries.diet_type import DietType
 from updater.notion.models.base import NotionModel
+
 
 all_keys = [
     "Как звать",
@@ -22,6 +24,8 @@ all_keys = [
 
 
 class Person(NotionModel):
+    model_config = ConfigDict(extra="ignore")
+
     name: str | None = Field(..., alias="Как звать")
     last_name: str | None = Field(..., alias="Фамилия")
     first_name: str | None = Field(..., alias="Имя")
@@ -33,89 +37,53 @@ class Person(NotionModel):
     telegram: str | None = Field(..., alias="Telegram")
     phone: str | None = Field(..., alias="Телефон")
     email: str | None = Field(..., alias="Email")
-    diet: str | None = Field(..., alias="Питание 2023")
+    diet: DietType = Field(DietType.default, alias="Питание 2023")
     comment: str | None = Field(..., alias="Коммент")
 
+    @field_validator("*", mode="before", check_fields=False)
     @classmethod
-    def from_notion(cls, notion_id, data: dict) -> 'Person':
-        data_for_model = {}
-        for key in all_keys:
-            key_data = data.get(key)
-            extracted = cls.process_key_data(key, key_data)
-            data_for_model[key] = extracted
+    def process_key_data(cls, v, field):
+        field_name = field.field_name
 
-        return cls(**data_for_model, notion_id=notion_id)
+        if field_name == "notion_id":
+            return v
 
-    @classmethod
-    def process_key_data(cls, key, value):
-        match key:
+        if field_name == "name":
+            return cls.extract_title(v)
 
-            case "Как звать":
-                return cls.extract_title(value)
+        if field_name == "birth_date":
+            date_raw = v.get("date")
+            date_str = date_raw.get("start") if date_raw else None
+            return datetime.datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else None
 
-            case "Фамилия":
-                return cls.extract_rich_text(value)
+        if field_name == "telegram":
+            return cls.extract_rich_text_telegram(v)
 
-            case "Имя":
-                return cls.extract_rich_text(value)
+        if field_name == "diet":
+            if isinstance(v, str):
+                if v.lower() == "с мясом":
+                    return DietType.STANDARD.value
+                elif v.lower() == "без мяса":
+                    return DietType.VEGAN.value
+            else:
+                return DietType.STANDARD.value
 
-            case "Позывной":
-                return cls.extract_rich_text(value)
-
-            case "Другие прозвища":
-                return cls.extract_rich_text(value)
-
-            case "Пол":
-                return cls.extract_rich_text(value)
-
-            case "Дата рождения":
-                date_raw = value.get("date")
-                if date_raw:
-                    date_str = date_raw.get("start")
-                    date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-                else:
-                    date = None
-                return date
-
-            case "Город":
-                return cls.extract_rich_text(value)
-
-            case "Telegram":
-                return cls.extract_rich_text_telegram(value)
-
-            case "Телефон":
-                result = value.get("phone_number", None)
-                return result
-
-            case "Email":
-                result = value.get("email", None)
-                return result
-
-            case "Питание 2023":
-                return cls.extract_rich_text(value)
-
-            case "Коммент":
-                return cls.extract_rich_text(value)
+        return cls.extract_rich_text(v)
 
     @staticmethod
     def extract_rich_text(data):
         result = data.get("rich_text")
-        if result:
-            result = result[0].get("plain_text", None)
-        else:
-            result = None
-        return result
+        return result[0].get("plain_text") if result else None
 
     @staticmethod
     def extract_rich_text_telegram(data):
         result = data.get("rich_text")
         if result:
-            result = result[0].get("plain_text", None)
+            result = result[0].get("plain_text")
             if result.startswith("@"):
                 result = result[1:]
-        else:
-            result = None
-        return result
+            return result
+        return None
 
     @staticmethod
     def extract_title(data):
@@ -125,6 +93,3 @@ class Person(NotionModel):
         else:
             result = None
         return result
-
-    class Config:
-        extra = "ignore"

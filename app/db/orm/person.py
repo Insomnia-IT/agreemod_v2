@@ -64,23 +64,20 @@ class PersonORM(Base):
         )
 
     def to_model(self) -> Person:
-        try:
-            person = Person(
-                name=self.name,
-                last_name=self.last_name,
-                first_name=self.first_name,
-                nickname=self.nickname,
-                other_names=self.other_names,
-                gender=self.gender,
-                birth_date=self.birth_date,
-                city=self.city,
-                telegram=self.telegram,
-                phone=self.phone,
-                email=self.email,
-                diet=self.diet,
-                comment=self.comment,
-                notion_id=self.notion_id,
-            )
-            return person
-        except Exception as e:
-            raise e
+        person = Person(
+            name=self.name,
+            last_name=self.last_name,
+            first_name=self.first_name,
+            nickname=self.nickname,
+            other_names=self.other_names,
+            gender=self.gender,
+            birth_date=self.birth_date,
+            city=self.city,
+            telegram=self.telegram,
+            phone=self.phone,
+            email=self.email,
+            diet=self.diet,
+            comment=self.comment,
+            notion_id=self.notion_id,
+        )
+        return person

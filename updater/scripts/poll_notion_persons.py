@@ -10,6 +10,7 @@ from updater.config import config
 from updater.notion.client import NotionClient
 from updater.notion.models.person import Person as NotionPerson
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +29,7 @@ async def poll_notion_person(client: NotionClient):
     async with async_session() as session:
         repo = PersonRepo(session)
         for item in response:
-            notion_person = NotionPerson.from_notion(item.id, item.properties)
+            notion_person = NotionPerson(notion_id=item.id, **item.properties)
             exist = await repo.retrieve(notion_person.notion_id.hex)
             if not notion_person.name:
                 continue
