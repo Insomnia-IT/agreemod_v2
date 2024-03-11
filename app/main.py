@@ -12,7 +12,6 @@ from traceback_with_variables import print_exc
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 
-
 logger = logging.getLogger(__name__)
 
 api_router = APIRouter()
@@ -66,11 +65,15 @@ def get_app() -> FastAPI:
     return app
 
 
-if __name__ == "__main__":
+def run_api():
     uvicorn.run(
         "app.main:get_app",
         factory=True,
         host=config.API_HOST,
         port=config.API_PORT,
-        reload=True,
+        reload=config.DEBUG,
     )
+
+
+if __name__ == "__main__":
+    run_api()

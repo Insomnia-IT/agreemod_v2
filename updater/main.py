@@ -35,5 +35,9 @@ async def main():
         await asyncio.sleep(config.REFRESH_PERIOD)
 
 
-if __name__ == "__main__":
+def run_updater_async():
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run_updater_async()
