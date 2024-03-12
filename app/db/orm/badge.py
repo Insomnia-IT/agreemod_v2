@@ -1,6 +1,3 @@
-# import sys
-# sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
-
 from typing import Self
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint

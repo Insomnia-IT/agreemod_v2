@@ -21,7 +21,6 @@ class Updater:
     async def poll_persons(self):
         await poll_notion_person(self.notion)
 
-
 async def main():
     notion = NotionClient(token=config.notion.token)
     updater = Updater(notion=notion)
