@@ -6,3 +6,6 @@ per-file-ignores =
 extend-ignore =
     # multiple statements on one line (colon)
     E701
+exclude =
+    .venv
+    venv

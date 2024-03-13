@@ -1,5 +1,6 @@
-from pydantic import BaseModel, computed_field
+from datetime import date
 
+from pydantic import BaseModel, computed_field
 from updater.notion.models.primitives.base import BaseNotionModel
 
 
@@ -15,4 +16,4 @@ class Date(BaseNotionModel):
     @computed_field
     @property
     def value(self) -> str | None:
-        return self.date.start if self.date else None
+        return date.fromisoformat(self.date.start) if self.date else None

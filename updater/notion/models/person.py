@@ -1,9 +1,14 @@
-import datetime
+from typing import Literal
 
-from pydantic import ConfigDict, Field, field_validator
-
-from app.dictionaries.diet_type import DietType
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from updater.notion.models.base import NotionModel
+from updater.notion.models.primitives.checkbox import Checkbox
+from updater.notion.models.primitives.date import Date
+from updater.notion.models.primitives.email import Email
+from updater.notion.models.primitives.phone_number import PhoneNumber
+from updater.notion.models.primitives.rich_text import RichText
+from updater.notion.models.primitives.select import Select
+from updater.notion.models.primitives.title import Title
 
 
 all_keys = [
@@ -26,70 +31,65 @@ all_keys = [
 class Person(NotionModel):
     model_config = ConfigDict(extra="ignore")
 
-    name: str | None = Field(..., alias="Как звать")
-    last_name: str | None = Field(..., alias="Фамилия")
-    first_name: str | None = Field(..., alias="Имя")
-    nickname: str | None = Field(..., alias="Позывной")
-    other_names: str | None = Field(..., alias="Другие прозвища")
-    gender: str | None = Field(..., alias="Пол")
-    birth_date: datetime.date | None = Field(..., alias="Дата рождения")
-    city: str | None = Field(..., alias="Город")
-    telegram: str | None = Field(..., alias="Telegram")
-    phone: str | None = Field(..., alias="Телефон")
-    email: str | None = Field(..., alias="Email")
-    diet: DietType = Field(DietType.default, alias="Питание 2023")
-    comment: str | None = Field(..., alias="Коммент")
+    name: Title = Field(..., alias="Как звать")
+    last_name: RichText | None = Field(..., alias="Фамилия")
+    first_name: RichText | None = Field(..., alias="Имя")
+    nickname: RichText | None = Field(..., alias="Позывной")
+    other_names: RichText | None = Field(..., alias="Другие прозвища")
+    gender: Select | None = Field(..., alias="Пол")
+    birth_date: Date | None = Field(..., alias="Дата рождения")
+    city: Select | None = Field(..., alias="Город")
+    telegram: RichText | None = Field(..., alias="Telegram")
+    phone: PhoneNumber | None = Field(..., alias="Телефон")
+    email: Email | None = Field(..., alias="Email")
+    diet: Literal["с мясом", "без мяса"] = "с мясом"
+    comment: RichText | None = Field(..., alias="Коммент")
+    is_vegan_: Checkbox = Field(..., alias="Веган")
 
-    @field_validator("*", mode="before", check_fields=False)
+    @field_validator("name")
     @classmethod
-    def process_key_data(cls, v, field):
-        field_name = field.field_name
+    def name_strip_spaces(cls, value: Title):
+        for t in value.title:
+            t.plain_text = t.plain_text.strip()
+        return value
 
-        if field_name == "notion_id":
-            return v
+    @field_validator("phone")
+    @classmethod
+    def format_phone(cls, value: PhoneNumber):
+        if not value.phone_number:
+            return value
+        value.phone_number = (
+            value.phone_number.replace(" ", "")
+            .replace("-", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
+        if value.phone_number[0] == "8":
+            value.phone_number = "+7" + value.phone_number[1:]
+        elif value.phone_number[0] == "9":
+            value.phone_number = "+7" + value.phone_number
+        return value
 
-        if field_name == "name":
-            return cls.extract_title(v)
+    @field_validator("gender")
+    @classmethod
+    def format_gender(cls, value: Select):
+        if value.select:
+            if value.select.name.lower() in ["ж", "женский", "f", "female"]:
+                value.select.name = "женский"
+            elif value.select.name.lower() in ["м", "мужской", "m", "male"]:
+                value.select.name = "мужской"
+        return value
 
-        if field_name == "birth_date":
-            date_raw = v.get("date")
-            date_str = date_raw.get("start") if date_raw else None
-            return datetime.datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else None
+    @field_validator("telegram")
+    @classmethod
+    def format_telegram(cls, value: RichText):
+        for t in value.rich_text:
+            if t.plain_text and t.plain_text[0] != "@":
+                t.plain_text = "@" + t.plain_text
+        return value
 
-        if field_name == "telegram":
-            return cls.extract_rich_text_telegram(v)
-
-        if field_name == "diet":
-            if isinstance(v, str):
-                if v.lower() == "с мясом":
-                    return DietType.STANDARD.value
-                elif v.lower() == "без мяса":
-                    return DietType.VEGAN.value
-            else:
-                return DietType.STANDARD.value
-
-        return cls.extract_rich_text(v)
-
-    @staticmethod
-    def extract_rich_text(data):
-        result = data.get("rich_text")
-        return result[0].get("plain_text") if result else None
-
-    @staticmethod
-    def extract_rich_text_telegram(data):
-        result = data.get("rich_text")
-        if result:
-            result = result[0].get("plain_text")
-            if result.startswith("@"):
-                result = result[1:]
-            return result
-        return None
-
-    @staticmethod
-    def extract_title(data):
-        result = data.get("title")
-        if result:
-            result = result[0].get("plain_text", None)
-        else:
-            result = None
-        return result
+    @model_validator(mode="after")
+    def is_vegan(self):
+        if self.is_vegan_.checkbox is True:
+            self.diet = "без мяса"
+        return self

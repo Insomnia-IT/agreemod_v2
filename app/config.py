@@ -11,12 +11,6 @@ class NotionConfig(BaseModel):
     write_token: str = Field(alias="write_token")
 
 
-class RedisConfig(BaseModel):
-    host: str
-    port: int
-    password: str
-
-
 class PostgresConfig(BaseModel):
     host: str
     port: str
@@ -57,7 +51,6 @@ class Config(BaseSettings):
 
     notion: NotionConfig
     postgres: PostgresConfig
-    redis: RedisConfig
 
     ROUTER_GET_QUERY_CACHE_TIMEOUT: int = 15
 
@@ -70,11 +63,15 @@ class Config(BaseSettings):
     API_HOST: str = "127.0.0.1"
     API_PORT: int = 8000
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+    )
 
     @property
     def version(self) -> str:
-        return ".".join(map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION]))
+        return ".".join(
+            map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION])
+        )
 
 
 config = Config()

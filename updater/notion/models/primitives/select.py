@@ -1,5 +1,4 @@
 from pydantic import BaseModel, computed_field
-
 from updater.notion.models.primitives.base import BaseNotionModel
 
 
@@ -15,7 +14,7 @@ class Select(BaseNotionModel):
     @computed_field
     @property
     def value(self) -> str:
-        return self.select.name if self.select else ""
+        return self.select.name if self.select else None
 
     @computed_field
     @property

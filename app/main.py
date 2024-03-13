@@ -12,6 +12,7 @@ from traceback_with_variables import print_exc
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 
+
 logger = logging.getLogger(__name__)
 
 api_router = APIRouter()

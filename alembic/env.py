@@ -8,7 +8,7 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app import models
-from app.db.meta import metadata, PG_URL
+from db.meta import metadata, PG_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

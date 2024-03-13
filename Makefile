@@ -1,22 +1,22 @@
 run-db:
-	docker compose -f docker-compose_local_db.yml up -d
+	docker compose -f docker-compose.yml up -d
 
 stop-db:
-	docker compose -f docker-compose_local_db.yml down
+	docker compose -f docker-compose.yml down
 
 run:
-	poetry run python -m app.main
+	cd app && poetry run python -m app.main
 
 migrate:
-	poetry run alembic upgrade head
+	cd app && poetry run alembic upgrade head
 
 flake8:
-	poetry run flake8 app updater
+	flake8 app updater
 
 isort:
-	poetry run isort app updater
+	isort app updater
 
 black:
-	poetry run black app updater
+	black app updater
 
 check-all: isort black flake8

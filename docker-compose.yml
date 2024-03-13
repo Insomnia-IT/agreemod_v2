@@ -1,0 +1,68 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:15.2-alpine
+    shm_size: 1g
+    restart: always
+    volumes:
+      - .docker-volumes/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES__USER}
+      POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
+      POSTGRES_DB: ${POSTGRES__NAME}
+    ports:
+      - ${POSTGRES__PORT}:${POSTGRES__PORT}
+    hostname: ${POSTGRES__HOST}
+    expose:
+      - ${POSTGRES__PORT}
+
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ__DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ__DEFAULT_PASS}
+    ports:
+      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
+      - ${RABBITMQ__QUEUE_PORT}:${RABBITMQ__QUEUE_PORT}
+
+  agreemod:
+    build:
+      dockerfile: docker/api.dockerfile
+      context: ./
+    volumes:
+      - ./app:/opt/app/app
+      - ./db:/opt/app/db
+      - ./alembic:/opt/app/alembic
+    working_dir: /opt/app
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - ${API_PORT}:${API_PORT}
+    expose:
+      - ${API_PORT}
+    entrypoint: ["poetry", "run", "python", "-m", "app.main"]
+    tty: true
+    stdin_open: true
+  
+  updater:
+    build:
+      dockerfile: docker/updater.dockerfile
+      context: ./
+    volumes:
+      - ./updater:/opt/app/updater
+      - ./db:/opt/app/db
+      - ./app/models/:/opt/app/app/models
+      - ./app/dictionaries/:/opt/app/app/dictionaries
+      - ./app/errors:/opt/app/app/errors
+
+
+    working_dir: /opt/app
+    depends_on:
+      - postgres
+    entrypoint: ["poetry", "run", "python", "-m", "updater.main"]
+    tty: true
+    stdin_open: true

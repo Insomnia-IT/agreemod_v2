@@ -1,6 +1,6 @@
+from db.repos.person import PersonRepo
 from fastapi import APIRouter, Depends
 
-from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.main import api_router

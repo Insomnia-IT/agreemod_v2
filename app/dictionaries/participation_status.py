@@ -13,6 +13,12 @@ class ParticipationStatus(StrEnum):
 
     @property
     def to_list(self) -> bool:
-        if self.name in ["PLANNED", "CONFIRMED_RECENTLY", "ON_SITE", "COMPLETED", "WALKED_IN"]:
+        if self.name in [
+            "PLANNED",
+            "CONFIRMED_RECENTLY",
+            "ON_SITE",
+            "COMPLETED",
+            "WALKED_IN",
+        ]:
             return True
         return False

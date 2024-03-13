@@ -3,12 +3,16 @@ import os.path
 import pickle
 
 from typing import Type
+from uuid import UUID
 
 from notion_client import AsyncClient
-
-from app.models.base import DomainModel
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 from updater.notion.databases import NotionDatabase
-from updater.notion.models.base import BaseNotionResponse, BaseNotionResponseItem, NotionModel
+from updater.notion.models.base import (
+    BaseNotionResponse,
+    BaseNotionResponseItem,
+    NotionModel,
+)
 from updater.notion.models.primitives.base import BaseNotionModel
 
 
@@ -71,14 +75,20 @@ class NotionClient:
         return complete_result
 
     @staticmethod
-    def convert_model(notion: NotionModel, target: Type[DomainModel]) -> DomainModel:
+    def convert_model(
+        notion: NotionModel, target: Type[DeclarativeMeta]
+    ) -> DeclarativeMeta:
         def calculate_value(value):
             if isinstance(value, BaseNotionModel):
                 return value.value
+            elif isinstance(value, UUID):
+                return value.hex
 
             return value
 
-        return target(**{key: calculate_value(val) for key, val in notion})
+        return target(
+            **{key: calculate_value(val) for key, val in notion if key[-1] != "_"}
+        )
 
     @staticmethod
     def load_mocked_persons():
