@@ -2,7 +2,6 @@ from enum import StrEnum
 
 from app.dictionaries.badge_color import BadgeColor
 
-
 class ParticipationRole(StrEnum):
     ORGANIZER = "организатор"  # красный
 
@@ -96,17 +95,3 @@ class ParticipationRole(StrEnum):
             ParticipationRole.ARTIST,
         ]:
             return True
-
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                badge_color=x.badge_color.name,
-                is_lead=x.is_lead,
-                is_team=x.is_team,
-                is_free_feed=x.free_feed,
-            )
-            for x in ParticipationRole
-        ]

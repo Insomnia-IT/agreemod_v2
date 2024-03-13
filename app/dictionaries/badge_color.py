@@ -17,13 +17,3 @@ class BadgeColor(StrEnum):
     def get_default_file(self):
         path_to_files = Path.cwd() / Path("media/image/faces_no_photo")
         return path_to_files / Path(f"{self.value}.png")
-
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                color=x.value,
-            )
-            for x in BadgeColor
-        ]

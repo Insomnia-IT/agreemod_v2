@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
 from app.dictionaries.transport_type import TransportType
+from db.meta import Base
 
 
 class TransportTypeORM(Base):

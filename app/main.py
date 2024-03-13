@@ -32,7 +32,7 @@ async def server_error_handler(_: Request, e: Exception):
 
 
 def get_app() -> FastAPI:
-    venusian.Scanner().scan(__import__("app"))
+    venusian.Scanner().scan(__import__("db"))
 
     docs_url = f"{config.API_PREFIX}/_docs" if config.DEBUG else None
     redoc_url = f"{config.API_PREFIX}/_redoc" if config.DEBUG else None

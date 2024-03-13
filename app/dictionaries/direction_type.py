@@ -20,14 +20,3 @@ class DirectionType(StrEnum):
         if self.name in ["GRANT_LOCATION", "COMMERCIAL_LOCATION"]:
             return False
         return True
-
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                is_federal=x.is_federal,
-            )
-            for x in DirectionType
-        ]

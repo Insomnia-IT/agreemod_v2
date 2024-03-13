@@ -7,7 +7,7 @@ import venusian
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app import models
+from app import models, dictionaries
 from db.meta import metadata, PG_URL
 
 # this is the Alembic Config object, which provides
@@ -24,7 +24,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = metadata
-venusian.Scanner().scan(models)
+venusian.Scanner().scan(__import__("db"))
 
 
 def do_run_migrations(connection):
