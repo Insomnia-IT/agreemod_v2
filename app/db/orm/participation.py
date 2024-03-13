@@ -7,9 +7,9 @@ from app.db.orm.dictionaries.participation_role import ParticipationRoleORM
 from app.db.orm.direction import DirectionORM
 from app.db.orm.person import PersonORM
 
-from app.models.engagement import Engagement
+from app.models.participation import Participation
 
-class EngagementORM(Base):
+class ParticipationORM(Base):
     """
 Атрибут            Содержимое      Тип данных    Cardinality
 year               Год             Число         Req
@@ -21,8 +21,9 @@ status             Статус          Справочник    Req FK
 noiton_id          Идентификатор   Notion        Строка UUID  Opt
     """
 
-    __tablename__ = "engagement"
+    __tablename__ = "participation"
 
+    id: Mapped[int] = Column(Integer, primary_key=True)
     year: Mapped[int] = Column(Integer, nullable=False) #req
     person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"), nullable=False) #req fk
     direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"), nullable=False) #req fk
@@ -39,7 +40,7 @@ noiton_id          Идентификатор   Notion        Строка UUID 
 
     def __repr__(self):
         return (
-            f"year='{self.name}',"
+            f"year='{self.year}',"
             f"person='{self.person}',"
             f"direction='{self.direction_id}',"
             f"role='{self.role_code}',"
@@ -49,24 +50,25 @@ noiton_id          Идентификатор   Notion        Строка UUID 
         )
 
     @classmethod
-    def to_orm(cls, model: Engagement):
+    def to_orm(cls, model: Participation):
         return cls(
-            year=model.name,
-            person=model.person,
-            direction=model.direction_id,
+            year=model.year,
+            person_id=model.person.notion_id,
+            direction_id=model.direction.notion_id,
             role=model.role_code,
             position=model.position,
             status=model.status_code,
-            noiton_id=model.notion_id,
+            notion_id=model.notion_id,
         )
 
-    def to_model(self) -> Engagement:
-        return Engagement(
+    def to_model(self) -> Participation:
+        return Participation(
             year=self.name,
-            person=self.person,
-            direction=self.direction_id,
-            role=self.role_code,
+            person=self.person.to_model(),
+            direction=self.direction.to_model(),
+            participation=self.participation.value,
+            role=self.role.value,
             position=self.position,
-            status=self.status_code,
-            noiton_id=self.notion_id,
+            status=self.status.value,
+            notion_id=self.notion_id,
         )
