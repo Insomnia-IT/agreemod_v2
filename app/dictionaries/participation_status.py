@@ -2,23 +2,19 @@ from enum import StrEnum
 
 
 class ParticipationStatus(StrEnum):
-    PLANNED = "планирует приехать"
-    CANCELLED = "не сможет приехать"
-    CONFIRMED_RECENTLY = "подвердил накануне"
-    NO_SHOW = "не доехал"
-    ON_SITE = "на поле"
-    SNAPPED = "соскочил"
-    COMPLETED = "отработал"
-    WALKED_IN = "прибился"
+    PLANNED = "Планируется"
+    CANCELED = "Отменилось"
+    PENDING = "Ждём ответа"
+    CONFIRMED = "Подтверждено накануне"
+    SKIPPED = "Не доехал"
+    ARRIVED = "Заехал на поле"
+    STARTED = "Приступил"
+    LEFT = "Ушел"
+    COMPLETE = "Состоялось"
+    JOINED = "Прибился"
 
     @property
     def to_list(self) -> bool:
-        if self.name in [
-            "PLANNED",
-            "CONFIRMED_RECENTLY",
-            "ON_SITE",
-            "COMPLETED",
-            "WALKED_IN",
-        ]:
+        if self.name in  ["PLANNED", "PENDING", "CONFIRMED", "ARRIVED", "STARTED", "COMPLETE", "JOINED"]:
             return True
         return False
