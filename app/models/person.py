@@ -20,5 +20,5 @@ class Person(DomainModel):
     telegram: str | None = None
     phone: str | None = None
     email: str | None = None
-    diet: DietType = Field(default_factory=DietType.default)
+    diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
