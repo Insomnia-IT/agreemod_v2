@@ -55,7 +55,11 @@ class ParticipationRole(StrEnum):
             case ParticipationRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE_HEAD | ParticipationRole.TEAM_LEAD:
+            case (
+                ParticipationRole.VOLUNTEER
+                | ParticipationRole.VICE_HEAD
+                | ParticipationRole.TEAM_LEAD
+            ):
                 return BadgeColor.GREEN
 
             case ParticipationRole.MEDICIAN:
@@ -64,7 +68,12 @@ class ParticipationRole(StrEnum):
             case ParticipationRole.CAMP_LEAD | ParticipationRole.CAMP_GUY:
                 return BadgeColor.BLUE
 
-            case ParticipationRole.FELLOW | ParticipationRole.VIP | ParticipationRole.PRESS | ParticipationRole.OTHER:
+            case (
+                ParticipationRole.FELLOW
+                | ParticipationRole.VIP
+                | ParticipationRole.PRESS
+                | ParticipationRole.OTHER
+            ):
                 return BadgeColor.YELLOW
 
             case ParticipationRole.CONTRACTOR:
@@ -87,3 +96,17 @@ class ParticipationRole(StrEnum):
             ParticipationRole.ARTIST,
         ]:
             return True
+
+    @classmethod
+    def fill_table(cls):
+        return [
+            cls(
+                code=x.name,
+                name=x.value,
+                badge_color=x.badge_color.name,
+                is_lead=x.is_lead,
+                is_team=x.is_team,
+                is_free_feed=x.free_feed,
+            )
+            for x in ParticipationRole
+        ]

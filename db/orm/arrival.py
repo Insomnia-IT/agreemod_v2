@@ -7,8 +7,9 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 # import sys
 # sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
-from app.db.meta import Base
-from app.db.orm.dictionaries.transport_type import TransportTypeORM
+from db.meta import Base
+from db.orm.badge import BadgeORM
+from db.orm.dictionaries.transport_type import TransportTypeORM
 from app.models.arrival import Arrival
 
 class ArrivalORM(Base):
@@ -27,27 +28,26 @@ class ArrivalORM(Base):
 
     __tablename__ = "arrival"
     id: Mapped[int] = Column(Integer, primary_key=True)
-    badge: Mapped[str] = Column(String, ForeignKey("badge.notion_id"), nullable=False)
+    badge_id: Mapped[str] = Column(String, ForeignKey("badge.notion_id"), nullable=False)
     arrival_date: Mapped[date] = Column(Date, nullable=False)
-    arrival_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
+    arrival_transport: Mapped[str] = Column(String)
     arrival_registered: Mapped[time] = Column(TIMESTAMP)
     departure_date: Mapped[date] = Column(Date, nullable=False)
-    departure_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
+    departure_transport: Mapped[str] = Column(String)
     departure_registered: Mapped[time] = Column(TIMESTAMP)
     extra_data: Mapped[dict|list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
 
-    transport_type: Mapped[TransportTypeORM] = relationship("TransportTypeORM")
-
+    badge: Mapped[BadgeORM] = relationship("BadgeORM")
 
     def __repr__(self):
         return (
-            f"badge='{self.badge.notion_id}', "
+            f"badge='{self.badge}', "
             f"arrival_date='{self.arrival_date}', "
-            f"arrival_transport='{self.transport_type.code}', "
+            f"arrival_transport='{self.arrival_transport}', "
             f"arrival_registered='{self.arrival_registered}', "
             f"departure_date='{self.departure_date}', "
-            f"departure_transport='{self.transport_type.code}', "
+            f"departure_transport='{self.departure_transport}', "
             f"departure_registered='{self.departure_registered}', "
             f"extra_data='{self.extra_data}', "
             f"comment='{self.comment}', "
@@ -56,12 +56,12 @@ class ArrivalORM(Base):
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
         return cls(
-            badge=model.badge.notion_id,
+            badge_id=model.badge.notion_id,
             arrival_date=model.arrival_date,
-            arrival_transport=model.transport_type.name,
+            arrival_transport=model.arrival_transport,
             arrival_registered=model.arrival_registered,
             departure_date=model.departure_date,
-            departure_transport=model.transport_type.name,
+            departure_transport=model.departure_transport,
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
@@ -69,12 +69,12 @@ class ArrivalORM(Base):
 
     def to_model(self) -> Arrival:
         return Arrival(
-            badge=self.badge.notion_id,
+            badge=self.badge.to_model(),
             arrival_date=self.arrival_date,
-            arrival_transport=self.transport_type.name,
+            arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
             departure_date=self.departure_date,
-            departure_transport=self.transport_type.name,
+            departure_transport=self.departure_transport,
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,

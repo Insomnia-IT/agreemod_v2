@@ -3,11 +3,11 @@ from typing import Self
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, relationship
 
-from app.db.meta import Base
-from app.db.orm.dictionaries.participation_role import ParticipationRoleORM
-from app.db.orm.dictionaries.participation_type import ParticipationTypeORM
-from app.db.orm.direction import DirectionORM
-from app.db.orm.person import PersonORM
+from db.meta import Base
+from db.orm.dictionaries.participation_role import ParticipationRoleORM
+from db.orm.dictionaries.participation_type import ParticipationTypeORM
+from db.orm.direction import DirectionORM
+from db.orm.person import PersonORM
 from app.models.badge import Badge
 
 
@@ -66,8 +66,8 @@ class BadgeORM(Base):
             participation=model.participation.name,
             role=model.role.name if model.role else None,
             photo=model.photo,
-            person=model.person.hex if model.person else None,
-            direction=model.direction.hex if model.direction else None,
+            person_id=model.person.notion_id.hex if model.person else None,
+            direction_id=model.direction.notion_id.hex if model.direction else None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
         )

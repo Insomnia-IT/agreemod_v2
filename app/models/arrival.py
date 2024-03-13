@@ -1,10 +1,14 @@
 from datetime import date, time
-from app.dictionaries.transport_type import TransportType
+
 from pydantic import BaseModel
+
+from app.dictionaries.transport_type import TransportType
+from app.models.badge import Badge
+
 
 class Arrival(BaseModel):
 
-    badge: str
+    badge: Badge
     arrival_date: date
     arrival_transport: TransportType | None = None
     arrival_registered: time | None = None

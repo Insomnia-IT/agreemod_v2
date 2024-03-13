@@ -11,3 +11,13 @@ class ParticipationType(StrEnum):
     PARTICIPANT = "участник"
     FELLOW = "свои"
     CONTRACTOR = "подрядчик"
+
+    @classmethod
+    def fill_table(cls):
+        return [
+            cls(
+                code=x.name,
+                name=x.value,
+            )
+            for x in ParticipationType
+        ]

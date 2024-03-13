@@ -1,9 +1,10 @@
+from db.repos.person import PersonRepo
 from fastapi import APIRouter, Depends
 
-from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.main import api_router
+from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
 
@@ -20,6 +21,19 @@ def _get_person_filters_dto(
         phone_number=phone_number,
         email=email,
     )
+
+
+@router.get(
+    "/persons",
+    summary="Человеки",
+    response_model=list[Person],
+)
+async def get_directions(
+    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+    page: int = Q("page", 1, description="page"),
+    page_size: int = Q("page size", 10, description="page_size"),
+):
+    return await repo.retrieve_all(page=page, page_size=page_size)
 
 
 @router.get(

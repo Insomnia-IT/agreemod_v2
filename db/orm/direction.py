@@ -1,8 +1,8 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, relationship
 
-from app.db.meta import Base
-from app.db.orm.dictionaries.direction_type import DirectionTypeORM
+from db.meta import Base
+from db.orm.dictionaries.direction_type import DirectionTypeORM
 from app.models.direction import Direction
 
 

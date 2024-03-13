@@ -4,9 +4,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from app.db.orm import DirectionORM
-from app.db.repos.base import BaseSqlaRepo
-from app.errors import RepresentativeError
+from db.orm import DirectionORM
+from db.repos.base import BaseSqlaRepo
+# from app.errors import RepresentativeError
 from app.models.direction import Direction
 
 
@@ -22,7 +22,8 @@ class DirectionRepo(BaseSqlaRepo):
             await self.session.flush([new_direction])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
-            raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
+            raise e
+            # raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
         return new_direction
 
     # def create_sync(self, data: Direction):

@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Notion and Coda integration services for Insomnia"
 authors = ["Alexey Serikov <serikov.alexey42@gmail.com>"]
 readme = "README.md"
-packages = [{include = "agreemod_v2"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -22,6 +21,7 @@ uvicorn = "^0.27.1"
 pydantic-settings = "^2.2.0"
 alembic-postgresql-enum = "^1.1.2"
 psycopg2-binary = "^2.9.9"
+aiogram = "^3.4.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.1"
@@ -37,7 +37,7 @@ include_trailing_comma = true
 lines_after_imports = 2
 lines_between_types = 1
 multi_line_output = 3
-known_localfolder = ["agreemod_v2", "tests"]
+known_localfolder = ["tests"]
 
 
 [build-system]

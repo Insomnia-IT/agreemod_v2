@@ -2,7 +2,8 @@ import asyncio
 
 from updater.config import config, logger
 from updater.notion.client import NotionClient
-from updater.scripts.poll_notion_directions import poll_notion_directions
+from updater.notion.databases import DATABASE_REGISTRY
+from updater.notion.poll_database import poll_database
 
 
 class Updater:
@@ -11,7 +12,12 @@ class Updater:
         self.notion = notion
 
     async def run(self):
-        await poll_notion_directions(self.notion)
+        await asyncio.gather(
+            *[
+                poll_database(self.notion, db())
+                for name, db in DATABASE_REGISTRY.items()
+            ]
+        )
 
 
 async def main():
@@ -27,5 +33,9 @@ async def main():
         await asyncio.sleep(config.REFRESH_PERIOD)
 
 
-if __name__ == "__main__":
+def run_updater_async():
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run_updater_async()

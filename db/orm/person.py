@@ -4,7 +4,7 @@ from typing import Self
 from sqlalchemy import ARRAY, Column, Date, String
 from sqlalchemy.orm import Mapped
 
-from app.db.meta import Base
+from db.meta import Base
 from app.models.person import Person
 
 
@@ -64,7 +64,7 @@ class PersonORM(Base):
         )
 
     def to_model(self) -> Person:
-        return Person(
+        person = Person(
             name=self.name,
             last_name=self.last_name,
             first_name=self.first_name,
@@ -80,3 +80,4 @@ class PersonORM(Base):
             comment=self.comment,
             notion_id=self.notion_id,
         )
+        return person

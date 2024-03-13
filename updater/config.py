@@ -1,5 +1,4 @@
 import logging
-import os
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,12 +11,6 @@ class NotionConfig(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
 
 
-class RedisConfig(BaseSettings):
-    host: str
-    port: int
-    password: str
-
-
 class PostgresConfig(BaseSettings):
     host: str
     port: str
@@ -28,19 +21,17 @@ class PostgresConfig(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
 
 
-print(os.path.curdir)
-
-
 class Config(BaseSettings):
     NOTION_DBS_INFO: str = "notion_dbs_info.json"
     DEBUG: bool = False
-    REFRESH_PERIOD: int = 120  # seconds
+    REFRESH_PERIOD: int = 360  # seconds
 
     notion: NotionConfig
     postgres: PostgresConfig
-    redis: RedisConfig
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+    )
 
 
 config = Config()

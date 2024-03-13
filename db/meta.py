@@ -2,7 +2,7 @@ from sqlalchemy import MetaData, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from app.config import config
+from db.config import config
 
 
 PG_URL = (
