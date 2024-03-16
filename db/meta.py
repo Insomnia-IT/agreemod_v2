@@ -1,15 +1,20 @@
+import logging
+
 from sqlalchemy import MetaData, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from db.config import config
 
+logger = logging.getLogger(__name__)
 
 PG_URL = (
     f"postgresql+asyncpg://{config.postgres.user}:{config.postgres.password}"
     f"@{config.postgres.host}:{config.postgres.port}/{config.postgres.name}"
 )
 PG_URL_MIGRATIONS = PG_URL.replace("asyncpg", "psycopg2")
+
+logger.debug(f"pg settings: {PG_URL}")
 
 metadata = MetaData(
     naming_convention={
