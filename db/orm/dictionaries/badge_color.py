@@ -11,13 +11,3 @@ class BadgeColorORM(Base):
     code: Mapped[str] = Column(String, primary_key=True)
     color: Mapped[str] = Column(String, nullable=False)
     comment: Mapped[str] = Column(String)
-
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                color=x.value,
-            )
-            for x in BadgeColor
-        ]

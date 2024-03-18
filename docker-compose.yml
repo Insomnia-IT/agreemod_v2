@@ -1,6 +1,8 @@
 version: '3.7'
 
 services:
+
+
   postgres:
     image: postgres:15.2-alpine
     shm_size: 1g
@@ -17,6 +19,17 @@ services:
     expose:
       - ${POSTGRES__PORT}
 
+  alembic:
+    build: docker/alembic.dockerfile
+    context: ./
+    volumes:
+      - ./app/db:/opt/app/db
+      - ./alembic:/opt/app/alembic
+    working_dir: /opt/app
+    entrypoint: /bin/sh
+    depends_on:
+      - postgres
+
   rabbitmq:
     image: rabbitmq:3.10.7-management
     hostname: rabbitmq
@@ -28,14 +41,13 @@ services:
       - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
       - ${RABBITMQ__QUEUE_PORT}:${RABBITMQ__QUEUE_PORT}
 
-  agreemod:
+  api:
     build:
       dockerfile: docker/api.dockerfile
       context: ./
     volumes:
       - ./app:/opt/app/app
       - ./db:/opt/app/db
-      - ./alembic:/opt/app/alembic
     working_dir: /opt/app
     depends_on:
       - postgres
@@ -55,10 +67,6 @@ services:
     volumes:
       - ./updater:/opt/app/updater
       - ./db:/opt/app/db
-      - ./app/models/:/opt/app/app/models
-      - ./app/dictionaries/:/opt/app/app/dictionaries
-      - ./app/errors:/opt/app/app/errors
-
 
     working_dir: /opt/app
     depends_on:

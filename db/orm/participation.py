@@ -31,14 +31,7 @@ noiton_id          Идентификатор   Notion        Строка UUID 
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code")) #req fk
     participation_code: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False) #opt
     status_code: Mapped[str] = Column(String, ForeignKey("participation_status.code"), nullable=False) #req fk
-    notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True) #opt
-
-    person: Mapped[PersonORM] = relationship("PersonORM")
-    direction: Mapped[DirectionORM] = relationship("DirectionORM")
-    role: Mapped[ParticipationRoleORM] = relationship("ParticipationRoleORM")
-    status: Mapped[ParticipationStatusORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeORM] = relationship("ParticipationTypeORM")
-
+    notion_id: Mapped[str] = Column(String) #opt
 
     def __repr__(self):
         return (
@@ -51,25 +44,3 @@ noiton_id          Идентификатор   Notion        Строка UUID 
             f"notion_id='{self.notion_id}',"
         )
 
-    @classmethod
-    def to_orm(cls, model: Participation):
-        return cls(
-            year=model.year,
-            person_id=model.person.notion_id,
-            direction_id=model.direction.notion_id,
-            role=model.role_code,
-            participation=model.participation.name,
-            status=model.status.name,
-            notion_id=model.notion_id,
-        )
-
-    def to_model(self) -> Participation:
-        return Participation(
-            year=self.name,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
-            role=self.role.value,
-            participation=self.participation.value,
-            status=self.status.value,
-            notion_id=self.notion_id,
-        )

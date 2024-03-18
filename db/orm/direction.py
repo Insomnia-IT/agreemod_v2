@@ -33,22 +33,3 @@ class DirectionORM(Base):
             f"last_year={self.last_year}, "
             f"notion_id='{self.notion_id}')"
         )
-
-    @classmethod
-    def to_orm(cls, model: Direction):
-        return cls(
-            name=model.name,
-            type=model.type.name,
-            first_year=model.first_year,
-            last_year=model.last_year,
-            notion_id=model.notion_id.hex,
-        )
-
-    def to_model(self) -> Direction:
-        return Direction(
-            name=self.name,
-            type=self.direction_type.name,
-            first_year=self.first_year,
-            last_year=self.last_year,
-            notion_id=self.notion_id,
-        )

@@ -38,11 +38,10 @@ class ArrivalORM(Base):
     extra_data: Mapped[dict|list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
 
-    badge: Mapped[BadgeORM] = relationship("BadgeORM")
 
     def __repr__(self):
         return (
-            f"badge='{self.badge}', "
+            f"badge_id='{self.badge_id}', "
             f"arrival_date='{self.arrival_date}', "
             f"arrival_transport='{self.arrival_transport}', "
             f"arrival_registered='{self.arrival_registered}', "
@@ -51,31 +50,4 @@ class ArrivalORM(Base):
             f"departure_registered='{self.departure_registered}', "
             f"extra_data='{self.extra_data}', "
             f"comment='{self.comment}', "
-        )
-
-    @classmethod
-    def to_orm(cls, model: Arrival) -> Self:
-        return cls(
-            badge_id=model.badge.notion_id,
-            arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport,
-            arrival_registered=model.arrival_registered,
-            departure_date=model.departure_date,
-            departure_transport=model.departure_transport,
-            departure_registered=model.departure_registered,
-            extra_data=model.extra_data,
-            comment=model.comment,
-        )
-
-    def to_model(self) -> Arrival:
-        return Arrival(
-            badge=self.badge.to_model(),
-            arrival_date=self.arrival_date,
-            arrival_transport=self.arrival_transport,
-            arrival_registered=self.arrival_registered,
-            departure_date=self.departure_date,
-            departure_transport=self.departure_transport,
-            departure_registered=self.departure_registered,
-            extra_data=self.extra_data,
-            comment=self.comment,
         )

@@ -12,14 +12,3 @@ class ParticipationStatusORM(Base):
     name: Mapped[str] = Column(String, nullable=False)
     to_list: Mapped[int] = Column(Boolean, nullable=False)
     comment: Mapped[str] = Column(String)
-
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                to_list=x.to_list,
-            )
-            for x in ParticipationStatus
-        ]
