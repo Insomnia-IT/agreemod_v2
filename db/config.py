@@ -1,9 +1,10 @@
 import logging
-import os
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
+
+logger = logging.getLogger(__name__)
+
 
 class PostgresConfig(BaseSettings):
     host: str
@@ -16,6 +17,7 @@ class PostgresConfig(BaseSettings):
 
     model_config = SettingsConfigDict(extra="ignore")
 
+
 class Config(BaseSettings):
     TESTING: bool = False
     DEBUG: bool = True
@@ -25,7 +27,6 @@ class Config(BaseSettings):
 
 
 config = Config()
-
 # def get_main_config():
 #     return Config()
 

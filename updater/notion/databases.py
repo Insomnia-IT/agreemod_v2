@@ -29,13 +29,13 @@ class NotionDatabase(BaseModel):
         return dbs[self.name]["id"]
 
 
-class Persons(NotionDatabase):
-    name: str = "get_people"
-    model: type = Person
-    orm: type = PersonORM
-
-
 class Directions(NotionDatabase):
     name: str = "get_directions"
     model: type = Direction
     orm: type = DirectionORM
+
+
+class Persons(NotionDatabase):
+    name: str = "get_people"
+    model: type = Person
+    orm: type = PersonORM

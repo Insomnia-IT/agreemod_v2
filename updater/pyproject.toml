@@ -16,6 +16,7 @@ flake8 = "^7.0.0"
 notion-client = "^2.2.1"
 pydantic-settings = "^2.2.1"
 traceback-with-variables = "^2.0.4"
+alembic = "^1.13.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
