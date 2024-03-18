@@ -27,7 +27,6 @@ class Config(BaseSettings):
 
 
 config = Config()
-logger.debug(f"config db: {str(config.postgres)}")
 # def get_main_config():
 #     return Config()
 
