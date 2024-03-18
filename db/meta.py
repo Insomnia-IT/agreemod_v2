@@ -15,8 +15,6 @@ PG_URL = (
 )
 PG_URL_MIGRATIONS = PG_URL.replace("asyncpg", "psycopg2")
 
-logger.debug(f"pg settings: {PG_URL}")
-
 metadata = MetaData(
     naming_convention={
         "ix": "ix_%(table_name)s_%(column_0_N_name)s",
