@@ -1,4 +1,5 @@
 import logging
+
 import asyncpg
 
 from db.config import config
@@ -12,11 +13,11 @@ async def create_database_if_not_exists():
         user=config.postgres.user,
         password=config.postgres.password,
         host=config.postgres.host,
-        port=config.postgres.port
+        port=config.postgres.port,
     )
 
     try:
-        await conn.execute(f'CREATE DATABASE {config.postgres.name}')
+        await conn.execute(f"CREATE DATABASE {config.postgres.name}")
         logger.info(f"Database {config.postgres.name} created successfully.")
     except asyncpg.DuplicateDatabaseError:
         logger.info(f"Database {config.postgres.name} already exists.")

@@ -23,7 +23,9 @@ class Config(BaseSettings):
     DEBUG: bool = True
     postgres: PostgresConfig
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+    )
 
 
 config = Config()

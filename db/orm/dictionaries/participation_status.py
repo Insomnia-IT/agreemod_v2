@@ -2,7 +2,6 @@ from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from app.dictionaries.participation_status import ParticipationStatus
 
 
 class ParticipationStatusORM(Base):

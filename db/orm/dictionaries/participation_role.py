@@ -2,7 +2,6 @@ from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from app.dictionaries.participation_role import ParticipationRole
 
 
 class ParticipationRoleORM(Base):

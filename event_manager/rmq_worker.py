@@ -1,6 +1,5 @@
 import asyncio
 import json
-
 from asyncio import Task
 from datetime import datetime, timedelta
 from logging import getLogger
@@ -8,10 +7,8 @@ from typing import Any
 
 import aiormq
 import pydantic
-
 from aio_pika import DeliveryMode, ExchangeType, Message, connect_robust
 from aio_pika.abc import AbstractIncomingMessage, AbstractRobustConnection
-
 
 _logger = getLogger(__name__)
 
@@ -82,8 +79,7 @@ class RMQConsumer(RMQWorker):
     def __init__(self, connect_url: str) -> None:
         super().__init__(connect_url)
 
-    async def on_message(self, message: dict, headers=None) -> bool:
-        ...
+    async def on_message(self, message: dict, headers=None) -> bool: ...
 
     async def _on_message(self, message: AbstractIncomingMessage):
         try:
@@ -127,9 +123,15 @@ class RMQConsumer(RMQWorker):
             queue.auto_delete,
             queue.durable,
         )
-        exchange = await channel.declare_exchange(self.__exchange__, **self.__exchange_params__)
+        exchange = await channel.declare_exchange(
+            self.__exchange__, **self.__exchange_params__
+        )
         _logger.info(
-            "Exchange declared: '%s', " "type = '%s', " "auto_delete = '%s', " "durable = '%s', " "bindings = '%s'",
+            "Exchange declared: '%s', "
+            "type = '%s', "
+            "auto_delete = '%s', "
+            "durable = '%s', "
+            "bindings = '%s'",
             exchange.name,
             exchange.__dict__["_type"],
             exchange.__dict__["auto_delete"],
@@ -204,9 +206,15 @@ class RMQPublisher(RMQWorker):
     async def _connect(self):
         await super()._connect()
         self.channel = await self.connection.channel()
-        self.exchange = await self.channel.declare_exchange(self.__exchange__, **self.__exchange_params__)
+        self.exchange = await self.channel.declare_exchange(
+            self.__exchange__, **self.__exchange_params__
+        )
         _logger.info(
-            "Exchange declared: '%s', " "type = '%s', " "auto_delete = '%s', " "durable = '%s', " "bindings = '%s'",
+            "Exchange declared: '%s', "
+            "type = '%s', "
+            "auto_delete = '%s', "
+            "durable = '%s', "
+            "bindings = '%s'",
             self.exchange.name,
             self.exchange.__dict__["_type"],
             self.exchange.__dict__["auto_delete"],

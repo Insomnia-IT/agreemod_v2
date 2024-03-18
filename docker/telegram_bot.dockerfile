@@ -8,5 +8,5 @@ RUN pip3 install --upgrade pip poetry
 
 COPY poetry.lock pyproject.toml /opt/app/
 
-RUN poetry config virtualenvs.in-project true
-RUN poetry install --only main --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-ansi

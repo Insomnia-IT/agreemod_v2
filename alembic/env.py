@@ -1,14 +1,11 @@
 import asyncio
-
 from logging.config import fileConfig
 
 import venusian
-
-from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app import models, dictionaries
-from db.meta import metadata, PG_URL
+from alembic import context
+from db.meta import PG_URL, metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -47,12 +44,11 @@ async def run_migrations_online():
     and associate a connection with the context.
 
     """
-    venusian.Scanner().scan(__import__("app"))
-
     async_engine = create_async_engine(PG_URL)
 
     async with async_engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
+
 
 async def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -66,12 +62,11 @@ async def run_migrations_offline():
     script output.
 
     """
-    venusian.Scanner().scan(__import__("app"))
     context.configure(
         url=PG_URL,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"}
+        dialect_opts={"paramstyle": "named"},
     )
     with context.begin_transaction():
         context.run_migrations()

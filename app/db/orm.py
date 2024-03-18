@@ -1,30 +1,32 @@
-from sqlalchemy.orm import relationship, Mapped
-
 from typing import Self
-from app.dictionaries.badge_color import BadgeColor
-from app.dictionaries.direction_type import DirectionType
-from app.dictionaries.participation_role import ParticipationRole
-from app.dictionaries.participation_status import ParticipationStatus
-from app.dictionaries.participation_type import ParticipationType
-from app.dictionaries.transport_type import TransportType
+
+from sqlalchemy.orm import Mapped, relationship
+
 from app.models.arrival import Arrival
 from app.models.badge import Badge
 from app.models.direction import Direction
 from app.models.participation import Participation
 from app.models.person import Person
-from db.orm.arrival import ArrivalORM as ArrivalDB
-from db.orm.badge import BadgeORM as BadgeDB
-from db.orm.dictionaries.badge_color import BadgeColorORM as BadgeColorDB
-from db.orm.dictionaries.direction_type import DirectionTypeORM as DirectionTypeDB
-from db.orm.dictionaries.participation_role import ParticipationRoleORM as ParticipationRoleDB 
-from db.orm.dictionaries.participation_type import ParticipationTypeORM as ParticipationTypeDB
-from db.orm.dictionaries.participation_status import ParticipationStatusORM as ParticipationStatusDB
-from db.orm.dictionaries.transport_type import TransportTypeORM as TransportTypeDB
-from db.orm.direction import DirectionORM as DirectionDB
-from db.orm.participation import ParticipationORM as ParticipationDB
-from db.orm.person import PersonORM as PersonDB
+from db.orm.arrival import ArrivalORM
+from db.orm.badge import BadgeORM
+from db.orm.dictionaries.badge_color import BadgeColorORM
+from db.orm.dictionaries.direction_type import DirectionTypeORM
+from db.orm.dictionaries.participation_role import ParticipationRoleORM
+from db.orm.dictionaries.participation_status import ParticipationStatusORM
+from db.orm.dictionaries.participation_type import ParticipationTypeORM
+from db.orm.dictionaries.transport_type import TransportTypeORM
+from db.orm.direction import DirectionORM
+from db.orm.participation import ParticipationORM
+from db.orm.person import PersonORM
+from dictionaries.badge_color import BadgeColor
+from dictionaries.direction_type import DirectionType
+from dictionaries.participation_role import ParticipationRole
+from dictionaries.participation_status import ParticipationStatus
+from dictionaries.participation_type import ParticipationType
+from dictionaries.transport_type import TransportType
 
-class BadgeColorORM(BadgeColorDB):
+
+class BadgeColorAppORM(BadgeColorORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -34,8 +36,9 @@ class BadgeColorORM(BadgeColorDB):
             )
             for x in BadgeColor
         ]
-    
-class DirectionTypeORM(DirectionTypeDB):
+
+
+class DirectionTypeAppORM(DirectionTypeORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -47,7 +50,8 @@ class DirectionTypeORM(DirectionTypeDB):
             for x in DirectionType
         ]
 
-class ParticipationRoleORM(ParticipationRoleDB):
+
+class ParticipationRoleAppORM(ParticipationRoleORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -61,8 +65,9 @@ class ParticipationRoleORM(ParticipationRoleDB):
             )
             for x in ParticipationRole
         ]
-    
-class ParticipationTypeORM(ParticipationTypeDB):
+
+
+class ParticipationTypeAppORM(ParticipationTypeORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -72,8 +77,9 @@ class ParticipationTypeORM(ParticipationTypeDB):
             )
             for x in ParticipationType
         ]
-    
-class ParticipationStatusORM(ParticipationStatusDB):
+
+
+class ParticipationStatusAppORM(ParticipationStatusORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -84,8 +90,9 @@ class ParticipationStatusORM(ParticipationStatusDB):
             )
             for x in ParticipationStatus
         ]
-    
-class TransportTypeORM(TransportTypeDB):
+
+
+class TransportTypeAppORM(TransportTypeORM):
     @classmethod
     def fill_table(cls):
         return [
@@ -96,7 +103,8 @@ class TransportTypeORM(TransportTypeDB):
             for x in TransportType
         ]
 
-class PersonORM(PersonDB):
+
+class PersonAppORM(PersonORM):
     @classmethod
     def to_orm(cls, person: Person) -> Self:
         return cls(
@@ -135,7 +143,10 @@ class PersonORM(PersonDB):
         )
         return person
 
-class DirectionORM(DirectionDB):
+
+class DirectionAppORM(DirectionORM):
+    direction_type: Mapped[DirectionTypeAppORM] = relationship("DirectionTypeORM")
+
     @classmethod
     def to_orm(cls, model: Direction):
         return cls(
@@ -155,11 +166,14 @@ class DirectionORM(DirectionDB):
             notion_id=self.notion_id,
         )
 
-class BadgeORM(BadgeDB):
-    participation: Mapped[ParticipationTypeORM] = relationship("ParticipationTypeORM")
-    role: Mapped[ParticipationRoleORM] = relationship("ParticipationRoleORM")
-    person: Mapped[PersonORM] = relationship("PersonORM")
-    direction: Mapped[DirectionORM] = relationship("DirectionORM")
+
+class BadgeAppORM(BadgeORM):
+    participation: Mapped[ParticipationTypeAppORM] = relationship(
+        "ParticipationTypeORM"
+    )
+    role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
+    person: Mapped[PersonAppORM] = relationship("PersonORM")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -206,8 +220,9 @@ class BadgeORM(BadgeDB):
             notion_id=self.notion_id,
         )
 
-class ArrivalORM(ArrivalDB):
-    badge: Mapped[BadgeORM] = relationship("BadgeORM")
+
+class ArrivalAppORM(ArrivalORM):
+    badge: Mapped[BadgeAppORM] = relationship("BadgeORM")
 
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
@@ -236,12 +251,15 @@ class ArrivalORM(ArrivalDB):
             comment=self.comment,
         )
 
-class ParticipationORM(ParticipationDB):
-    person: Mapped[PersonORM] = relationship("PersonORM")
-    direction: Mapped[DirectionORM] = relationship("DirectionORM")
-    role: Mapped[ParticipationRoleORM] = relationship("ParticipationRoleORM")
-    status: Mapped[ParticipationStatusORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeORM] = relationship("ParticipationTypeORM")
+
+class ParticipationAppORM(ParticipationORM):
+    person: Mapped[PersonAppORM] = relationship("PersonORM")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
+    role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
+    status: Mapped[ParticipationStatusAppORM] = relationship("ParticipationStatusORM")
+    participation: Mapped[ParticipationTypeAppORM] = relationship(
+        "ParticipationTypeORM"
+    )
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -265,4 +283,3 @@ class ParticipationORM(ParticipationDB):
             status=self.status.code,
             notion_id=self.notion_id,
         )
-    

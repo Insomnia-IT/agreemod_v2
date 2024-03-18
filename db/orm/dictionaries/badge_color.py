@@ -2,7 +2,6 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from app.dictionaries.badge_color import BadgeColor
 
 
 class BadgeColorORM(Base):

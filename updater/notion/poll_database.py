@@ -2,20 +2,18 @@ import asyncio
 import logging
 
 import venusian
+from sqlalchemy import select
 
 from db.meta import async_session
-from sqlalchemy import select
 from updater.config import config
 from updater.notion.client import NotionClient
 from updater.notion.databases import DATABASE_REGISTRY, NotionDatabase
-
 
 logger = logging.getLogger(__name__)
 
 
 async def poll_database(client: NotionClient, database: NotionDatabase):
     venusian.Scanner().scan(__import__("db"))
-    print(database.name)
     response = await client.query_database(database=database, mock=False)
     logger.info(f"Received {database.name} table data")
     async with async_session() as session:
@@ -30,7 +28,6 @@ async def poll_database(client: NotionClient, database: NotionDatabase):
             exist = await session.scalar(
                 select(database.orm).filter_by(notion_id=orm.notion_id)
             )
-            print(exist)
             if not exist:
                 session.add(orm)
             else:

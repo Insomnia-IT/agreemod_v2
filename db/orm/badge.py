@@ -1,14 +1,7 @@
-from typing import Self
-
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from db.orm.dictionaries.participation_role import ParticipationRoleORM
-from db.orm.dictionaries.participation_type import ParticipationTypeORM
-from db.orm.direction import DirectionORM
-from db.orm.person import PersonORM
-from app.models.badge import Badge
 
 
 class BadgeORM(Base):
@@ -34,7 +27,9 @@ class BadgeORM(Base):
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    participation_code: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False)
+    participation_code: Mapped[str] = Column(
+        String, ForeignKey("participation_type.code"), nullable=False
+    )
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
     person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"))

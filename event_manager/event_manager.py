@@ -1,6 +1,7 @@
 from typing import Any, Type
 
 from pydantic import BaseModel
+
 from event_manager.rmq_worker import RMQConfig, RMQConsumer, RMQPublisher
 
 _DOMAIN_EVENT_REGISTRY: dict[str, Type["DomainEvent"]] = {}
@@ -23,8 +24,7 @@ class BaseConsumer(RMQConsumer):
     __queue_params__ = RMQConfig.queue
     __routing_key__ = "events"
 
-    async def handle_event(self, event: DomainEvent) -> bool:
-        ...
+    async def handle_event(self, event: DomainEvent) -> bool: ...
 
     async def on_message(self, raw_message: dict, headers=None) -> bool:
         if "$event" in raw_message:
@@ -41,4 +41,6 @@ class BasePublisher(RMQPublisher):
 
     async def send(self, payload: Any, routing_key: str = None, **kwargs):
         message = self.format_message(payload, **kwargs)
-        await self.publish(message, routing_key=routing_key if routing_key else self.__routing_key__)
+        await self.publish(
+            message, routing_key=routing_key if routing_key else self.__routing_key__
+        )

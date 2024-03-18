@@ -1,11 +1,9 @@
 from datetime import date
-from typing import Self
 
 from sqlalchemy import ARRAY, Column, Date, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from app.models.person import Person
 
 
 class PersonORM(Base):
@@ -43,4 +41,3 @@ class PersonORM(Base):
             f"comment='{self.comment}', "
             f"notion_id='{self.notion_id}')"
         )
-

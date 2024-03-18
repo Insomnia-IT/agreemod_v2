@@ -7,22 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.109.2"
 SQLAlchemy = {extras = ["asyncio"], version = "^2.0.27"}
 asyncpg = "^0.29.0"
+alembic = "^1.13.1"
 venusian = "^3.1.0"
 isort = "^5.13.2"
 black = "^24.2.0"
 flake8 = "^7.0.0"
-notion-client = "^2.2.1"
-traceback-with-variables = "^2.0.4"
-uvicorn = "^0.27.1"
 pydantic-settings = "^2.2.0"
-psycopg2-binary = "^2.9.9"
-aio-pika = "^9.4.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.1"
+traceback-with-variables = "^2.0.4"
 
 [tool.black]
 line-length = 120

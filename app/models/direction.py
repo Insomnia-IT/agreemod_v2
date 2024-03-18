@@ -1,5 +1,5 @@
-from app.dictionaries.direction_type import DirectionType
 from app.models.base import DomainModel
+from dictionaries.direction_type import DirectionType
 
 
 class Direction(DomainModel):
