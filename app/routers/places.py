@@ -2,7 +2,6 @@ from db.repos.direction import DirectionRepo
 from fastapi import APIRouter, Depends
 
 from app.dependencies.db import get_sqla_repo
-from app.main import api_router
 from app.models.direction import Direction
 
 
@@ -16,6 +15,3 @@ router = APIRouter()
 )
 async def get_directions(repo: DirectionRepo = Depends(get_sqla_repo(DirectionRepo))):
     return await repo.retrieve_all()
-
-
-api_router.include_router(router)

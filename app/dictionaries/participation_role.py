@@ -55,7 +55,11 @@ class ParticipationRole(StrEnum):
             case ParticipationRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE_HEAD | ParticipationRole.TEAM_LEAD:
+            case (
+                ParticipationRole.VOLUNTEER
+                | ParticipationRole.VICE_HEAD
+                | ParticipationRole.TEAM_LEAD
+            ):
                 return BadgeColor.GREEN
 
             case ParticipationRole.MEDICIAN:
@@ -64,7 +68,12 @@ class ParticipationRole(StrEnum):
             case ParticipationRole.CAMP_LEAD | ParticipationRole.CAMP_GUY:
                 return BadgeColor.BLUE
 
-            case ParticipationRole.FELLOW | ParticipationRole.VIP | ParticipationRole.PRESS | ParticipationRole.OTHER:
+            case (
+                ParticipationRole.FELLOW
+                | ParticipationRole.VIP
+                | ParticipationRole.PRESS
+                | ParticipationRole.OTHER
+            ):
                 return BadgeColor.YELLOW
 
             case ParticipationRole.CONTRACTOR:

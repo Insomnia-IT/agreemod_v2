@@ -1,9 +1,13 @@
+import logging
+
 from sqlalchemy import MetaData, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from db.config import config
+from db.create_db import create_database_if_not_exists
 
+logger = logging.getLogger(__name__)
 
 PG_URL = (
     f"postgresql+asyncpg://{config.postgres.user}:{config.postgres.password}"
@@ -22,6 +26,7 @@ metadata = MetaData(
 )
 
 Base = declarative_base(metadata=metadata)
+create_database_if_not_exists()
 
 # FIXME: patch it in conftest instead
 if config.TESTING:

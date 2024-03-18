@@ -3,7 +3,7 @@ import logging
 import uvicorn
 import venusian
 
-from fastapi import APIRouter, FastAPI, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.background import BackgroundTasks
@@ -11,11 +11,11 @@ from traceback_with_variables import print_exc
 
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
+from app.routers.people import router as router_people
+from app.routers.places import router as router_directions
 
 
 logger = logging.getLogger(__name__)
-
-api_router = APIRouter()
 
 
 async def server_error_handler(_: Request, e: Exception):
@@ -52,7 +52,8 @@ def get_app() -> FastAPI:
     #   log user actions middleware: Middleware(LogUserActionMiddleware),
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
 
-    app.include_router(api_router, prefix=config.API_PREFIX)
+    app.include_router(router_people)
+    app.include_router(router_directions)
 
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
@@ -67,6 +68,9 @@ def get_app() -> FastAPI:
 
 
 def run_api():
+    logger.debug(
+        f"starting... : host={config.API_HOST} port={config.API_PORT} debug={config.DEBUG}"
+    )
     uvicorn.run(
         "app.main:get_app",
         factory=True,
