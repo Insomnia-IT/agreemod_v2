@@ -692,6 +692,17 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
+name = "traceback-with-variables"
+version = "2.0.4"
+description = "Adds variables to python traceback. Simple, lightweight, controllable. Debug reasons of exceptions by logging or pretty printing colorful variable contexts for each frame in a stacktrace, showing every value. Dump locals environments after errors to console, files, and loggers. Works with Jupiter and IPython."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "traceback-with-variables-2.0.4.tar.gz", hash = "sha256:a30c79b7c206fb255967f3f5d125ce114b3dae4fd92d268f901dd35ee23f9cc0"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.10.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -722,4 +733,4 @@ testing = ["coverage", "pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "841c4d8e4c62884e8bb79b821f89ca15d5f0aad33e92fa39b47b36e753b6f803"
+content-hash = "4d495c280ee246d8b023d7739080d3fd3d2d079bcd2e820789d7be6f5bfa970f"
