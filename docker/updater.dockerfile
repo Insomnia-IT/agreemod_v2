@@ -9,5 +9,3 @@ COPY .env updater/poetry.lock updater/pyproject.toml /opt/app/
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
-
-CMD ["bash", "-c", "python -m alembic upgrade head"]
