@@ -2,8 +2,8 @@ from enum import StrEnum
 
 
 class DietType(StrEnum):
-    STANDARD = "с мясом"
-    VEGAN = "без мяса"
+    STANDARD = "без особенностей"
+    VEGAN = "веган"
 
     @classmethod
     def default(cls):

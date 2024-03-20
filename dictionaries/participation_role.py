@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from app.dictionaries.badge_color import BadgeColor
+from dictionaries.badge_color import BadgeColor
 
 
 class ParticipationRole(StrEnum):

@@ -1,6 +1,8 @@
 from typing import Literal
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
+
+from dictionaries.diet_type import DietType
 from updater.notion.models.base import NotionModel
 from updater.notion.models.primitives.checkbox import Checkbox
 from updater.notion.models.primitives.date import Date
@@ -9,7 +11,6 @@ from updater.notion.models.primitives.phone_number import PhoneNumber
 from updater.notion.models.primitives.rich_text import RichText
 from updater.notion.models.primitives.select import Select
 from updater.notion.models.primitives.title import Title
-
 
 all_keys = [
     "Как звать",
@@ -35,7 +36,7 @@ class Person(NotionModel):
     last_name: RichText | None = Field(..., alias="Фамилия")
     first_name: RichText | None = Field(..., alias="Имя")
     nickname: RichText | None = Field(..., alias="Позывной")
-    other_names: RichText | None = Field(..., alias="Другие прозвища")
+    other_names: RichText | list[str] | None = Field(..., alias="Другие прозвища")
     gender: Select | None = Field(..., alias="Пол")
     birth_date: Date | None = Field(..., alias="Дата рождения")
     city: Select | None = Field(..., alias="Город")
@@ -88,8 +89,16 @@ class Person(NotionModel):
                 t.plain_text = "@" + t.plain_text
         return value
 
+    @field_validator("other_names")
+    @classmethod
+    def format_other_names(cls, value: RichText):
+        result = [t.plain_text for t in value.rich_text]
+        return result
+
     @model_validator(mode="after")
     def is_vegan(self):
         if self.is_vegan_.checkbox is True:
-            self.diet = "без мяса"
+            self.diet = DietType.VEGAN
+        else:
+            self.diet = DietType.default()
         return self

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from sqlalchemy import MetaData, NullPool
@@ -26,7 +27,7 @@ metadata = MetaData(
 )
 
 Base = declarative_base(metadata=metadata)
-create_database_if_not_exists()
+asyncio.run(create_database_if_not_exists())
 
 # FIXME: patch it in conftest instead
 if config.TESTING:

@@ -2,7 +2,6 @@ import logging
 
 import uvicorn
 import venusian
-
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -13,7 +12,6 @@ from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +31,7 @@ async def server_error_handler(_: Request, e: Exception):
 
 def get_app() -> FastAPI:
     venusian.Scanner().scan(__import__("db"))
+    venusian.Scanner().scan(__import__("app"))
 
     docs_url = f"{config.API_PREFIX}/_docs" if config.DEBUG else None
     redoc_url = f"{config.API_PREFIX}/_redoc" if config.DEBUG else None

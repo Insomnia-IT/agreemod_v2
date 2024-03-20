@@ -23,6 +23,23 @@ services:
     networks:
       - agree_net
 
+  alembic:
+    build: 
+      dockerfile: docker/alembic.dockerfile
+      context: ./
+    volumes:
+      - ./app:/opt/app/app
+      - ./db:/opt/app/db
+      - ./alembic:/opt/app/alembic
+      - ./dictionaries:/opt/app/dictionaries
+    working_dir: /opt/app
+    entrypoint: /bin/sh
+    depends_on:
+      - postgres
+    networks:
+      - agree_net
+    tty: true
+    stdin_open: true
 
   rabbitmq:
     image: rabbitmq:3.13.0-management
@@ -46,7 +63,7 @@ services:
     volumes:
       - ./app:/opt/app/app
       - ./db:/opt/app/db
-      - ./.env:/opt/app/.env
+      - ./dictionaries:/opt/app/dictionaries
     working_dir: /opt/app
     depends_on:
       - postgres
@@ -55,7 +72,7 @@ services:
       - ${API_PORT}:${API_PORT}
     expose:
       - ${API_PORT}
-    entrypoint: ["poetry", "run", "python", "-m", "app.main"]
+    entrypoint: ["python", "-m", "app.main"]
     tty: true
     stdin_open: true
     environment:
@@ -69,21 +86,16 @@ services:
       dockerfile: docker/updater.dockerfile
       context: ./
     volumes:
-      - ./.env:/opt/app/.env
-      - ./alembic.ini:/opt/app/alembic.ini
-      - ./alembic:/opt/app/alembic
       - ./updater:/opt/app/updater
       - ./db:/opt/app/db
-      - ./app/models/:/opt/app/app/models
-      - ./app/dictionaries/:/opt/app/app/dictionaries
-      - ./app/errors:/opt/app/app/errors
+      - ./dictionaries:/opt/app/dictionaries
     environment:
       - POSTGRES__HOST=postgres
 
     working_dir: /opt/app
     depends_on:
       - postgres
-    entrypoint: ["/bin/bash", "-c", "alembic upgrade head && poetry run python -m updater.main"]
+    entrypoint: ["python", "-m", "updater.main"]
     tty: true
     stdin_open: true
     networks:

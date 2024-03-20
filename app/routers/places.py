@@ -1,9 +1,8 @@
-from db.repos.direction import DirectionRepo
 from fastapi import APIRouter, Depends
 
+from app.db.repos.direction import DirectionRepo
 from app.dependencies.db import get_sqla_repo
 from app.models.direction import Direction
-
 
 router = APIRouter()
 

@@ -1,11 +1,9 @@
 from datetime import date
-from typing import Self
 
 from sqlalchemy import ARRAY, Column, Date, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from app.models.person import Person
 
 
 class PersonORM(Base):
@@ -43,41 +41,3 @@ class PersonORM(Base):
             f"comment='{self.comment}', "
             f"notion_id='{self.notion_id}')"
         )
-
-    @classmethod
-    def to_orm(cls, person: Person) -> Self:
-        return cls(
-            name=person.name,
-            last_name=person.last_name,
-            first_name=person.first_name,
-            nickname=person.nickname,
-            other_names=person.other_names,
-            gender=person.gender,
-            birth_date=person.birth_date,
-            city=person.city,
-            telegram=person.telegram,
-            phone=person.phone,
-            email=person.email,
-            diet=person.diet,
-            comment=person.comment,
-            notion_id=person.notion_id.hex,
-        )
-
-    def to_model(self) -> Person:
-        person = Person(
-            name=self.name,
-            last_name=self.last_name,
-            first_name=self.first_name,
-            nickname=self.nickname,
-            other_names=self.other_names,
-            gender=self.gender,
-            birth_date=self.birth_date,
-            city=self.city,
-            telegram=self.telegram,
-            phone=self.phone,
-            email=self.email,
-            diet=self.diet,
-            comment=self.comment,
-            notion_id=self.notion_id,
-        )
-        return person

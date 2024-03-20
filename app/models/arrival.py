@@ -2,8 +2,8 @@ from datetime import date, time
 
 from pydantic import BaseModel
 
-from app.dictionaries.transport_type import TransportType
 from app.models.badge import Badge
+from dictionaries.transport_type import TransportType
 
 
 class Arrival(BaseModel):

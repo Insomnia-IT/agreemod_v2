@@ -1,14 +1,7 @@
-from typing import Self
-
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from db.orm.dictionaries.participation_role import ParticipationRoleORM
-from db.orm.dictionaries.participation_type import ParticipationTypeORM
-from db.orm.direction import DirectionORM
-from db.orm.person import PersonORM
-from app.models.badge import Badge
 
 
 class BadgeORM(Base):
@@ -34,7 +27,9 @@ class BadgeORM(Base):
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    participation_code: Mapped[str] = Column(String, ForeignKey("participation_type.code"), nullable=False)
+    participation_code: Mapped[str] = Column(
+        String, ForeignKey("participation_type.code"), nullable=False
+    )
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
     person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
@@ -43,56 +38,6 @@ class BadgeORM(Base):
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
 
     _unique_constraint = UniqueConstraint(number)
-
-    participation: Mapped[ParticipationTypeORM] = relationship("ParticipationTypeORM")
-    role: Mapped[ParticipationRoleORM] = relationship("ParticipationRoleORM")
-    person: Mapped[PersonORM] = relationship("PersonORM")
-    direction: Mapped[DirectionORM] = relationship("DirectionORM")
-
-    @classmethod
-    def to_orm(cls, model: Badge) -> Self:
-        return cls(
-            name=model.name,
-            last_name=model.last_name,
-            first_name=model.first_name,
-            nickname=model.nickname,
-            gender=model.gender,
-            phone=model.phone,
-            infant=model.infant,
-            diet=model.diet,
-            feed=model.feed,
-            number=model.number,
-            batch=model.batch,
-            participation=model.participation.name,
-            role=model.role.name if model.role else None,
-            photo=model.photo,
-            person_id=model.person.notion_id.hex if model.person else None,
-            direction_id=model.direction.notion_id.hex if model.direction else None,
-            comment=model.comment,
-            notion_id=model.notion_id.hex,
-        )
-
-    def to_model(self) -> Badge:
-        return Badge(
-            name=self.name,
-            last_name=self.last_name,
-            first_name=self.first_name,
-            nickname=self.nickname,
-            gender=self.gender,
-            phone=self.phone,
-            infant=self.infant,
-            diet=self.diet,
-            feed=self.feed,
-            number=self.number,
-            batch=self.batch,
-            participation=self.participation.name,
-            role=self.role.name,
-            photo=self.photo,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
-            comment=self.comment,
-            notion_id=self.notion_id,
-        )
 
     def __repr__(self):
         return (

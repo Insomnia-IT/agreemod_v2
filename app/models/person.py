@@ -3,9 +3,9 @@ from typing import List
 
 from pydantic import Field
 
-from app.dictionaries.diet_type import DietType
-from app.dictionaries.gender import Gender
 from app.models.base import DomainModel
+from dictionaries.diet_type import DietType
+from dictionaries.gender import Gender
 
 
 class Person(DomainModel):
