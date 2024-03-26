@@ -2,13 +2,11 @@ import asyncio
 
 from updater.src.config import config, logger
 from updater.src.notion import NotionClient
+from updater.src.rabbit.manager import rmq_eat_carrots
 from updater.src.updater import Updater
 
 
-async def main():
-    notion = NotionClient(token=config.notion.token)
-    updater = Updater(notion=notion)
-
+async def main(updater):
     while True:
         try:
             await updater.run()
@@ -18,9 +16,13 @@ async def main():
         await asyncio.sleep(config.REFRESH_PERIOD)
 
 
-def run_updater_async():
-    asyncio.run(main())
+async def run_concurrently():
+    notion = NotionClient(token=config.notion.token)
+    updater = Updater(notion=notion)
+
+    # await asyncio.gather(main(updater), rmq_eat_carrots(updater))
+    await asyncio.gather(rmq_eat_carrots(updater))
 
 
 if __name__ == "__main__":
-    run_updater_async()
+    asyncio.run(run_concurrently())

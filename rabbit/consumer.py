@@ -2,7 +2,7 @@ import json
 import logging
 import aio_pika
 
-from interface import RMQConsumerInterface
+from .interface import RMQConsumerInterface
 
 logger = logging.getLogger(__name__)
 
