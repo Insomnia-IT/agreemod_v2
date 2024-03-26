@@ -6,6 +6,7 @@ from app.documenters import Q
 from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
+
 router = APIRouter()
 
 

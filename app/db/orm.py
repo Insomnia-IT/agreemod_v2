@@ -1,5 +1,11 @@
 from typing import Self
 
+from dictionaries.badge_color import BadgeColor
+from dictionaries.direction_type import DirectionType
+from dictionaries.participation_role import ParticipationRole
+from dictionaries.participation_status import ParticipationStatus
+from dictionaries.participation_type import ParticipationType
+from dictionaries.transport_type import TransportType
 from sqlalchemy.orm import Mapped, relationship
 
 from app.models.arrival import Arrival
@@ -18,12 +24,6 @@ from db.orm.dictionaries.transport_type import TransportTypeORM
 from db.orm.direction import DirectionORM
 from db.orm.participation import ParticipationORM
 from db.orm.person import PersonORM
-from dictionaries.badge_color import BadgeColor
-from dictionaries.direction_type import DirectionType
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_status import ParticipationStatus
-from dictionaries.participation_type import ParticipationType
-from dictionaries.transport_type import TransportType
 
 
 class BadgeColorAppORM(BadgeColorORM):

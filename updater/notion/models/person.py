@@ -1,8 +1,7 @@
 from typing import Literal
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
-
 from dictionaries.diet_type import DietType
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from updater.notion.models.base import NotionModel
 from updater.notion.models.primitives.checkbox import Checkbox
 from updater.notion.models.primitives.date import Date
@@ -11,6 +10,7 @@ from updater.notion.models.primitives.phone_number import PhoneNumber
 from updater.notion.models.primitives.rich_text import RichText
 from updater.notion.models.primitives.select import Select
 from updater.notion.models.primitives.title import Title
+
 
 all_keys = [
     "Как звать",

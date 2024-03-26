@@ -1,12 +1,12 @@
 import logging
 import os.path
 import pickle
+
 from typing import Type
 from uuid import UUID
 
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-
 from updater.notion.databases import NotionDatabase
 from updater.notion.models.base import (
     BaseNotionResponse,
@@ -14,6 +14,7 @@ from updater.notion.models.base import (
     NotionModel,
 )
 from updater.notion.models.primitives.base import BaseNotionModel
+
 
 logger = logging.getLogger("NotionDatabase")
 

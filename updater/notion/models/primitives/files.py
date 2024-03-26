@@ -1,8 +1,8 @@
 import random
+
 from pathlib import Path
 
 from pydantic import AnyUrl, BaseModel, computed_field
-
 from updater.notion.models.primitives.base import BaseNotionModel, ExternalFile, File
 
 

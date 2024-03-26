@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 
 from app.config import Config
-from app.db.meta import async_session
+from db.meta import async_session
 from app.db.repos.person import PersonRepo
 from bot.updater_states import UpdaterStates
 from updater.main import Updater
