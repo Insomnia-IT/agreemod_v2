@@ -1,3 +1,4 @@
+import json
 import logging
 import aio_pika
 
@@ -17,13 +18,14 @@ class RabbitMQAsyncPublisher:
         if self.connection:
             await self.connection.close()
 
-    async def publish_message(self, message_body):
+    async def publish_message(self, message_body: dict):
         if not self.connection:
             await self.connect()
 
         channel = await self.connection.channel()
+        encoded_message = json.dumps(message_body).encode()
         await channel.default_exchange.publish(
-            aio_pika.Message(body=message_body.encode()),
+            aio_pika.Message(body=encoded_message),
             routing_key=self.routing_key
         )
         logger.info(f"Published message: {message_body}")

@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 
 
 class RMQConsumerInterface(ABC):
+
+    @staticmethod
     @abstractmethod
-    async def callback(self, message):
+    async def callback(message):
         """
         Process the message received from the queue.
         This method needs to be implemented by the subclass.

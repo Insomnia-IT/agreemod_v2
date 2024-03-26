@@ -12,7 +12,7 @@ async def send_test_messages(routing_key, rabbitmq_url):
     publisher = RabbitMQAsyncPublisher(routing_key, rabbitmq_url)
 
     for i in range(5):
-        message_body = f"Test Message {i}"
+        message_body = {"test": i}
         await publisher.publish_message(message_body)
     logger.info("all test messages published")
 
