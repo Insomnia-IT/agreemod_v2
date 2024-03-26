@@ -6,7 +6,7 @@ from updater.src.rabbit.manager import rmq_eat_carrots
 from updater.src.updater import Updater
 
 
-async def main(updater):
+async def main(updater: Updater):
     while True:
         try:
             await updater.run()

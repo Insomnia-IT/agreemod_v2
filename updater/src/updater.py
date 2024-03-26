@@ -13,7 +13,7 @@ class Updater:
 
     async def run(self):
         if (
-            not self.states.is_all_updater_running()
+                not self.states.all_updating
         ):  # check if not ran by telegram users
             self.states.start_all_updater()
             await asyncio.gather(
@@ -24,12 +24,14 @@ class Updater:
             )
             self.states.stop_all_updater()
 
-    async def run_locations(self):
+    async def run_locations(self, user_id, bot):
         self.states.start_location_updater()
         await poll_database(self.notion, Directions())
         self.states.stop_location_updater()
+        await bot.send_message(user_id, "Обновление таблицы Направлений завершено")
 
-    async def run_persons(self):
+    async def run_persons(self, user_id, bot):
         self.states.start_people_updater()
         await poll_database(self.notion, Persons())
         self.states.stop_people_updater()
+        await bot.send_message(user_id, "Обновление таблицы Человеков завершено")
