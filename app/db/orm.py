@@ -173,7 +173,7 @@ class BadgeAppORM(BadgeORM):
     )
     role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     person: Mapped[PersonAppORM] = relationship("PersonORM")
-    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")#
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
