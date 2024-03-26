@@ -4,9 +4,9 @@ import logging
 import pydantic
 import venusian
 
-from updater.config import config
-from updater.notion.client import NotionClient
-from updater.notion.models.direction import Direction as NotionDirection
+from updater.src.config import config
+from updater.src.notion import Direction as NotionDirection
+from updater.src.notion import NotionClient
 
 from app.models.direction import Direction
 from db.meta import async_session

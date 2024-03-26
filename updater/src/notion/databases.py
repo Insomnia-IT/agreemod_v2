@@ -3,8 +3,8 @@ import json
 from typing import Type
 
 from pydantic import BaseModel
-from updater.notion.models.direction import Direction
-from updater.notion.models.person import Person
+from updater.src.notion.models.direction import Direction
+from updater.src.notion.models.person import Person
 
 from db.orm.direction import DirectionORM
 from db.orm.person import PersonORM
@@ -12,11 +12,7 @@ from db.orm.person import PersonORM
 
 DATABASE_REGISTRY: dict[str, Type["NotionDatabase"]] = {}
 
-
-def get_database(name: str) -> "NotionDatabase":
-    return DATABASE_REGISTRY[name]()
-
-
+# TODO: replace updater/notion_dbs_info.json with notion_dbs_info.ini
 with open("updater/notion_dbs_info.json", "r") as f:
     dbs = json.load(f)
 

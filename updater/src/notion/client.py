@@ -7,13 +7,13 @@ from uuid import UUID
 
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-from updater.notion.databases import NotionDatabase
-from updater.notion.models.base import (
+from updater.src.notion.databases import NotionDatabase
+from updater.src.notion.models.base import (
     BaseNotionResponse,
     BaseNotionResponseItem,
     NotionModel,
 )
-from updater.notion.models.primitives.base import BaseNotionModel
+from updater.src.notion.models.primitives.base import BaseNotionModel
 
 
 logger = logging.getLogger("NotionDatabase")

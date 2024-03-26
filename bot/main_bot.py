@@ -8,9 +8,8 @@ from aiogram.filters import Command
 from app.config import Config
 from db.meta import async_session
 from app.db.repos.person import PersonRepo
-from bot.updater_states import UpdaterStates
 from updater.main import Updater
-from updater.notion.client import NotionClient
+from updater.src.notion import NotionClient
 
 logging.basicConfig(level=logging.INFO)
 

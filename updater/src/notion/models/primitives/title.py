@@ -1,6 +1,6 @@
 from pydantic import BaseModel as BaseModel
 from pydantic import computed_field
-from updater.notion.models.primitives.base import Annotations, BaseNotionModel, Text
+from updater.src.notion.models.primitives.base import Annotations, BaseNotionModel, Text
 
 
 class TitleBody(BaseModel):

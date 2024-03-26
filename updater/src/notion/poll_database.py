@@ -4,9 +4,9 @@ import logging
 import venusian
 
 from sqlalchemy import select
-from updater.config import config
-from updater.notion.client import NotionClient
-from updater.notion.databases import DATABASE_REGISTRY, NotionDatabase
+from updater.src.config import config
+from updater.src.notion.client import NotionClient
+from updater.src.notion.databases import DATABASE_REGISTRY, NotionDatabase
 
 from db.meta import async_session
 

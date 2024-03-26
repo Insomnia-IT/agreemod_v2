@@ -1,23 +1,8 @@
 import asyncio
 
-from updater.config import config, logger
-from updater.notion.client import NotionClient
-from updater.notion.databases import DATABASE_REGISTRY
-from updater.notion.poll_database import poll_database
-
-
-class Updater:
-
-    def __init__(self, notion):
-        self.notion = notion
-
-    async def run(self):
-        await asyncio.gather(
-            *[
-                poll_database(self.notion, db())
-                for name, db in DATABASE_REGISTRY.items()
-            ]
-        )
+from updater.src.config import config, logger
+from updater.src.notion import NotionClient
+from updater.src.updater import Updater
 
 
 async def main():
