@@ -9,7 +9,8 @@ from updater.src.updater import Updater
 async def main(updater: Updater):
     while True:
         try:
-            await updater.run()
+            if not any([updater.states.people_updating, updater.states.location_updating]):
+                await updater.run()
         except Exception as e:
             logger.error(f"{e.__class__.__name__}: {e}")
         logger.info(f"Waiting for {config.REFRESH_PERIOD} seconds for the next update.")
