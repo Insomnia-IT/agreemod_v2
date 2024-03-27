@@ -13,12 +13,13 @@ from rabbit.publisher import RabbitMQAsyncPublisher
 logging.basicConfig(level=logging.INFO)
 
 config = Config()
+
+queue_name = config.rabbitmq.telegram_queue
+rabbitmq_url = f'amqp://{config.rabbit.user}:{config.rabbit.password}@{config.rabbit.host}/'  # TODO: move to conf
+publisher = RabbitMQAsyncPublisher(queue_name, rabbitmq_url)
+
 bot = Bot(token=config.TELEBOT_TOKEN)
 dp = Dispatcher()
-
-queue_name = 'telegram'  # TODO: read from ini / or .env?
-rabbitmq_url = 'amqp://guest:guest@localhost/'
-publisher = RabbitMQAsyncPublisher(queue_name, rabbitmq_url)
 
 
 def check_access_decorator(func):

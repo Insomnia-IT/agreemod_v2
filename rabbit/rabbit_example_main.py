@@ -19,7 +19,7 @@ async def send_test_messages(routing_key, rabbitmq_url):
 
 async def check_rabbitmq():
     queue_name = 'my_queue'
-    rabbitmq_url = 'amqp://guest:guest@localhost/'
+    rabbitmq_url = 'amqp://guest:guest@localhost/'  # в реальных условиях читать из .env
     routing_key = queue_name
 
     consumer = RabbitMQAsyncConsumer(queue_name, rabbitmq_url)

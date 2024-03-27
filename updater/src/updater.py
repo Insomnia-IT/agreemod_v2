@@ -12,9 +12,7 @@ class Updater:
         self.states = UpdaterStates()
 
     async def run(self):
-        if (
-                not self.states.all_updating
-        ):  # check if not ran by telegram users
+        if not self.states.all_updating:  # check if not ran by telegram users
             self.states.start_all_updater()
             await asyncio.gather(
                 *[

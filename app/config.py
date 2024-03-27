@@ -25,6 +25,16 @@ class PostgresConfig(BaseModel):
     MAX_POOL_SIZE: int = 10
 
 
+class RabbitMQ(BaseModel):
+    host: str = "localhost"
+    user: str = "guest"
+    password: str = "guest"
+    web_port: int = 15672
+    queue_port: int = 5672
+    telegram_queue: str = "telegram"
+    # link = f'amqp://guest:guest@localhost/' # TODO: make link right here
+
+
 class Config(BaseSettings):
     TITLE: str = "Notion API & Integrations"
     DESCRIPTION: str = ""
@@ -55,6 +65,7 @@ class Config(BaseSettings):
 
     notion: NotionConfig
     postgres: PostgresConfig
+    rabbitmq: RabbitMQ
 
     ROUTER_GET_QUERY_CACHE_TIMEOUT: int = 15
 

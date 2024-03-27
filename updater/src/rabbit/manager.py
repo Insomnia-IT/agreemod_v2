@@ -1,9 +1,12 @@
+from app.config import Config
+
 from .consumer import UpdaterRabbitConsumer
 
 
 async def rmq_eat_carrots(updater):
-    queue_name = "telegram"  # TODO: read from ini / or .env?
-    rabbitmq_url = "amqp://guest:guest@localhost/"
+    config = Config()
+    queue_name = config.rabbitmq.telegram_queue
+    rabbitmq_url = f"amqp://{config.rabbit.user}:{config.rabbit.password}@{config.rabbit.host}/"  # TODO: move to conf
 
     consumer = UpdaterRabbitConsumer(queue_name, rabbitmq_url, updater)
     await consumer.consume_messages()
