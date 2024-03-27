@@ -1,12 +1,11 @@
 import logging
 
-from pydantic import Field, model_validator
-
 from dictionaries.direction_type import DirectionType
-from updater.notion.models.base import NotionModel
-from updater.notion.models.primitives.number import Number
-from updater.notion.models.primitives.select import Select
-from updater.notion.models.primitives.title import Title
+from pydantic import Field, model_validator
+from updater.src.notion.models.base import NotionModel
+from updater.src.notion.models.primitives.number import Number
+from updater.src.notion.models.primitives.select import Select
+from updater.src.notion.models.primitives.title import Title
 
 
 class Direction(NotionModel):

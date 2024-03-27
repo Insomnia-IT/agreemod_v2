@@ -1,11 +1,11 @@
 from datetime import date
 from typing import List
 
+from dictionaries.diet_type import DietType
+from dictionaries.gender import Gender
 from pydantic import Field
 
 from app.models.base import DomainModel
-from dictionaries.diet_type import DietType
-from dictionaries.gender import Gender
 
 
 class Person(DomainModel):

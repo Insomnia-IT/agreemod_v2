@@ -6,22 +6,20 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 
 from app.config import Config
-from app.db.meta import async_session
+from db.meta import async_session
 from app.db.repos.person import PersonRepo
-from bot.updater_states import UpdaterStates
-from updater.main import Updater
-from updater.notion.client import NotionClient
+from rabbit.publisher import RabbitMQAsyncPublisher
 
 logging.basicConfig(level=logging.INFO)
 
 config = Config()
+
+queue_name = config.rabbitmq.telegram_queue
+rabbitmq_url = f'amqp://{config.rabbitmq.user}:{config.rabbitmq.password}@{config.rabbitmq.host}/'  # TODO: move to conf
+publisher = RabbitMQAsyncPublisher(queue_name, rabbitmq_url)
+
 bot = Bot(token=config.TELEBOT_TOKEN)
 dp = Dispatcher()
-
-notion = NotionClient(token=config.notion.token)
-updater = Updater(notion=notion)
-
-updater_states = UpdaterStates()
 
 
 def check_access_decorator(func):
@@ -63,27 +61,29 @@ async def start(message: types.Message):
 @dp.message(Command("update_directions"))
 @check_access_decorator
 async def update_directions(message: types.Message):
-    if not updater_states.is_location_updater_running():
-        await message.answer("Запуск синхронизации Служб и Локаций")
-        updater_states.start_location_updater()
-        await updater.poll_directions()
-        updater_states.stop_location_updater()
-        await message.answer("Процесс синхронизации Служб и Локаций успешно завершён.")
-    else:
-        await message.answer("Updater таблицы Служб и Локаций уже запущен")
+    cmd = {
+        "channel": "telegram",
+        "message": "update",
+        "table": "directions",
+        "user_id": message.from_user.id
+    }
+
+    await publisher.publish_message(cmd)
+    await message.answer("Запрос на обновление Направлений отправлен")
 
 
 @dp.message(Command("update_persons"))
 @check_access_decorator
 async def update_persons(message: types.Message):
-    if updater_states.is_people_updater_running():
-        await message.answer("Запуск синхронизации Человеков.")
-        updater_states.start_people_updater()
-        await updater.poll_persons()
-        updater_states.stop_people_updater()
-        await message.answer("Процесс синхронизации Человеков успешно завершён.")
-    else:
-        await message.answer("Updater таблицы Человеков уже запущен")
+    cmd = {
+        "channel": "telegram",
+        "message": "update",
+        "table": "persons",
+        "user_id": message.from_user.id
+    }
+
+    await publisher.publish_message(cmd)
+    await message.answer("Запрос на обновление Человеков отправлен")
 
 
 async def main():

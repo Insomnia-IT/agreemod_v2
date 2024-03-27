@@ -2,6 +2,7 @@
 mocks/*
 .DS_Store
 .env
+config.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

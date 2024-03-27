@@ -1,8 +1,10 @@
 import logging
+
 from typing import Any, Generic, Protocol, Type, TypeVar, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+
 
 _logger = logging.getLogger(__name__)
 

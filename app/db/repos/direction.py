@@ -10,6 +10,7 @@ from app.db.repos.base import BaseSqlaRepo
 # from app.errors import RepresentativeError
 from app.models.direction import Direction
 
+
 logger = logging.getLogger(__name__)
 
 
