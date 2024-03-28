@@ -6,6 +6,9 @@ from app.documenters import Q
 from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
+from app.models.participation import Participation
+from app.db.repos.participation import ParticipationRepo
+
 router = APIRouter()
 
 
@@ -47,3 +50,15 @@ async def get_orgs_and_volunteers(
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
+
+@router.get(
+    "/participation",
+    summary="Участие",
+    response_model=list[Participation],
+)
+async def get_participation(
+    repo: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+    page: int = Q("page", 1, description="page"),
+    page_size: int = Q("page size", 10, description="page_size"),
+):
+    return await repo.retrieve_all(page=page, page_size=page_size)
