@@ -1,8 +1,8 @@
-FROM python:3.11-alpine
-
+FROM python:3.11-slim-bookworm
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /opt/app
 
-RUN apk add nano curl g++ && rm -rf /var/cache/apk/*
+RUN apt update && apt -y install nano curl g++ && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --upgrade pip poetry
 

@@ -1,6 +1,6 @@
 # TODO: Switch to Alpine once someone have sufficient mental bandwidth to handle this.
 FROM python:3.11-bullseye
-
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /opt/app
 
 RUN pip3 install --upgrade pip poetry
