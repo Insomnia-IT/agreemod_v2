@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -10,6 +10,9 @@ class BadgeDirectionsORM(Base):
     """
 
     __tablename__ = "badge_directions"
+    __table_args__ = (
+        PrimaryKeyConstraint('badge_id', 'direction_id'),
+    )
 
-    badge_id: Mapped[str] = Column(String, ForeignKey("badge.notion_id"), primary_key=True)
-    direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"), primary_key=True)
+    badge_id: Mapped[str] = Column(String, ForeignKey("badge.notion_id", onupdate="CASCADE", ondelete="CASCADE"))
+    direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id", onupdate="CASCADE"))
