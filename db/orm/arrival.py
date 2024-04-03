@@ -1,6 +1,6 @@
 from datetime import date, time
 
-from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String, DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped
 
@@ -36,6 +36,7 @@ class ArrivalORM(Base):
     departure_registered: Mapped[time] = Column(TIMESTAMP)
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.current_timestamp())
 
     def __repr__(self):
         return (
@@ -48,4 +49,5 @@ class ArrivalORM(Base):
             f"departure_registered='{self.departure_registered}', "
             f"extra_data='{self.extra_data}', "
             f"comment='{self.comment}', "
+            f"last_updated='{self.last_updated}',"
         )

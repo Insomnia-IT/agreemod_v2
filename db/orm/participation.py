@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -36,6 +36,7 @@ class ParticipationORM(Base):
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
     notion_id: Mapped[str] = Column(String)  # opt
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.current_timestamp())
 
     def __repr__(self):
         return (
@@ -46,4 +47,5 @@ class ParticipationORM(Base):
             f"participation='{self.participation_code}',"
             f"status='{self.status_code}',"
             f"notion_id='{self.notion_id}',"
+            f"last_updated='{self.last_updated}',"
         )

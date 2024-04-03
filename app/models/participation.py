@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 from app.models.direction import Direction
 from app.models.person import Person
@@ -13,3 +14,4 @@ class Participation(BaseModel):
     role: ParticipationRole
     position: str | None = None
     status: ParticipationStatus
+    last_updated: datetime = None

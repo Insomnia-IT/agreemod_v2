@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, datetime
 
 from pydantic import BaseModel
 
@@ -17,3 +17,4 @@ class Arrival(BaseModel):
     departure_registered: time | None = None
     extra_data: dict | None = None
     comment: str | None = None
+    last_updated: datetime = None

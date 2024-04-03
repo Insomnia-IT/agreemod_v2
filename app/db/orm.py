@@ -196,6 +196,7 @@ class BadgeAppORM(BadgeORM):
             direction_id=model.direction.notion_id.hex if model.direction else None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
+            last_updated=model.last_updated
         )
 
     def to_model(self) -> Badge:
@@ -218,6 +219,7 @@ class BadgeAppORM(BadgeORM):
             direction=self.direction.to_model(),
             comment=self.comment,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )
 
 
@@ -236,6 +238,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
+            last_updated=model.last_updated
         )
 
     def to_model(self) -> Arrival:
@@ -249,6 +252,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,
+            last_updated=self.last_updated,
         )
 
 
@@ -271,6 +275,7 @@ class ParticipationAppORM(ParticipationORM):
             participation=model.participation.name,
             status=model.status.name,
             notion_id=model.notion_id,
+            last_updated=model.last_updated,
         )
 
     def to_model(self) -> Participation:
@@ -282,4 +287,5 @@ class ParticipationAppORM(ParticipationORM):
             participation=self.participation.code,
             status=self.status.code,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )

@@ -1,4 +1,5 @@
 from pydantic import Field
+from datetime import datetime
 
 from app.models.base import DomainModel
 from app.models.direction import Direction
@@ -30,3 +31,4 @@ class Badge(DomainModel):
     person: Person | None = None
     direction: Direction | None = None
     comment: str | None = None
+    last_updated: datetime = None
