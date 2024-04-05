@@ -1,8 +1,8 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped
 
 from db.meta import Base
-from db.orm.direction import DirectionORM
+
 
 class BadgeORM(Base):
     """
@@ -33,8 +33,7 @@ class BadgeORM(Base):
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
     person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
-    direction_id: Mapped[list[DirectionORM]] = relationship(back_populates="badge_direction", secondary="badge_directions")
-    #direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
+    direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
 
