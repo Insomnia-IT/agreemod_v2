@@ -13,23 +13,22 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
       POSTGRES_DB: ${POSTGRES__NAME}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      test: pg_isready -d db_prod
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
 
   alembic:
+    platform: linux/amd64
     build:
       dockerfile: docker/alembic.dockerfile
       context: ./
     volumes:
-      - ./app:/opt/app/app
-      - ./db:/opt/app/db
-      - ./alembic:/opt/app/alembic
-      - ./dictionaries:/opt/app/dictionaries
-    working_dir: /opt/app
-    entrypoint: /bin/sh
+      - .docker-volumes/app:/opt/app/app
+      - .docker-volumes/db:/opt/app/db
+      - .docker-volumes/alembic:/opt/app/alembic
+      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,10 +53,9 @@ services:
       dockerfile: docker/api.dockerfile
       context: ./
     volumes:
-      - ./app:/opt/app/app
-      - ./db:/opt/app/db
-      - ./dictionaries:/opt/app/dictionaries
-    working_dir: /opt/app
+      - .docker-volumes/app:/opt/app/app
+      - .docker-volumes/db:/opt/app/db
+      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,9 +65,6 @@ services:
       - 127.0.0.1:${API_PORT}:${API_PORT}
     expose:
       - ${API_PORT}
-    entrypoint: ["python", "-m", "app.main"]
-    environment:
-      - POSTGRES__HOST=postgres
 
   updater:
     platform: linux/amd64
@@ -77,14 +72,14 @@ services:
       dockerfile: docker/updater.dockerfile
       context: ./
     volumes:
-      - ./updater:/opt/app/updater
-      - ./db:/opt/app/db
-      - ./dictionaries:/opt/app/dictionaries
-    environment:
-      - POSTGRES__HOST=postgres
-
-    working_dir: /opt/app
+      - .docker-volumes/updater:/opt/app/updater
+      - .docker-volumes/db:/opt/app/db
+      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
-    entrypoint: ["python", "-m", "updater.main"]
+    healthcheck:
+      test: curl 127.0.0.1:8000/api/v1
+      interval: 30s
+      timeout: 10s
+      retries: 3
