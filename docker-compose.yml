@@ -6,6 +6,8 @@ services:
     platform: linux/amd64
     shm_size: 1g
     restart: always
+    ports:
+      - ${POSTGRES__PROXY}:${POSTGRES__PORT}
     volumes:
       - .docker-volumes/postgres:/var/lib/postgresql/data
     environment:
@@ -24,6 +26,11 @@ services:
     build:
       dockerfile: docker/alembic.dockerfile
       context: ./
+    volumes:
+      - ./app:${VOLUME_MOUNT_PREFIX}/app
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./alembic:${VOLUME_MOUNT_PREFIX}/alembic
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,21 +54,27 @@ services:
     build:
       dockerfile: docker/api.dockerfile
       context: ./
+    ports:
+      - ${API_PROXY}:${API_PORT}
+    volumes:
+      - ./app:${VOLUME_MOUNT_PREFIX}/app
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    ports:
-      - 127.0.0.1:${API_PORT}:${API_PORT}
-    expose:
-      - ${API_PORT}
 
   updater:
     platform: linux/amd64
     build:
       dockerfile: docker/updater.dockerfile
       context: ./
+    volumes:
+      - ./updater:${VOLUME_MOUNT_PREFIX}/updater
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
