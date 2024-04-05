@@ -28,5 +28,5 @@ class Badge(DomainModel):
     participation: ParticipationType
     photo: str | None = None
     person: Person | None = None
-    direction: list[Direction] | None = None
+    direction: Direction | None = None
     comment: str | None = None
