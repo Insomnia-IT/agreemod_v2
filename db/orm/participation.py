@@ -35,7 +35,7 @@ class ParticipationORM(Base):
     status_code: Mapped[str] = Column(
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
-    notion_id: Mapped[str] = Column(String)  # opt
+    notion_id: Mapped[str] = Column(String, nullable=False)  # opt
 
     def __repr__(self):
         return (
