@@ -47,3 +47,14 @@ async def get_orgs_and_volunteers(
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
+
+@router.get(
+    "/contacts/search",
+    summary="Человеки",
+    response_model=Person,
+)
+async def get_persons(
+        telegram: str,
+        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+):
+    return await repo.retrieve_by_telegram(telegram)

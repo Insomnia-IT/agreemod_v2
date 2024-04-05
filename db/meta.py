@@ -27,7 +27,7 @@ metadata = MetaData(
 )
 
 Base = declarative_base(metadata=metadata)
-asyncio.run(create_database_if_not_exists())
+create_database_if_not_exists()
 
 # FIXME: patch it in conftest instead
 if config.TESTING:
