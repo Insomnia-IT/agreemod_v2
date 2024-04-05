@@ -24,11 +24,6 @@ services:
     build:
       dockerfile: docker/alembic.dockerfile
       context: ./
-    volumes:
-      - .docker-volumes/app:/opt/app/app
-      - .docker-volumes/db:/opt/app/db
-      - .docker-volumes/alembic:/opt/app/alembic
-      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,10 +47,6 @@ services:
     build:
       dockerfile: docker/api.dockerfile
       context: ./
-    volumes:
-      - .docker-volumes/app:/opt/app/app
-      - .docker-volumes/db:/opt/app/db
-      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,15 +62,6 @@ services:
     build:
       dockerfile: docker/updater.dockerfile
       context: ./
-    volumes:
-      - .docker-volumes/updater:/opt/app/updater
-      - .docker-volumes/db:/opt/app/db
-      - .docker-volumes/dictionaries:/opt/app/dictionaries
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: curl 127.0.0.1:8000/api/v1
-      interval: 30s
-      timeout: 10s
-      retries: 3
