@@ -5,13 +5,11 @@ RUN pip3 install --upgrade pip poetry
 
 WORKDIR /opt/app
 
-COPY .env alembic.ini alembic/poetry.lock alembic/pyproject.toml ./
-
 COPY db db
 COPY dictionaries dictionaries
 COPY app app
 
-COPY .env app/poetry.lock app/pyproject.toml ./
+COPY .env alembic.ini alembic/poetry.lock alembic/pyproject.toml ./
 COPY alembic alembic
 
 RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi
