@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 
 from db.meta import Base
 
@@ -21,6 +21,7 @@ class DirectionORM(Base):
     )
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
+    badge: Mapped[list[str]] = relationship(back_populates="direction_badge", secondary="badge_directions")
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
 
     def __repr__(self):
