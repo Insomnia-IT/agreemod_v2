@@ -28,7 +28,7 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
             return []
         return [result.to_model() for result in results]
 
-    async def retrieve_by_telegram(self, telegram_username) -> Person:
+    async def retrieve_by_telegram(self, telegram_username: str) -> Person | None:
         result = await self.session.scalar(
             select(PersonAppORM).filter_by(telegram=telegram_username)
         )

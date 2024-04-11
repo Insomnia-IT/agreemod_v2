@@ -2,6 +2,7 @@ import logging
 
 import uvicorn
 import venusian
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -12,6 +13,7 @@ from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,11 @@
 from datetime import date
 from typing import List
 
+from dictionaries.diet_type import DietType
+from dictionaries.gender import Gender
 from pydantic import Field
 
 from app.models.base import DomainModel
-from dictionaries.diet_type import DietType
-from dictionaries.gender import Gender
 
 
 class Person(DomainModel):
@@ -14,7 +14,7 @@ class Person(DomainModel):
     first_name: str | None = None
     nickname: str | None = None
     other_names: List[str] | None = None
-    gender: Gender | None = None
+    gender: str | None = None
     birth_date: date | None = None
     city: str | None = None
     telegram: str | None = None

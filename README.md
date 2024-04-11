@@ -1,6 +1,10 @@
 # agreemod_v2
 Интеграция Notion и Coda
 
+### Локальный запуск API
+```
+uvicorn app.main:get_app --reload
+```
 
 ### Миграции
 Генерация миграций с текущей датой

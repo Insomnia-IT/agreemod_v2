@@ -2,12 +2,14 @@ import asyncio
 import logging
 
 import venusian
-from sqlalchemy import select
 
-from db.meta import async_session
+from sqlalchemy import select
 from updater.config import config
 from updater.notion.client import NotionClient
 from updater.notion.databases import DATABASE_REGISTRY, NotionDatabase
+
+from db.meta import async_session
+
 
 logger = logging.getLogger(__name__)
 
