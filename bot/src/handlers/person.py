@@ -3,8 +3,8 @@ import logging
 from aiogram import Router, types
 from aiogram.filters import Command
 
-from bot.src.config import publisher
-from bot.src.utils.decorators import check_access_decorator
+from src.config import publisher
+from src.utils.decorators import check_access_decorator
 
 logging.basicConfig(level=logging.INFO)
 

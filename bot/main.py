@@ -3,10 +3,10 @@ import logging
 
 from aiogram import Dispatcher
 
-from bot.src.config import bot
-from bot.src.handlers.direction import router_direction
-from bot.src.handlers.person import router_person
-from bot.src.handlers.start import router_start
+from src.config import bot
+from src.handlers.direction import router_direction
+from src.handlers.person import router_person
+from src.handlers.start import router_start
 
 logging.basicConfig(level=logging.INFO)
 
