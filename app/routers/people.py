@@ -92,9 +92,7 @@ async def get_persons(
     https://github.com/Insomnia-IT/promocode_bot
     """
     person = await repo.retrieve_by_telegram(telegram)
-    print("personxyz", person)
     participation = await repo_part.retrieve_by_person_notion_id(str(person.notion_id))
-    print("participationxyz: ", participation)
 
     person_for_telebot = ContactModel(
         uuid=person.notion_id,
