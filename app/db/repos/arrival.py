@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from app.db.orm import ArrivalAppORM
 from app.db.repos.base import BaseSqlaRepo
 
-# from app.errors import RepresentativeError
+from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
 logger = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             await self.session.flush([new_arrival])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
-            raise e
-            # raise RepresentativeError(title=f"arrival with {data.notion_id=} already exists")
+            # raise e
+            raise RepresentativeError(title=f"arrival with {data.notion_id=} already exists")
         return new_arrival
 
     # def create_sync(self, data: Arrival):
@@ -46,9 +46,13 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
 
     async def retrieve(self, notion_id):
         result = await self.session.scalar(
-            select(ArrivalAppORM)
-            .filter_by(notion_id=notion_id)
-            .options(joinedload(ArrivalAppORM.arrival_type))
+            select(ArrivalAppORM).filter_by(notion_id=notion_id).options(joinedload(
+                ArrivalAppORM.badge,
+                # ArrivalAppORM.engagement,
+                ArrivalAppORM.arrival_transport,
+                ArrivalAppORM.departure_transport
+                )
+            )
         )
         if result is None:
             return None
@@ -68,7 +72,12 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         result = await self.session.scalars(
             select(ArrivalAppORM)
             .filter_by(**filters)
-            .options(joinedload(ArrivalAppORM.arrival_type))
+            .options(joinedload(
+                ArrivalAppORM.badge,
+                # ArrivalAppORM.engagement,
+                ArrivalAppORM.arrival_transport,
+                ArrivalAppORM.departure_transport
+            ))
         )
         return [x.to_model() for x in result]
 
