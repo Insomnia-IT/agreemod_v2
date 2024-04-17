@@ -6,11 +6,8 @@ from app.documenters import Q
 from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
-<<<<<<< HEAD
-=======
 from app.models.participation import Participation
 from app.db.repos.participation import ParticipationRepo
->>>>>>> 1706c4c (Эндпоинт и репозиторий для участия)
 
 router = APIRouter()
 

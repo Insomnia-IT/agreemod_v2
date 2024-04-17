@@ -1,5 +1,8 @@
 from dictionaries.participation_role import ParticipationRole
 from dictionaries.participation_status import ParticipationStatus
+from dictionaries.participation_type import ParticipationType
+
+from uuid import UUID
 from pydantic import BaseModel
 
 from app.models.direction import Direction
@@ -11,5 +14,6 @@ class Participation(BaseModel):
     person: Person
     direction: Direction
     role: ParticipationRole
-    position: str | None = None
+    position: ParticipationType | None = None
     status: ParticipationStatus
+    notion_id: UUID | None = None
