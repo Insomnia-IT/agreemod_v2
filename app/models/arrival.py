@@ -3,6 +3,7 @@ from datetime import date, time
 from pydantic import BaseModel
 
 from app.models.badge import Badge
+from app.models.participation import Participation
 from dictionaries.transport_type import TransportType
 
 

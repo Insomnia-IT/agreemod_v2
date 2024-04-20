@@ -48,7 +48,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         result = await self.session.scalar(
             select(ArrivalAppORM).filter_by(notion_id=notion_id).options(joinedload(
                 ArrivalAppORM.badge,
-                # ArrivalAppORM.engagement,
+                ArrivalAppORM.participation,
                 ArrivalAppORM.arrival_transport,
                 ArrivalAppORM.departure_transport
                 )
@@ -74,7 +74,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             .filter_by(**filters)
             .options(joinedload(
                 ArrivalAppORM.badge,
-                # ArrivalAppORM.engagement,
+                ArrivalAppORM.participation,
                 ArrivalAppORM.arrival_transport,
                 ArrivalAppORM.departure_transport
             ))

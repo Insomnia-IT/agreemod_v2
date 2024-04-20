@@ -220,46 +220,12 @@ class BadgeAppORM(BadgeORM):
             notion_id=self.notion_id,
         )
 
-
-class ArrivalAppORM(ArrivalORM):
-    badge: Mapped[BadgeAppORM] = relationship("BadgeORM")
-
-    @classmethod
-    def to_orm(cls, model: Arrival) -> Self:
-        return cls(
-            badge_id=model.badge.notion_id,
-            arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport,
-            arrival_registered=model.arrival_registered,
-            departure_date=model.departure_date,
-            departure_transport=model.departure_transport,
-            departure_registered=model.departure_registered,
-            extra_data=model.extra_data,
-            comment=model.comment,
-        )
-
-    def to_model(self) -> Arrival:
-        return Arrival(
-            badge=self.badge.to_model(),
-            arrival_date=self.arrival_date,
-            arrival_transport=self.arrival_transport,
-            arrival_registered=self.arrival_registered,
-            departure_date=self.departure_date,
-            departure_transport=self.departure_transport,
-            departure_registered=self.departure_registered,
-            extra_data=self.extra_data,
-            comment=self.comment,
-        )
-
-
 class ParticipationAppORM(ParticipationORM):
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
     role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     status: Mapped[ParticipationStatusAppORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
+    participation: Mapped[ParticipationTypeAppORM] = relationship("ParticipationTypeORM")
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -282,4 +248,38 @@ class ParticipationAppORM(ParticipationORM):
             participation=self.participation.code,
             status=self.status.code,
             notion_id=self.notion_id,
+        )
+
+
+class ArrivalAppORM(ArrivalORM):
+    badge: Mapped[BadgeAppORM] = relationship("BadgeORM")
+    participation: Mapped[ParticipationAppORM] = relationship("ParticipationORM")
+
+    @classmethod
+    def to_orm(cls, model: Arrival) -> Self:
+        return cls(
+            badge_id=model.badge.notion_id,
+            participation_id = model.participation.notion_id,
+            arrival_date=model.arrival_date,
+            arrival_transport=model.arrival_transport,
+            arrival_registered=model.arrival_registered,
+            departure_date=model.departure_date,
+            departure_transport=model.departure_transport,
+            departure_registered=model.departure_registered,
+            extra_data=model.extra_data,
+            comment=model.comment,
+        )
+
+    def to_model(self) -> Arrival:
+        return Arrival(
+            badge=self.badge.to_model(),
+            participation = self.participation.to_model(),
+            arrival_date=self.arrival_date,
+            arrival_transport=self.arrival_transport,
+            arrival_registered=self.arrival_registered,
+            departure_date=self.departure_date,
+            departure_transport=self.departure_transport,
+            departure_registered=self.departure_registered,
+            extra_data=self.extra_data,
+            comment=self.comment,
         )
