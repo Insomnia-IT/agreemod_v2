@@ -168,9 +168,7 @@ class DirectionAppORM(DirectionORM):
 
 
 class BadgeAppORM(BadgeORM):
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
+    participation: Mapped[ParticipationTypeAppORM] = relationship("ParticipationTypeORM")
     role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
@@ -257,9 +255,7 @@ class ParticipationAppORM(ParticipationORM):
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
     role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     status: Mapped[ParticipationStatusAppORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
+    participation: Mapped[ParticipationTypeAppORM] = relationship("ParticipationTypeORM")
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -267,9 +263,9 @@ class ParticipationAppORM(ParticipationORM):
             year=model.year,
             person_id=model.person.notion_id,
             direction_id=model.direction.notion_id,
-            role=model.role_code,
-            participation=model.participation.name,
-            status=model.status.name,
+            role_code=model.role.name,
+            participation_code=model.participation_type.name,
+            status_code=model.status.name,
             notion_id=model.notion_id,
         )
 
@@ -278,8 +274,8 @@ class ParticipationAppORM(ParticipationORM):
             year=self.year,
             person=self.person.to_model(),
             direction=self.direction.to_model(),
-            role=self.role.code,
-            participation=self.participation.code,
-            status=self.status.code,
+            role=self.role.name,
+            participation=self.participation.name,
+            status=self.status.name,
             notion_id=self.notion_id,
         )
