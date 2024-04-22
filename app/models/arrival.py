@@ -1,5 +1,6 @@
 from datetime import date, time
 
+from dictionaries.transport_type import TransportType
 from pydantic import BaseModel
 
 from app.models.badge import Badge

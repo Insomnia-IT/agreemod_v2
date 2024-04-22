@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get(
     "/arrivals",
     summary="Заезды",
-    response_model=list[    ],
+    response_model=list[Arrival],
 )
 async def get_arrivals(
         repo: ArrivalRepo = Depends(get_sqla_repo(ArrivalRepo)),
