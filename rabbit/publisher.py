@@ -25,6 +25,7 @@ class RabbitMQAsyncPublisher:
         channel = await self.connection.channel()
         encoded_message = json.dumps(message_body).encode()
         await channel.default_exchange.publish(
-            aio_pika.Message(body=encoded_message), routing_key=self.routing_key
+            aio_pika.Message(body=encoded_message),
+            routing_key=self.routing_key
         )
         logger.info(f"Published message: {message_body}")

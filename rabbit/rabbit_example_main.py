@@ -4,9 +4,7 @@ from publisher import RabbitMQAsyncPublisher
 
 import logging
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -20,8 +18,8 @@ async def send_test_messages(routing_key, rabbitmq_url):
 
 
 async def check_rabbitmq():
-    queue_name = "my_queue"
-    rabbitmq_url = "amqp://guest:guest@localhost/"  # в реальных условиях читать из .env
+    queue_name = 'my_queue'
+    rabbitmq_url = 'amqp://guest:guest@localhost/'  # в реальных условиях читать из .env
     routing_key = queue_name
 
     consumer = RabbitMQAsyncConsumer(queue_name, rabbitmq_url)
@@ -36,6 +34,6 @@ async def check_rabbitmq():
     consumer_task.cancel()  # Stop consuming messages
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(check_rabbitmq())
