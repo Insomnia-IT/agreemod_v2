@@ -14,6 +14,7 @@ from app.errors import RepresentativeError, intake_validation_error_handler
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 from app.routers.badges import router as router_badges
+from app.routers.arrivals import router as router_arrivals
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ def get_app() -> FastAPI:
     app.include_router(router_people)
     app.include_router(router_directions)
     app.include_router(router_badges)
+    app.include_router(router_arrivals)
     
     
     @app.exception_handler(RepresentativeError)
