@@ -15,6 +15,7 @@ from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,6 +56,7 @@ def get_app() -> FastAPI:
 
     app.include_router(router_people)
     app.include_router(router_directions)
+ #   app.include_router(router_badges)
 
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
