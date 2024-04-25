@@ -1,43 +1,39 @@
 version: '3.7'
 
-networks:
-  agree_net:
-    driver: bridge
-
 services:
   postgres:
     image: postgres:15.2-alpine
     platform: linux/amd64
     shm_size: 1g
     restart: always
+    ports:
+      - ${POSTGRES__PROXY}:${POSTGRES__PORT}
     volumes:
       - .docker-volumes/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES__USER}
       POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
       POSTGRES_DB: ${POSTGRES__NAME}
-    ports:
-      - ${POSTGRES__PORT}:${POSTGRES__PORT}
-    expose:
-      - ${POSTGRES__PORT}
-    networks:
-      - agree_net
+    healthcheck:
+      test: pg_isready -d db_prod
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   alembic:
-    build: 
+    platform: linux/amd64
+    build:
       dockerfile: docker/alembic.dockerfile
       context: ./
     volumes:
-      - ./app:/opt/app/app
-      - ./db:/opt/app/db
-      - ./alembic:/opt/app/alembic
-      - ./dictionaries:/opt/app/dictionaries
-    working_dir: /opt/app
-    entrypoint: /bin/sh
+      - ./app:${VOLUME_MOUNT_PREFIX}/app
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./alembic:${VOLUME_MOUNT_PREFIX}/alembic
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
-      - postgres
-    networks:
-      - agree_net
+      postgres:
+        condition: service_healthy
     tty: true
     stdin_open: true
 
@@ -49,36 +45,28 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ__DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ__DEFAULT_PASS}
-    ports:
-      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
-      - ${RABBITMQ__QUEUE_PORT}:${RABBITMQ__QUEUE_PORT}
-    networks:
-      - agree_net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   agreemod:
     platform: linux/amd64
     build:
       dockerfile: docker/api.dockerfile
       context: ./
-    volumes:
-      - ./app:/opt/app/app
-      - ./db:/opt/app/db
-      - ./dictionaries:/opt/app/dictionaries
-    working_dir: /opt/app
-    depends_on:
-      - postgres
-      - rabbitmq
     ports:
-      - ${API_PORT}:${API_PORT}
-    expose:
-      - ${API_PORT}
-    entrypoint: ["python", "-m", "app.main"]
-    tty: true
-    stdin_open: true
-    environment:
-      - POSTGRES__HOST=postgres
-    networks:
-      - agree_net
+      - ${API_PROXY}:${API_PORT}
+    volumes:
+      - ./app:${VOLUME_MOUNT_PREFIX}/app
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   updater:
     platform: linux/amd64
@@ -86,17 +74,9 @@ services:
       dockerfile: docker/updater.dockerfile
       context: ./
     volumes:
-      - ./updater:/opt/app/updater
-      - ./db:/opt/app/db
-      - ./dictionaries:/opt/app/dictionaries
-    environment:
-      - POSTGRES__HOST=postgres
-
-    working_dir: /opt/app
+      - ./updater:${VOLUME_MOUNT_PREFIX}/updater
+      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
-      - postgres
-    entrypoint: ["python", "-m", "updater.main"]
-    tty: true
-    stdin_open: true
-    networks:
-      - agree_net
+      postgres:
+        condition: service_healthy
