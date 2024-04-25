@@ -7,7 +7,7 @@ from pydantic import Field
 from app.models.base import DomainModel
 from app.models.direction import Direction
 from app.models.person import Person
-
+from uuid import UUID
 
 class Badge(DomainModel):
 
@@ -30,3 +30,4 @@ class Badge(DomainModel):
     person: Person | None = None
     direction: Direction | None = None
     comment: str | None = None
+    notion_id: UUID
