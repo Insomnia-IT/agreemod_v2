@@ -7,9 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from app.db.orm import BadgeAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
-
 from sqlalchemy.orm import joinedload
-
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
@@ -19,8 +17,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 BadgeAppORM.role,
                 BadgeAppORM.person,
                 BadgeAppORM.direction
-            )
-            )
+            ))
         )
         if result is None:
             return None
@@ -33,8 +30,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 BadgeAppORM.role,
                 BadgeAppORM.person,
                 BadgeAppORM.direction
-            )
-            )
+            ))
         )
         if not results:
             return []
@@ -68,12 +64,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def delete(self, notion_id):
         await self.session.execute(
-            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id).options(joinedload(
-                BadgeAppORM.role,
-                BadgeAppORM.person,
-                BadgeAppORM.direction
-            )
-            )
+            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
         )
 
     async def retrieve_many(self, filters: dict = None) -> list[Badge]:
