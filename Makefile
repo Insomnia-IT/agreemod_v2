@@ -1,22 +1,52 @@
-run-db:
-	docker compose -f docker-compose.yml up -d
+#Докер
+rebuild: stop down build up
 
-stop-db:
-	docker compose -f docker-compose.yml down
+build:
+	docker compose build
 
-run:
-	cd app && poetry run python -m app.main
+stop:
+	docker compose stop
 
+up:
+	docker compose up -d
+
+down:
+	docker compose down --remove-orphans
+
+#Миграции
 migrate:
-	cd app && poetry run alembic upgrade head
+	docker compose exec -it alembic poetry run alembic upgrade head
 
-flake8:
-	flake8 app updater
+migrate-generate:
+	alembic revision --autogenerate --rev-id=`date '+%Y_%m_%d_%H%M'` -m "COMMENT"
 
-isort:
-	isort app updater
+migrate-down:
+	docker compose exec -it alembic poetry run alembic downgrade -1
 
-black:
-	black app updater
+migrate-up:
+	docker compose exec -it alembic poetry run alembic upgrade +1
 
-check-all: isort black flake8
+#Анализатор кода
+updater-check-all: updater-flake8 updater-isort updater-black
+
+app-check-all: app-flake8 app-isort app-black
+
+check-all: updater-check-all app-check-all
+
+app-flake8:
+	docker compose exec -it agreemod flake8 .
+
+app-isort:
+	docker compose exec -it agreemod isort .
+
+app-black:
+	docker compose exec -it agreemod black .
+
+updater-flake8:
+	docker compose exec -it updater flake8 .
+
+updater-isort:
+	docker compose exec -it updater isort .
+
+updater-black:
+	docker compose exec -it updater black .

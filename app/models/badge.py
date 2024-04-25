@@ -1,13 +1,13 @@
+from dictionaries.diet_type import DietType
+from dictionaries.feed_type import FeedType
+from dictionaries.participation_role import ParticipationRole
+from dictionaries.participation_type import ParticipationType
 from pydantic import Field
 
 from app.models.base import DomainModel
 from app.models.direction import Direction
 from app.models.person import Person
-from dictionaries.diet_type import DietType
-from dictionaries.feed_type import FeedType
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_type import ParticipationType
-
+from uuid import UUID
 
 class Badge(DomainModel):
 
@@ -30,3 +30,4 @@ class Badge(DomainModel):
     person: Person | None = None
     direction: Direction | None = None
     comment: str | None = None
+    notion_id: UUID

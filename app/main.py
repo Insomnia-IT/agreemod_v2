@@ -2,6 +2,7 @@ import logging
 
 import uvicorn
 import venusian
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -55,8 +56,8 @@ def get_app() -> FastAPI:
     app.include_router(router_people)
     app.include_router(router_directions)
     app.include_router(router_badges)
-    
-    
+
+
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
         return JSONResponse(status_code=ex.status_code, content=ex.dict())
