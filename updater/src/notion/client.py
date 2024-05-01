@@ -7,6 +7,8 @@ from uuid import UUID
 
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
+
+from db.orm.participation import ParticipationORM
 from updater.src.notion.databases import NotionDatabase, Directions, Persons, Participations
 from updater.src.notion.models.base import (
     BaseNotionResponse,
@@ -84,10 +86,18 @@ class NotionClient:
 
             return value
 
-        # TODO: over-abstractive код, отрефакторить соблюдая принцип KISS
-        return target(
+        orm = target(
             **{key: calculate_value(val) for key, val in notion if key[-1] != "_"}
         )
+
+        if type(orm) is ParticipationORM:
+            # TODO: убрать этот костыль
+            if not orm.person_id:
+                raise Exception("No user id provided")
+            orm.direction_id = str(orm.direction_id[0].hex)
+            orm.person_id = str(orm.person_id[0].hex)
+
+        return orm
 
     @staticmethod
     def load_mocked(db_name: str):

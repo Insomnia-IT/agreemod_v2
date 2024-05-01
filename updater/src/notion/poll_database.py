@@ -43,13 +43,6 @@ async def poll_database(
                 logger.error(f"{e.__class__.__name__}: {e}")
                 continue
 
-            if type(database) is Participations:
-                # TODO: убрать/спрятать этот костыль для Participation
-                if not orm.person_id:
-                    continue
-                orm.direction_id = str(orm.direction_id[0].hex)
-                orm.person_id = str(orm.person_id[0].hex)
-
             try:
                 exist = await session.scalar(
                     select(database.orm).filter_by(notion_id=orm.notion_id)
