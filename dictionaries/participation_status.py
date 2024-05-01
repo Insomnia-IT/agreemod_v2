@@ -2,16 +2,16 @@ from enum import StrEnum
 
 
 class ParticipationStatus(StrEnum):
-    PLANNED = "Планируется"
-    CANCELED = "Отменилось"
-    PENDING = "Ждём ответа"
-    CONFIRMED = "Подтверждено накануне"
-    SKIPPED = "Не доехал"
-    ARRIVED = "Заехал на поле"
-    STARTED = "Приступил"
-    LEFT = "Ушел"
-    COMPLETE = "Состоялось"
-    JOINED = "Прибился"
+    PLANNED = "планируется"
+    CANCELED = "отменилось"
+    PENDING = "ждём ответа"
+    CONFIRMED = "подтверждено накануне"
+    SKIPPED = "не доехал"
+    ARRIVED = "заехал на поле"
+    STARTED = "приступил"
+    LEFT = "ушел"
+    COMPLETE = "состоялось"
+    JOINED = "прибился"
 
     @property
     def to_list(self) -> bool:

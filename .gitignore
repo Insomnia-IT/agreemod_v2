@@ -1,5 +1,5 @@
 .idea
-mocks/*
+mocks
 .DS_Store
 .env
 config.ini

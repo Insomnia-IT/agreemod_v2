@@ -5,7 +5,7 @@ from db.meta import Base
 
 
 class ParticipationORM(Base):
-    """
+    """ TODO: док стринг не в полной мере отображает действительность
     Атрибут            Содержимое      Тип данных    Cardinality
     year               Год             Число         Req
     person             Человек         Человеки      Req FK
@@ -18,7 +18,7 @@ class ParticipationORM(Base):
 
     __tablename__ = "participation"
 
-    id: Mapped[int] = Column(Integer, primary_key=True)
+    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
     year: Mapped[int] = Column(Integer, nullable=False)  # req
     person_id: Mapped[str] = Column(
         String, ForeignKey("person.notion_id"), nullable=False

@@ -7,6 +7,7 @@ from traceback_with_variables import ColorSchemes, Format
 
 class NotionConfig(BaseSettings):
     token: str = Field(alias="token")
+    token_write: str = Field(alias="write_token")
 
     model_config = SettingsConfigDict(extra="ignore")
 
