@@ -11,6 +11,9 @@ from updater.src.notion.databases import DATABASE_REGISTRY, NotionDatabase
 from db.meta import async_session
 
 
+from db.meta import async_session
+
+
 logger = logging.getLogger(__name__)
 
 

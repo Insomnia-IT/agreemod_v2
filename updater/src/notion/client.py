@@ -16,6 +16,7 @@ from updater.src.notion.models.base import (
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
 
+
 logger = logging.getLogger("NotionDatabase")
 
 

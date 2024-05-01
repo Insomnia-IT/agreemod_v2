@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 
+from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
-from app.models.person import Person
-from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
-
 from app.models.participation import Participation
-from app.db.repos.participation import ParticipationRepo
+from app.models.person import Person
+from app.schemas.person import PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+
 
 router = APIRouter()
 
@@ -50,6 +50,40 @@ async def get_orgs_and_volunteers(
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
+
+
+@router.get(
+    "/contacts/search",
+    summary="Человеки",
+    response_model=TelebotResponseSchema | None,
+)
+async def get_telebot_person(
+    telegram: str,
+    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+    repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+):
+    """
+    API для работы с телеграм ботом по промокодам
+    https://github.com/Insomnia-IT/promocode_bot
+    """
+    person = await repo.retrieve_by_telegram(telegram)
+    participations = await repo_part.retrieve_personal(str(person.notion_id))
+
+    person_for_telebot = TelebotResponseSchema(
+        uuid=person.notion_id,
+        nickname=person.nickname,
+        lastname=person.last_name,
+        name=person.name,
+        telegram=person.telegram,
+        email=person.email,
+        second_email=person.email,
+        phone_number=person.phone,
+        role=next(x.role.value for x in participations if x.role),
+        volunteer=["???"],  # TODO: что тут должно быть?
+        organize=[x.participation_type.value for x in participations],
+    )
+    return person_for_telebot
+
 
 @router.get(
     "/participation",

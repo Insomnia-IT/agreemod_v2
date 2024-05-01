@@ -22,9 +22,6 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         notion_id: str = None,
         include_person: bool = True,
         include_direction: bool = True,
-        include_role: bool = True,
-        include_status: bool = True,
-        include_participation: bool = True,
         limit: int = None,
         offset: int = None,
     ):
@@ -35,12 +32,6 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             query = query.options(joinedload(ParticipationAppORM.person))
         if include_direction:
             query = query.options(joinedload(ParticipationAppORM.direction))
-        if include_role:
-            query = query.options(joinedload(ParticipationAppORM.role))
-        if include_status:
-            query = query.options(joinedload(ParticipationAppORM.status))
-        if include_participation:
-            query = query.options(joinedload(ParticipationAppORM.participation))
         if limit:
             query = query.limit(limit)
         if offset:
@@ -52,6 +43,10 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         if result is None:
             return None
         return result.to_model()
+
+    async def retrieve_personal(self, person_id: str) -> list[Participation]:
+        results = await self.session.scalars(self.get_query().filter(ParticipationAppORM.person_id == person_id))
+        return [result.to_model() for result in results]
 
     async def retrieve_all(self, page: int, page_size: int) -> List[Participation]:
         offset = (page - 1) * page_size

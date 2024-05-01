@@ -12,7 +12,6 @@ from app.models.direction import Direction
 from db.meta import async_session
 from db.repos.direction import DirectionRepo
 
-
 logger = logging.getLogger(__name__)
 
 

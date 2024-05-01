@@ -145,8 +145,6 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    direction_type: Mapped[DirectionTypeAppORM] = relationship("DirectionTypeORM")
-
     @classmethod
     def to_orm(cls, model: Direction):
         return cls(
@@ -160,7 +158,7 @@ class DirectionAppORM(DirectionORM):
     def to_model(self) -> Direction:
         return Direction(
             name=self.name,
-            type=self.direction_type.name,
+            type=self.type,
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,
@@ -168,10 +166,6 @@ class DirectionAppORM(DirectionORM):
 
 
 class BadgeAppORM(BadgeORM):
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
-    role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
 
@@ -195,10 +189,10 @@ class BadgeAppORM(BadgeORM):
             person_id=model.person.notion_id.hex if model.person else None,
             direction_id=model.direction.notion_id.hex if model.direction else None,
             comment=model.comment,
-            notion_id=model.notion_id.hex,
+            notion_id=model.notion_id.hex if model.notion_id else None,
         )
 
-    def to_model(self) -> Badge:
+    def to_model(self, include_person: bool = False, include_dicrection: bool = False) -> Badge:
         return Badge(
             name=self.name,
             last_name=self.last_name,
@@ -211,11 +205,11 @@ class BadgeAppORM(BadgeORM):
             feed=self.feed,
             number=self.number,
             batch=self.batch,
-            participation=self.participation.name,
-            role=self.role.name,
+            participation=self.participation_code,
+            role=self.role_code,
             photo=self.photo,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
+            person=self.person.to_model() if self.person and include_person else self.person_id,
+            direction=self.direction.to_model() if self.direction and include_dicrection else self.direction_id,
             comment=self.comment,
             notion_id=self.notion_id,
         )
@@ -238,9 +232,15 @@ class ArrivalAppORM(ArrivalORM):
             comment=model.comment,
         )
 
-    def to_model(self) -> Arrival:
+    def to_model(
+        self, include_badge: bool = False, include_person: bool = False, include_direction: bool = False
+    ) -> Arrival:
         return Arrival(
-            badge=self.badge.to_model(),
+            badge=(
+                self.badge.to_model(include_person=include_person, include_dicrection=include_direction)
+                if include_badge and self.badge
+                else self.badge_id
+            ),
             arrival_date=self.arrival_date,
             arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
@@ -257,9 +257,7 @@ class ParticipationAppORM(ParticipationORM):
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
     role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
     status: Mapped[ParticipationStatusAppORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
+    participation: Mapped[ParticipationTypeAppORM] = relationship("ParticipationTypeORM")
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -273,13 +271,17 @@ class ParticipationAppORM(ParticipationORM):
             notion_id=model.notion_id,
         )
 
-    def to_model(self) -> Participation:
+    def to_model(
+        self,
+        include_person: bool = False,
+        include_direction: bool = False,
+    ) -> Participation:
         return Participation(
             year=self.year,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
-            role=self.role.name,
-            participation=self.participation.name,
-            status=self.status.name,
+            person=self.person.to_model() if include_person else self.person_id,
+            direction=self.direction.to_model() if include_direction else self.direction_id,
+            role=self.role_code,
+            participation=self.participation_code,
+            status=self.status_code,
             notion_id=self.notion_id,
         )
