@@ -11,8 +11,8 @@ from app.models.person import Person
 
 class Participation(BaseModel):
     year: int
-    person: Person
-    direction: Direction
+    person: Person | UUID | None
+    direction: Direction | UUID | None
     role: ParticipationRole
     participation_type: ParticipationType | None = None
     status: ParticipationStatus

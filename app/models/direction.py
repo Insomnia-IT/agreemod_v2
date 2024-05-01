@@ -14,12 +14,7 @@ class Direction(DomainModel):
 
     @classmethod
     def from_notion_data(cls, data_raw, notion_id):
-        name = (
-            data_raw.get("Name", {})
-            .get("title", [{}])[0]
-            .get("text", {})
-            .get("content")
-        )
+        name = data_raw.get("Name", {}).get("title", [{}])[0].get("text", {}).get("content")
         type_ = data_raw.get("Тип", {}).get("select", {}).get("name")
         first_year = data_raw.get("Год появления", {}).get("number")
         last_year = data_raw.get("Последний год", {}).get("number")

@@ -1,17 +1,13 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 
 from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
-from app.models.person import Person
-from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
-
 from app.models.participation import Participation
-from app.db.repos.participation import ParticipationRepo
+from app.models.person import Person
+from app.schemas.person import PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+
 
 router = APIRouter()
 
@@ -56,35 +52,12 @@ async def get_orgs_and_volunteers(
     return await repo.retrieve_many(filters, order_by, limit, offset)
 
 
-class ContactModel(BaseModel):
-    """
-    TODO: где должна быть эта модель?
-    модель скопирована из https://github.com/Insomnia-IT/promocode_bot
-    бот ожидает получить пользователя в таком виде
-    """
-
-    uuid: UUID
-    nickname: str
-    lastname: str
-    name: str
-
-    telegram: str | None
-    email: str | None
-    second_email: str | None
-    phone_number: str | None
-
-    role: str | None
-
-    volunteer: list[str]
-    organize: list[str]
-
-
 @router.get(
     "/contacts/search",
     summary="Человеки",
-    response_model=ContactModel | None,
+    response_model=TelebotResponseSchema | None,
 )
-async def get_persons(
+async def get_telebot_person(
     telegram: str,
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
     repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
@@ -94,9 +67,9 @@ async def get_persons(
     https://github.com/Insomnia-IT/promocode_bot
     """
     person = await repo.retrieve_by_telegram(telegram)
-    participation = await repo_part.retrieve_by_person_notion_id(str(person.notion_id))
+    participations = await repo_part.retrieve_personal(str(person.notion_id))
 
-    person_for_telebot = ContactModel(
+    person_for_telebot = TelebotResponseSchema(
         uuid=person.notion_id,
         nickname=person.nickname,
         lastname=person.last_name,
@@ -105,11 +78,13 @@ async def get_persons(
         email=person.email,
         second_email=person.email,
         phone_number=person.phone,
-        role=participation.get("role_code"),
+        role=next(x.role.value for x in participations if x.role),
         volunteer=["???"],  # TODO: что тут должно быть?
-        organize=[participation.get("participation_code")],
+        organize=[x.participation_type.value for x in participations],
     )
     return person_for_telebot
+
+
 @router.get(
     "/participation",
     summary="Участие",
