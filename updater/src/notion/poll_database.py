@@ -33,7 +33,6 @@ async def poll_database(
             model = database.model(notion_id=item.id, **item.properties)
 
             try:
-                # TODO: эта стратегия не полностью работает для таблицы Participation
                 orm: Union[
                     ParticipationORM,
                     PersonORM,
