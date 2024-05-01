@@ -1,12 +1,22 @@
 FROM python:3.11-slim-bookworm
-ENV DEBIAN_FRONTEND=noninteractive
+
 WORKDIR /opt/app
 
-RUN apt update && apt -y install nano curl g++ && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN pip3 install --upgrade pip poetry
+COPY ../bot/poetry.lock bot/pyproject.toml /opt/app/
 
-COPY poetry.lock pyproject.toml /opt/app/
-
+RUN pip install --no-cache-dir --upgrade pip poetry
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-root --only main
+
+ENV PYTHONPATH=/opt/app
+
+# ???
+COPY ../bot /opt/app
+COPY ../db /opt/app
+COPY ../rabbit /opt/app
+
+ENTRYPOINT ["python", "-m", "main"]
