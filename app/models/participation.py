@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.models.direction import Direction
 from app.models.person import Person
-
+from datetime import datetime
 
 class Participation(BaseModel):
     year: int
@@ -17,3 +17,4 @@ class Participation(BaseModel):
     participation_type: ParticipationType | None = None
     status: ParticipationStatus
     notion_id: UUID | None = None
+    last_updated: datetime = None

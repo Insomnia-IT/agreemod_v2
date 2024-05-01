@@ -122,6 +122,7 @@ class PersonAppORM(PersonORM):
             diet=person.diet,
             comment=person.comment,
             notion_id=person.notion_id.hex,
+            last_updated=person.last_updated,
         )
 
     def to_model(self) -> Person:
@@ -140,6 +141,7 @@ class PersonAppORM(PersonORM):
             diet=self.diet,
             comment=self.comment,
             notion_id=self.notion_id,
+            last_updated=self.last_updated
         )
         return person
 
@@ -155,6 +157,7 @@ class DirectionAppORM(DirectionORM):
             first_year=model.first_year,
             last_year=model.last_year,
             notion_id=model.notion_id.hex,
+            last_updated=model.last_updated
         )
 
     def to_model(self) -> Direction:
@@ -164,6 +167,7 @@ class DirectionAppORM(DirectionORM):
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,
+            last_updated=self.last_updated
         )
 
 
@@ -196,6 +200,7 @@ class BadgeAppORM(BadgeORM):
             direction_id=model.direction.notion_id.hex if model.direction else None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
+            last_updated=model.last_updated
         )
 
     def to_model(self) -> Badge:
@@ -218,6 +223,7 @@ class BadgeAppORM(BadgeORM):
             direction=self.direction.to_model(),
             comment=self.comment,
             notion_id=self.notion_id,
+            last_updated=self.last_updated
         )
 
 
@@ -236,6 +242,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
+            last_updated=model.last_updated
         )
 
     def to_model(self) -> Arrival:
@@ -249,6 +256,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,
+            last_updated=self.last_updated
         )
 
 
@@ -271,6 +279,7 @@ class ParticipationAppORM(ParticipationORM):
             participation_code=model.participation_type.name,
             status_code=model.status.name,
             notion_id=model.notion_id,
+            last_updated=model.last_updated,
         )
 
     def to_model(self) -> Participation:
@@ -282,4 +291,5 @@ class ParticipationAppORM(ParticipationORM):
             participation=self.participation.name,
             status=self.status.name,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )

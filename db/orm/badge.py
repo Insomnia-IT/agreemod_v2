@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint, DateTime, func
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -36,6 +36,7 @@ class BadgeORM(Base):
     direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id"))
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.current_timestamp())
 
     _unique_constraint = UniqueConstraint(number)
 
@@ -59,4 +60,5 @@ class BadgeORM(Base):
             f"direction='{self.direction.name}', "
             f"comment='{self.comment}', "
             f"notion_id='{self.notion_id}')"
+            f"last_updated='{self.last_updated}',"
         )

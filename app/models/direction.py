@@ -1,6 +1,7 @@
 from dictionaries.direction_type import DirectionType
 
 from app.models.base import DomainModel
+from datetime import datetime
 
 
 class Direction(DomainModel):
@@ -8,6 +9,7 @@ class Direction(DomainModel):
     type: DirectionType | None = None
     first_year: int | None = None
     last_year: int | None = None
+    last_updated: datetime = None
 
     class Config:
         from_attributes = True

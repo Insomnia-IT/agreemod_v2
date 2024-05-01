@@ -8,6 +8,7 @@ from app.models.base import DomainModel
 from app.models.direction import Direction
 from app.models.person import Person
 from uuid import UUID
+from datetime import datetime
 
 class Badge(DomainModel):
 
@@ -31,3 +32,4 @@ class Badge(DomainModel):
     direction: Direction | None = None
     comment: str | None = None
     notion_id: UUID
+    last_updated: datetime = None

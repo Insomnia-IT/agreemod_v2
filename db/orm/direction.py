@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -22,6 +22,7 @@ class DirectionORM(Base):
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.current_timestamp())
 
     def __repr__(self):
         return (
@@ -30,4 +31,5 @@ class DirectionORM(Base):
             f"first_year={self.first_year}, "
             f"last_year={self.last_year}, "
             f"notion_id='{self.notion_id}')"
+            f"last_updated='{self.last_updated}',"
         )

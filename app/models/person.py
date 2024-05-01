@@ -6,6 +6,7 @@ from dictionaries.gender import Gender
 from pydantic import Field
 
 from app.models.base import DomainModel
+from datetime import datetime
 
 
 class Person(DomainModel):
@@ -22,3 +23,4 @@ class Person(DomainModel):
     email: str | None = None
     diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
+    last_updated: datetime = None

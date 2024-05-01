@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import ARRAY, Column, Date, String
+from sqlalchemy import ARRAY, Column, Date, String, DateTime, func
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -23,6 +23,7 @@ class PersonORM(Base):
     diet: Mapped[str] = Column(String)
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    last_updated = Column(DateTime, server_default=func.now(), onupdate=func.current_timestamp())
 
     def __repr__(self):
         return (
@@ -40,4 +41,5 @@ class PersonORM(Base):
             f"diet='{self.diet}', "
             f"comment='{self.comment}', "
             f"notion_id='{self.notion_id}')"
+            f"last_updated='{self.last_updated}',"
         )

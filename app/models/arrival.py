@@ -4,6 +4,7 @@ from dictionaries.transport_type import TransportType
 from pydantic import BaseModel
 
 from app.models.badge import Badge
+from datetime import datetime
 
 
 class Arrival(BaseModel):
@@ -17,3 +18,4 @@ class Arrival(BaseModel):
     departure_registered: time | None = None
     extra_data: dict | None = None
     comment: str | None = None
+    last_updated: datetime = None
