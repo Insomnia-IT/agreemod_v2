@@ -61,4 +61,4 @@ async def get_participation(
     page: int = Q("page", 1, description="page"),
     page_size: int = Q("page size", 10, description="page_size"),
 ):
-    return await repo.retrieve_all(page=page, page_size=page_size)
+    return await repo.retrieve_all_with_pagination(page=page, page_size=page_size)

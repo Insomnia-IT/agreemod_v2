@@ -17,3 +17,14 @@ class Participation(BaseModel):
     participation_type: ParticipationType | None = None
     status: ParticipationStatus
     notion_id: UUID | None = None
+
+
+class ParticipationOriginal(BaseModel):
+    id: int | None
+    direction_id: str | None
+    notion_id: str | None
+    participation_code: str | None
+    person_id: str | None
+    role_code: str | None
+    status_code: str | None
+    year: int | None

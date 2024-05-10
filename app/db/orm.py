@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, relationship
 from app.models.arrival import Arrival
 from app.models.badge import Badge
 from app.models.direction import Direction
-from app.models.participation import Participation
+from app.models.participation import Participation, ParticipationOriginal
 from app.models.person import Person
 from db.orm.arrival import ArrivalORM
 from db.orm.badge import BadgeORM
@@ -282,4 +282,31 @@ class ParticipationAppORM(ParticipationORM):
             participation=self.participation.name,
             status=self.status.name,
             notion_id=self.notion_id,
+        )
+
+
+class ParticipationAppORM2(ParticipationORM):
+
+    @classmethod
+    def to_orm(cls, model: Participation):
+        return cls(
+            year=model.year,
+            person_id=model.person.notion_id,
+            direction_id=model.direction.notion_id,
+            role_code=model.role.name,
+            participation_code=model.participation_type.name,
+            status_code=model.status.name,
+            notion_id=model.notion_id,
+        )
+
+    def to_model(self) -> ParticipationOriginal:
+        return ParticipationOriginal(
+            id=self.id,
+            direction_id=self.direction_id,
+            notion_id=self.notion_id,
+            participation_code=self.participation_code,
+            person_id=self.person_id,
+            role_code=self.role_code,
+            status_code=self.status_code,
+            year=self.year,
         )

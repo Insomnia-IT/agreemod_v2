@@ -22,11 +22,10 @@ column_name = "id"
 
 
 def upgrade():
-    op.execute(f"CREATE SEQUENCE IF NOT EXISTS {tablename}_{column_name}_seq CASCADE")
+    op.execute(f"CREATE SEQUENCE IF NOT EXISTS {tablename}_{column_name}_seq")
     op.execute(f"ALTER TABLE {tablename} ALTER COLUMN {column_name} SET DEFAULT nextval('{tablename}_{column_name}_seq')")
 
 
 # Downgrade function
 def downgrade():
-    op.execute(f"DROP SEQUENCE IF EXISTS {tablename}_{column_name}_seq")
     op.execute(f"ALTER TABLE {tablename} ALTER COLUMN {column_name} DROP DEFAULT")

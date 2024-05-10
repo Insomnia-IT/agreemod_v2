@@ -5,12 +5,12 @@ from typing import List
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.orm import ParticipationAppORM
+from app.db.orm import ParticipationAppORM, ParticipationAppORM2
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
-from app.models.participation import Participation
-
+from app.models.participation import Participation, ParticipationOriginal
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +53,16 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             return None
         return result.to_model()
 
-    async def retrieve_all(self, page: int, page_size: int) -> List[Participation]:
+    async def retrieve_all_with_pagination(self, page: int, page_size: int) -> List[Participation]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(self.get_query(limit=page_size, offset=offset))
         return [result.to_model() for result in results]
+
+    @staticmethod
+    async def retrieve_all(session: AsyncSession) -> List[ParticipationOriginal]:
+        results = await session.scalars(select(ParticipationAppORM2))
+        data = [i.to_model() for i in results]
+        return data
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)

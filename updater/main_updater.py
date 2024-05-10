@@ -27,8 +27,9 @@ async def run_concurrently():
     notion = NotionClient(token=config.notion.token)
     updater = Updater(notion=notion)
 
-    # await asyncio.gather(main(updater), rmq_eat_carrots(updater))
-    await updater.run_participation()  # TODO: for dev
+    await asyncio.gather(main(updater), rmq_eat_carrots(updater))
+    # await updater.run_participation_db_to_notion()  # TODO: for dev
+    # await updater.run_participation_notion_to_db()  # TODO: for dev
 
 
 

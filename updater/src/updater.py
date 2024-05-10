@@ -40,14 +40,26 @@ class Updater:
         if user_id and bot:
             await bot.send_message(user_id, "Обновление таблицы Человеков завершено")
 
-    async def run_participation(self, user_id=None, bot=None):
+    async def run_participation_notion_to_db(self, user_id=None, bot=None):
         """Notion to DB
+        Эту синхронизацию не нужно было делать.
+        Её не нужно включать в основной поток синхронизации.
         """
         self.states.start_participation_updater()
         await poll_database(self.notion, Participations())
         self.states.stop_participation_updater()
         if user_id and bot:
-            await bot.send_message(user_id, "Обновление таблицы Человеков завершено")
+            await bot.send_message(user_id, "Обновление таблицы Участия завершено")
+
+    async def run_participation_db_to_notion(self, user_id=None, bot=None):
+        """DB to Notion
+        """
+        self.states.start_participation_updater()
+        # get db data
+        await write_database(self.notion, "Participations")
+        self.states.stop_participation_updater()
+        if user_id and bot:
+            await bot.send_message(user_id, "Обновление таблицы Участия завершено")
 
     async def run_participation_to_notion(self):
         """DB to Notion
