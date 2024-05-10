@@ -32,6 +32,5 @@ async def run_concurrently():
     # await updater.run_participation_notion_to_db()  # TODO: for dev
 
 
-
 if __name__ == "__main__":
     asyncio.run(run_concurrently())

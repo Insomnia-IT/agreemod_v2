@@ -48,7 +48,7 @@
 ### Миграции
 Генерация миграций с текущей датой
 ```
-alembic revision --autogenerate --rev-id=`date '+%Y_%m_%d_%H%M'` -m "COMMENT"
+alembic revision --autogenerate -m "create audit log table"
 
 ```
 Апгрейд вперёд до последней версии

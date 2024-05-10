@@ -2,9 +2,10 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
+from db.orm.base import BaseORM
 
 
-class DirectionORM(Base):
+class DirectionORM(Base, BaseORM):
     """
     name:
     type: строка на основе справочника api.enums.services.Service

@@ -2,9 +2,10 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConst
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
+from db.orm.base import BaseORM
 
 
-class BadgeORM(Base):
+class BadgeORM(Base, BaseORM):
     """
     infant: признак, что это ребенок
     diet: особенности питания, строка на основе справочника app.dictionaries.diet_type

@@ -7,9 +7,10 @@ from sqlalchemy.orm import Mapped
 # import sys
 # sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
 from db.meta import Base
+from db.orm.base import BaseORM
 
 
-class ArrivalORM(Base):
+class ArrivalORM(Base, BaseORM):
     """
     Атрибут	                Содержимое	        Тип данных	    Cardinality	    Пояснение
     badge	                Бейдж	            Бейдж	        Req

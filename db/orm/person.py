@@ -4,9 +4,10 @@ from sqlalchemy import ARRAY, Column, Date, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
+from db.orm.base import BaseORM
 
 
-class PersonORM(Base):
+class PersonORM(Base, BaseORM):
     __tablename__ = "person"
 
     name: Mapped[str] = Column(String, nullable=False)

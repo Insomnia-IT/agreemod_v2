@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from db.orm import PersonORM, DirectionORM
 from db.orm.participation import ParticipationORM
+from db.repo.logs import LogsRepository
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
 from updater.src.notion.databases import DATABASE_REGISTRY, Directions, Persons, Participations
@@ -29,6 +30,8 @@ async def poll_database(
     response = await client.query_database(database=database, mock=False)  # TODO: read from config / DEBUG
     logger.info(f"Received {database.name} table data")
     async with async_session() as session:
+        log_repo = LogsRepository(session)
+
         for item in response:
             model = database.model(notion_id=item.id, **item.properties)
 
@@ -49,7 +52,22 @@ async def poll_database(
                 if not exist:
                     session.add(orm)
                 else:
-                    await session.merge(orm)
+                    exist_dict = dict(orm)
+                    exist_dict.pop("id")
+
+                    update_dict = dict(exist)
+                    update_dict.pop("id")
+
+                    if update_dict != exist_dict:
+                        await log_repo.add_log(
+                            table_name=database.orm.__tablename__,
+                            operation="MERGE",
+                            row_id=exist.notion_id,
+                            new_data=update_dict,
+                            # TODO: add author
+                        )
+                        await session.merge(orm)
+
             except Exception as e:
                 logger.error(f"{e.__class__.__name__}: {e}")
                 continue

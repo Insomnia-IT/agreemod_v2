@@ -2,9 +2,10 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
+from db.orm.base import BaseORM
 
 
-class ParticipationORM(Base):
+class ParticipationORM(Base, BaseORM):
     """ TODO: док стринг не в полной мере отображает действительность
     Атрибут            Содержимое      Тип данных    Cardinality
     year               Год             Число         Req
