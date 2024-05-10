@@ -53,10 +53,12 @@ async def poll_database(
                     session.add(orm)
                 else:
                     exist_dict = dict(orm)
-                    exist_dict.pop("id")
+                    if exist_dict.get("id"):
+                        exist_dict.pop("id")
 
                     update_dict = dict(exist)
-                    update_dict.pop("id")
+                    if update_dict.get("id"):
+                        update_dict.pop("id")
 
                     if update_dict != exist_dict:
                         await log_repo.add_log(
