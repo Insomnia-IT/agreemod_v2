@@ -1,6 +1,7 @@
 from datetime import date
 
 from pydantic import BaseModel, computed_field
+
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
 

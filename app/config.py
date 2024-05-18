@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
-
 load_dotenv()
 
 
@@ -78,11 +77,15 @@ class Config(BaseSettings):
     API_HOST: str = "127.0.0.1"
     API_PORT: int = 8000
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+    )
 
     @property
     def version(self) -> str:
-        return ".".join(map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION]))
+        return ".".join(
+            map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION])
+        )
 
 
 config = Config()

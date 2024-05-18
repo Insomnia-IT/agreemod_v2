@@ -1,5 +1,6 @@
 import json
 import logging
+
 import aio_pika
 
 from .interface import RMQConsumerInterface

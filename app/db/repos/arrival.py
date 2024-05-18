@@ -9,7 +9,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +22,9 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(title=f"arrival with {data.notion_id=} already exists")
+            raise RepresentativeError(
+                title=f"arrival with {data.notion_id=} already exists"
+            )
         return new_arrival
 
     # def create_sync(self, data: Arrival):
@@ -67,7 +68,9 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         await self.session.flush([orm])
 
     async def delete(self, notion_id):
-        await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.notion_id == notion_id))
+        await self.session.execute(
+            delete(ArrivalAppORM).where(ArrivalAppORM.notion_id == notion_id)
+        )
 
     async def retrieve_many(self, filters: dict = None) -> list[Arrival]:
         result = await self.session.scalars(
@@ -85,5 +88,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         return [x.to_model() for x in result]
 
     async def retrieve_all(self) -> list[Arrival]:
-        result = await self.session.scalars(select(ArrivalAppORM).options(joinedload(ArrivalAppORM.arrival_type)))
+        result = await self.session.scalars(
+            select(ArrivalAppORM).options(joinedload(ArrivalAppORM.arrival_type))
+        )
         return [x.to_model() for x in result]

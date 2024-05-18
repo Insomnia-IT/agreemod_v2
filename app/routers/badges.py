@@ -7,7 +7,6 @@ from app.documenters import Q
 from app.models.arrival import Arrival
 from app.models.badge import Badge
 
-
 router = APIRouter()
 
 

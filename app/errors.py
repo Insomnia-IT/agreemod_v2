@@ -1,5 +1,4 @@
 import uuid
-
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
@@ -16,7 +15,9 @@ class ErrorSource:
     parameter: str | None = None
     header: str | None = None
 
-    def __init__(self, pointer: Any = None, parameter: str = None, header: str | dict = None) -> None:
+    def __init__(
+        self, pointer: Any = None, parameter: str = None, header: str | dict = None
+    ) -> None:
         if pointer:
             self.pointer = self._format_pointer(pointer)
         if self.pointer and self.pointer[0] != "/":
@@ -34,7 +35,11 @@ class ErrorSource:
                 if isinstance(v, (tuple, list)):
                     return "/".join(map(str, v))
                 elif isinstance(v, (int, str)):
-                    return "/".join(map(str, [parent, k, v])) if parent else "/".join(map(str, [k, v]))
+                    return (
+                        "/".join(map(str, [parent, k, v]))
+                        if parent
+                        else "/".join(map(str, [k, v]))
+                    )
                 elif isinstance(v, dict):
                     self._format_pointer(v, parent=f"{parent}/{k}" if parent else k)
         return str(pointer)

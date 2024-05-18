@@ -1,11 +1,11 @@
-from typing import ForwardRef
 from uuid import UUID
 
-from app.dto.badge import BadgeDTO
-from dictionaries import DirectionType
 from pydantic import Field
 
+from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
+from dictionaries import DirectionType
+
 
 class Direction(DomainModel):
     name: str | None = None

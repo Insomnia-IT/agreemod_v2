@@ -6,7 +6,6 @@ from app.models.base import DomainModel
 from dictionaries import TransportType
 
 
-
 class Arrival(DomainModel):
 
     badge: BadgeDTO | UUID

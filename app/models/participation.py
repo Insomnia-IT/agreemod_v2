@@ -3,11 +3,7 @@ from uuid import UUID
 from app.dto.direction import DirectionDTO
 from app.models.base import DomainModel
 from app.models.person import Person
-from dictionaries import (
-    ParticipationRole,
-    ParticipationStatus,
-    ParticipationType,
-)
+from dictionaries import ParticipationRole, ParticipationStatus, ParticipationType
 
 
 class Participation(DomainModel):

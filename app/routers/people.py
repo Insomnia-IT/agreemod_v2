@@ -8,7 +8,6 @@ from app.models.participation import Participation
 from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
-
 router = APIRouter()
 
 

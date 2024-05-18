@@ -1,26 +1,14 @@
 from typing import List, Self
+
 from sqlalchemy.orm import Mapped, relationship
+
 from app.dto.badge import BadgeDTO
 from app.models.arrival import Arrival
 from app.models.badge import Badge, DirectionDTO, Infant
 from app.models.direction import Direction
 from app.models.participation import Participation
 from app.models.person import Person
-from dictionaries import (
-    BadgeColor, 
-    DirectionType, 
-    ParticipationRole, 
-    ParticipationStatus, 
-    ParticipationType, 
-    TransportType,
-)
-from db.orm import (
-    ArrivalORM,
-    BadgeORM,
-    DirectionORM,
-    ParticipationORM,
-    PersonORM,
-)
+from db.orm import ArrivalORM, BadgeORM, DirectionORM, ParticipationORM, PersonORM
 from db.orm.dictionaries import (
     BadgeColorORM,
     DirectionTypeORM,
@@ -28,6 +16,14 @@ from db.orm.dictionaries import (
     ParticipationStatusORM,
     ParticipationTypeORM,
     TransportTypeORM,
+)
+from dictionaries import (
+    BadgeColor,
+    DirectionType,
+    ParticipationRole,
+    ParticipationStatus,
+    ParticipationType,
+    TransportType,
 )
 
 
@@ -153,8 +149,7 @@ class PersonAppORM(PersonORM):
 
 class DirectionAppORM(DirectionORM):
     badges: Mapped[List["BadgeAppORM"]] = relationship(
-        back_populates="directions",
-        secondary="badge_directions"
+        back_populates="directions", secondary="badge_directions"
     )
 
     @classmethod
@@ -176,19 +171,19 @@ class DirectionAppORM(DirectionORM):
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,
-            badges=[
-                BadgeDTO.model_validate(x, from_attributes=True) for x
-                in self.badges
-            ] if include_badges else None,
+            badges=(
+                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
+                if include_badges
+                else None
+            ),
         )
 
 
 class BadgeAppORM(BadgeORM):
-    infant: Mapped['BadgeAppORM'] = relationship("BadgeAppORM")
+    infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     directions: Mapped[List["DirectionAppORM"]] = relationship(
-        back_populates="badges",
-        secondary="badge_directions"
+        back_populates="badges", secondary="badge_directions"
     )
 
     @classmethod
@@ -228,7 +223,11 @@ class BadgeAppORM(BadgeORM):
             nickname=self.nickname,
             gender=self.gender,
             phone=self.phone,
-            infant=Infant.model_validate(self.infant, from_attributes=True) if self.infant and include_infant else self.infant_id,
+            infant=(
+                Infant.model_validate(self.infant, from_attributes=True)
+                if self.infant and include_infant
+                else self.infant_id
+            ),
             diet=self.diet,
             feed=self.feed,
             number=self.number,
@@ -236,11 +235,19 @@ class BadgeAppORM(BadgeORM):
             participation=self.participation_code,
             role=self.role_code,
             photo=self.photo,
-            person=self.person.to_model() if self.person and include_person else self.person_id,
-            directions=[
-                DirectionDTO.model_validate(x, from_attributes=True) for x
-                in self.directions
-            ] if include_directions else None,
+            person=(
+                self.person.to_model()
+                if self.person and include_person
+                else self.person_id
+            ),
+            directions=(
+                [
+                    DirectionDTO.model_validate(x, from_attributes=True)
+                    for x in self.directions
+                ]
+                if include_directions
+                else None
+            ),
             comment=self.comment,
             notion_id=self.notion_id,
         )
@@ -267,7 +274,11 @@ class ArrivalAppORM(ArrivalORM):
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
             id=self.id,
-            badge=BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id,
+            badge=(
+                BadgeDTO.model_validate(self.badge, from_attributes=True)
+                if include_badge
+                else self.badge_id
+            ),
             arrival_date=self.arrival_date,
             arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
@@ -296,11 +307,17 @@ class ParticipationAppORM(ParticipationORM):
             notion_id=model.notion_id,
         )
 
-    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
+    def to_model(
+        self, include_person: bool = False, include_direction: bool = False
+    ) -> Participation:
         return Participation(
             year=self.year,
             person=self.person.to_model() if include_person else self.person_id,
-            direction=DirectionDTO.model_validate(self.direction, from_attributes=True) if include_direction else self.direction_id,
+            direction=(
+                DirectionDTO.model_validate(self.direction, from_attributes=True)
+                if include_direction
+                else self.direction_id
+            ),
             role=self.role_code,
             participation=self.participation_code,
             status=self.status_code,

@@ -1,6 +1,6 @@
 import logging
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
@@ -19,6 +19,7 @@ class PostgresConfig(BaseSettings):
     name: str
 
     model_config = SettingsConfigDict(extra="ignore")
+
 
 class RabbitMQ(BaseSettings):
     DEFAULT_HOST: str = "localhost"

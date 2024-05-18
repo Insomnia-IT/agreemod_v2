@@ -1,6 +1,7 @@
 from aiogram import Bot
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from rabbit.publisher import RabbitMQAsyncPublisher
 
 

@@ -4,14 +4,12 @@ import logging
 import pydantic
 import venusian
 
-from updater.src.config import config
-from updater.src.notion import Direction as NotionDirection
-from updater.src.notion import NotionClient
-
 from app.models.direction import Direction
 from db.meta import async_session
 from db.repos.direction import DirectionRepo
-
+from updater.src.config import config
+from updater.src.notion import Direction as NotionDirection
+from updater.src.notion import NotionClient
 
 logger = logging.getLogger(__name__)
 

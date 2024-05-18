@@ -1,7 +1,8 @@
 import uuid
+
 from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped
 
 from db.meta import Base
 
@@ -20,7 +21,9 @@ class DirectionORM(Base):
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)
     type: Mapped[str] = Column(
-        String, ForeignKey("direction_type.code"), nullable=False,
+        String,
+        ForeignKey("direction_type.code"),
+        nullable=False,
     )
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)

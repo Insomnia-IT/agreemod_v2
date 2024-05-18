@@ -1,7 +1,5 @@
 from enum import StrEnum
 
-from dictionaries.badge_color import BadgeColor
-
 
 class ParticipationRole(StrEnum):
     ORGANIZER = "организатор"  # красный

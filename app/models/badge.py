@@ -1,5 +1,6 @@
-from typing import ForwardRef
 from uuid import UUID
+
+from pydantic import Field, computed_field, model_validator
 
 from app.dto.badge import Infant
 from app.dto.direction import DirectionDTO
@@ -13,7 +14,6 @@ from dictionaries import (
     ParticipationRole,
     ParticipationType,
 )
-from pydantic import Field, computed_field, field_validator, model_validator
 
 
 class Badge(DomainModel):

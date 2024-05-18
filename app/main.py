@@ -2,7 +2,6 @@ import logging
 
 import uvicorn
 import venusian
-
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -14,7 +13,6 @@ from app.errors import RepresentativeError, intake_validation_error_handler
 from app.routers.badges import router as router_badges
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
-
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +69,9 @@ def get_app() -> FastAPI:
 
 
 def run_api():
-    logger.debug(f"starting... : host={config.API_HOST} port={config.API_PORT} debug={config.DEBUG}")
+    logger.debug(
+        f"starting... : host={config.API_HOST} port={config.API_PORT} debug={config.DEBUG}"
+    )
     uvicorn.run(
         "app.main:get_app",
         factory=True,

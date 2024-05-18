@@ -1,7 +1,8 @@
 import uuid
+
 from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped
 
 from db.meta import Base
 
