@@ -35,7 +35,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def retrieve_by_phone(self, phone) -> Badge:
         result = await self.session.scalar(
-            select(BadgeAppORM).filter_by(phone=phone).options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
+            select(BadgeAppORM)
+            .filter_by(phone=phone)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         if result is None:
             return None
@@ -59,6 +61,8 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def retrieve_many(self, filters: dict = None) -> list[Badge]:
         result = await self.session.scalars(
-            select(BadgeAppORM).filter_by(**filters).options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
+            select(BadgeAppORM)
+            .filter_by(**filters)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         return [x.to_model() for x in result]

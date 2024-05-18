@@ -1,5 +1,4 @@
 import logging
-
 from typing import List
 
 from sqlalchemy import delete, select
@@ -10,7 +9,6 @@ from app.db.orm import ParticipationAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
-
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +37,9 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         return query
 
     async def retrieve(self, notion_id) -> Participation | None:
-        result: ParticipationAppORM | None = await self.session.scalar(self.get_query(notion_id=notion_id))
+        result: ParticipationAppORM | None = await self.session.scalar(
+            self.get_query(notion_id=notion_id)
+        )
         if result is None:
             return None
         return result.to_model()
@@ -50,7 +50,9 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     async def retrieve_all(self, page: int, page_size: int) -> List[Participation]:
         offset = (page - 1) * page_size
-        results = await self.session.scalars(self.get_query(limit=page_size, offset=offset))
+        results = await self.session.scalars(
+            self.get_query(limit=page_size, offset=offset)
+        )
         return [result.to_model() for result in results]
 
     async def create(self, data: Participation):
@@ -61,7 +63,9 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(title=f"participation with {data.notion_id=} already exists")
+            raise RepresentativeError(
+                title=f"participation with {data.notion_id=} already exists"
+            )
         return new_participation
 
     async def update(self, data: Participation):
@@ -69,7 +73,11 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         await self.session.flush()
 
     async def delete(self, notion_id):
-        await self.session.execute(delete(ParticipationAppORM).where(ParticipationAppORM.notion_id == notion_id))
+        await self.session.execute(
+            delete(ParticipationAppORM).where(
+                ParticipationAppORM.notion_id == notion_id
+            )
+        )
 
     async def retrieve_many(self, filters: dict = None) -> list[Participation]:
         result = await self.session.scalars(self.get_query())

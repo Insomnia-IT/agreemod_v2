@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, String
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -9,7 +9,6 @@ class ParticipationRoleORM(Base):
 
     code: Mapped[str] = Column(String, primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)
-    badge_color: Mapped[str] = Column(String, ForeignKey("badge_color.code"))
     is_lead: Mapped[bool] = Column(Boolean, nullable=False)
     is_team: Mapped[bool] = Column(Boolean, nullable=False)
     is_free_feed: Mapped[bool] = Column(Boolean)

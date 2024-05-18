@@ -2,7 +2,6 @@ import logging
 
 from aiogram import Router, types
 from aiogram.filters import Command
-
 from src.config import publisher
 from src.utils.decorators import check_access_decorator
 

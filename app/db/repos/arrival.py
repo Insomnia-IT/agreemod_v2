@@ -22,16 +22,22 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             await self.session.flush([new_arrival])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
-            raise RepresentativeError(title=f"arrival with {data.id=} already exists")
+            # raise e
+            raise RepresentativeError(
+                title=f"arrival with {data.notion_id=} already exists"
+            )
         return new_arrival
 
-    async def retrieve(self, id):
+    async def retrieve(self, notion_id):
         result = await self.session.scalar(
             select(ArrivalAppORM)
-            .filter_by(id=id)
+            .filter_by(notion_id=notion_id)
             .options(
                 joinedload(
                     ArrivalAppORM.badge,
+                    # ArrivalAppORM.engagement,
+                    ArrivalAppORM.arrival_transport,
+                    ArrivalAppORM.departure_transport,
                 )
             )
         )
@@ -53,7 +59,10 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             .filter_by(**filters)
             .options(
                 joinedload(
-                    ArrivalAppORM.badge
+                    ArrivalAppORM.badge,
+                    # ArrivalAppORM.engagement,
+                    ArrivalAppORM.arrival_transport,
+                    ArrivalAppORM.departure_transport,
                 )
             )
         )
