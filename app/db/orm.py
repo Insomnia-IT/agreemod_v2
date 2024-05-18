@@ -180,10 +180,7 @@ class DirectionAppORM(DirectionORM):
 
 
 class BadgeAppORM(BadgeORM):
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
-    role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
+    infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     directions: Mapped[List["DirectionAppORM"]] = relationship(
         back_populates="badges", secondary="badge_directions"
@@ -209,10 +206,15 @@ class BadgeAppORM(BadgeORM):
             photo=model.photo,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
-            notion_id=model.notion_id.hex,
+            notion_id=model.notion_id,
         )
 
-    def to_model(self) -> Badge:
+    def to_model(
+        self,
+        include_person: bool = False,
+        include_directions: bool = False,
+        include_infant: bool = False,
+    ) -> Badge:
         return Badge(
             id=self.id,
             name=self.name,
@@ -233,8 +235,19 @@ class BadgeAppORM(BadgeORM):
             participation=self.participation_code,
             role=self.role_code,
             photo=self.photo,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
+            person=(
+                self.person.to_model()
+                if self.person and include_person
+                else self.person_id
+            ),
+            directions=(
+                [
+                    DirectionDTO.model_validate(x, from_attributes=True)
+                    for x in self.directions
+                ]
+                if include_directions
+                else None
+            ),
             comment=self.comment,
             notion_id=self.notion_id,
         )
@@ -258,9 +271,14 @@ class ArrivalAppORM(ArrivalORM):
             comment=model.comment,
         )
 
-    def to_model(self) -> Arrival:
+    def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
-            badge=self.badge.to_model(),
+            id=self.id,
+            badge=(
+                BadgeDTO.model_validate(self.badge, from_attributes=True)
+                if include_badge
+                else self.badge_id
+            ),
             arrival_date=self.arrival_date,
             arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
@@ -275,11 +293,6 @@ class ArrivalAppORM(ArrivalORM):
 class ParticipationAppORM(ParticipationORM):
     person: Mapped[PersonAppORM] = relationship("PersonORM")
     direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
-    role: Mapped[ParticipationRoleAppORM] = relationship("ParticipationRoleORM")
-    status: Mapped[ParticipationStatusAppORM] = relationship("ParticipationStatusORM")
-    participation: Mapped[ParticipationTypeAppORM] = relationship(
-        "ParticipationTypeORM"
-    )
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -294,13 +307,19 @@ class ParticipationAppORM(ParticipationORM):
             notion_id=model.notion_id,
         )
 
-    def to_model(self) -> Participation:
+    def to_model(
+        self, include_person: bool = False, include_direction: bool = False
+    ) -> Participation:
         return Participation(
             year=self.year,
-            person=self.person.to_model(),
-            direction=self.direction.to_model(),
-            role=self.role.name,
-            participation=self.participation.name,
-            status=self.status.name,
+            person=self.person.to_model() if include_person else self.person_id,
+            direction=(
+                DirectionDTO.model_validate(self.direction, from_attributes=True)
+                if include_direction
+                else self.direction_id
+            ),
+            role=self.role_code,
+            participation=self.participation_code,
+            status=self.status_code,
             notion_id=self.notion_id,
         )
