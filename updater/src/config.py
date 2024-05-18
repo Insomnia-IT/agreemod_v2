@@ -1,6 +1,6 @@
 import logging
 
-from pydantic import Field
+from pydantic import BaseModel, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
@@ -20,6 +20,19 @@ class PostgresConfig(BaseSettings):
 
     model_config = SettingsConfigDict(extra="ignore")
 
+class RabbitMQ(BaseSettings):
+    DEFAULT_HOST: str = "localhost"
+    DEFAULT_USER: str = "guest"
+    DEFAULT_PASS: str = "guest"
+    WEB_PORT: int = 15672
+    QUEUE_PORT: int = 5672
+    TELEGRAM_QUEUE: str = "telegram"
+
+    @computed_field
+    @property
+    def rabbitmq_url(self) -> str:
+        return f"amqp://{self.DEFAULT_USER}:{self.DEFAULT_PASS}@{self.DEFAULT_HOST}/"  # TODO: move to conf
+
 
 class Config(BaseSettings):
     NOTION_DBS_INFO: str = "notion_dbs_info.json"
@@ -28,6 +41,8 @@ class Config(BaseSettings):
 
     notion: NotionConfig
     postgres: PostgresConfig
+    rabbitmq: RabbitMQ
+    TELEBOT_TOKEN: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
