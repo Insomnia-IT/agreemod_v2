@@ -1,7 +1,8 @@
 from datetime import date, time
+import uuid
 
-from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped
 
 # import sys
@@ -24,9 +25,9 @@ class ArrivalORM(Base):
     """
 
     __tablename__ = "arrival"
-    id: Mapped[int] = Column(Integer, primary_key=True)
-    badge_id: Mapped[str] = Column(
-        String, ForeignKey("badge.notion_id"), nullable=False
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True)
+    badge_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("badge.id"), nullable=False
     )
     arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String)

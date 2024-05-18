@@ -1,5 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+import uuid
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped
+from sqlalchemy.dialects.postgresql import UUID
 
 from db.meta import Base
 
@@ -18,13 +20,13 @@ class ParticipationORM(Base):
 
     __tablename__ = "participation"
 
-    id: Mapped[int] = Column(Integer, primary_key=True)
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True)
     year: Mapped[int] = Column(Integer, nullable=False)  # req
-    person_id: Mapped[str] = Column(
-        String, ForeignKey("person.notion_id"), nullable=False
+    person_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("person.id"), nullable=False
     )  # req fk
-    direction_id: Mapped[str] = Column(
-        String, ForeignKey("direction.notion_id"), nullable=False
+    direction_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("direction.id"), nullable=False
     )  # req fk
     role_code: Mapped[str] = Column(
         String, ForeignKey("participation_role.code")
@@ -35,7 +37,9 @@ class ParticipationORM(Base):
     status_code: Mapped[str] = Column(
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
-    notion_id: Mapped[str] = Column(String, nullable=False)  # opt
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))  # opt
+
+    _unique_constraint_notion = UniqueConstraint(notion_id)
 
     def __repr__(self):
         return (

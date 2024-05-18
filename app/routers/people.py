@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 
+from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
+from app.models.participation import Participation
 from app.models.person import Person
 from app.schemas.person import PersonFiltersDTO, PersonResponseSchema
 
-from app.models.participation import Participation
-from app.db.repos.participation import ParticipationRepo
 
 router = APIRouter()
 
@@ -50,6 +50,7 @@ async def get_orgs_and_volunteers(
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
+
 
 @router.get(
     "/participation",

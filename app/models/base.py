@@ -1,7 +1,9 @@
+import uuid
+
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DomainModel(BaseModel):
-    notion_id: UUID
+    id: UUID = Field(default_factory=uuid.uuid4)

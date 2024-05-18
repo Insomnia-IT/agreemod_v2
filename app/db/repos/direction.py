@@ -47,9 +47,7 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
 
     async def retrieve(self, notion_id):
         result = await self.session.scalar(
-            select(DirectionAppORM)
-            .filter_by(notion_id=notion_id)
-            .options(joinedload(DirectionAppORM.direction_type))
+            select(DirectionAppORM).filter_by(notion_id=notion_id).options(joinedload(DirectionAppORM.direction_type))
         )
         if result is None:
             return None
@@ -61,20 +59,14 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         await self.session.flush([orm])
 
     async def delete(self, notion_id):
-        await self.session.execute(
-            delete(DirectionAppORM).where(DirectionAppORM.notion_id == notion_id)
-        )
+        await self.session.execute(delete(DirectionAppORM).where(DirectionAppORM.notion_id == notion_id))
 
     async def retrieve_many(self, filters: dict = None) -> list[Direction]:
         result = await self.session.scalars(
-            select(DirectionAppORM)
-            .filter_by(**filters)
-            .options(joinedload(DirectionAppORM.direction_type))
+            select(DirectionAppORM).filter_by(**filters).options(joinedload(DirectionAppORM.direction_type))
         )
         return [x.to_model() for x in result]
 
     async def retrieve_all(self) -> list[Direction]:
-        result = await self.session.scalars(
-            select(DirectionAppORM).options(joinedload(DirectionAppORM.direction_type))
-        )
+        result = await self.session.scalars(select(DirectionAppORM).options(joinedload(DirectionAppORM.direction_type)))
         return [x.to_model() for x in result]

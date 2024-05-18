@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import Mapped
 
 from db.meta import Base
@@ -9,4 +9,5 @@ class ParticipationTypeORM(Base):
 
     code: Mapped[str] = Column(String, primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)
+    badge_color: Mapped[str] = Column(String, ForeignKey("badge_color.code"))
     comment: Mapped[str] = Column(String)

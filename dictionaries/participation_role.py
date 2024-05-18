@@ -50,39 +50,6 @@ class ParticipationRole(StrEnum):
         return False
 
     @property
-    def badge_color(self):
-        match self:
-            case ParticipationRole.ORGANIZER:
-                return BadgeColor.RED
-
-            case (
-                ParticipationRole.VOLUNTEER
-                | ParticipationRole.VICE_HEAD
-                | ParticipationRole.TEAM_LEAD
-            ):
-                return BadgeColor.GREEN
-
-            case ParticipationRole.MEDICIAN:
-                return BadgeColor.PURPLE
-
-            case ParticipationRole.CAMP_LEAD | ParticipationRole.CAMP_GUY:
-                return BadgeColor.BLUE
-
-            case (
-                ParticipationRole.FELLOW
-                | ParticipationRole.VIP
-                | ParticipationRole.PRESS
-                | ParticipationRole.OTHER
-            ):
-                return BadgeColor.YELLOW
-
-            case ParticipationRole.CONTRACTOR:
-                return BadgeColor.GRAY
-
-            case _:
-                return BadgeColor.ORANGE
-
-    @property
     def free_feed(self):
         if self in [
             ParticipationRole.ORGANIZER,

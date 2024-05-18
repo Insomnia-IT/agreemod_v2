@@ -1,5 +1,7 @@
-from sqlalchemy import Column, ForeignKey, PrimaryKeyConstraint, String
+import uuid
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import Mapped
+from sqlalchemy.dialects.postgresql import UUID
 
 from db.meta import Base
 
@@ -10,9 +12,13 @@ class BadgeDirectionsORM(Base):
     """
 
     __tablename__ = "badge_directions"
-    __table_args__ = (
-        PrimaryKeyConstraint('badge_id', 'direction_id'),
+    badge_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True),
+        ForeignKey("badge.id", onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True,
+    )    
+    direction_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True),
+        ForeignKey("direction.id", onupdate="CASCADE"),
+        primary_key=True,
     )
-
-    badge_id: Mapped[str] = Column(String, ForeignKey("badge.notion_id", onupdate="CASCADE", ondelete="CASCADE"))
-    direction_id: Mapped[str] = Column(String, ForeignKey("direction.notion_id", onupdate="CASCADE"))

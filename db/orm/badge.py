@@ -1,8 +1,9 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, relationship
+import uuid
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped
+from sqlalchemy.dialects.postgresql import UUID
 
 from db.meta import Base
-from db.orm.direction import DirectionORM
 
 class BadgeORM(Base):
     """
@@ -16,13 +17,21 @@ class BadgeORM(Base):
 
     __tablename__ = "badge"
 
+    id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True),
+        primary_key=True
+    )
     name: Mapped[str] = Column(String, nullable=False)
     last_name: Mapped[str] = Column(String)
     first_name: Mapped[str] = Column(String)
     nickname: Mapped[str] = Column(String)
     gender: Mapped[str] = Column(String)
     phone: Mapped[str] = Column(String)
-    infant: Mapped[bool] = Column(Boolean)
+    infant_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True),
+        ForeignKey("badge.id"),
+        nullable=True,
+    )
     diet: Mapped[str] = Column(String)
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
@@ -32,31 +41,12 @@ class BadgeORM(Base):
     )
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
-    person_id: Mapped[str] = Column(String, ForeignKey("person.notion_id"))
-    direction_id: Mapped[list[DirectionORM]] = relationship(back_populates="badge_direction", secondary="badge_directions")
+    person_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True),
+        ForeignKey("person.id"),
+    )
     comment: Mapped[str] = Column(String)
-    notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
 
-    _unique_constraint = UniqueConstraint(number)
-
-    def __repr__(self):
-        return (
-            f"Badge(name='{self.name}', "
-            f"last_name='{self.last_name}', "
-            f"first_name='{self.first_name}', "
-            f"nickname='{self.nickname}', "
-            f"gender='{self.gender}', "
-            f"phone='{self.phone}', "
-            f"infant='{self.infant}', "
-            f"diet='{self.diet}', "
-            f"feed='{self.feed}', "
-            f"number='{self.number}', "
-            f"batch='{self.batch}', "
-            f"participation='{self.participation.name}', "
-            f"role='{self.role.name}', "
-            f"photo='{self.photo}', "
-            f"person='{self.person.name}', "
-            f"direction='{self.direction.name}', "
-            f"comment='{self.comment}', "
-            f"notion_id='{self.notion_id}')"
-        )
+    _unique_constraint_number = UniqueConstraint(number)
+    _unique_constraint_notion = UniqueConstraint(notion_id)

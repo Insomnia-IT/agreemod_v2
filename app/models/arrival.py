@@ -1,14 +1,15 @@
 from datetime import date, time
+from uuid import UUID
 
-from dictionaries.transport_type import TransportType
-from pydantic import BaseModel
+from app.dto.badge import BadgeDTO
+from app.models.base import DomainModel
+from dictionaries import TransportType
 
-from app.models.badge import Badge
 
 
-class Arrival(BaseModel):
+class Arrival(DomainModel):
 
-    badge: Badge
+    badge: BadgeDTO | UUID
     arrival_date: date
     arrival_transport: TransportType | None = None
     arrival_registered: time | None = None
