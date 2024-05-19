@@ -11,6 +11,7 @@ from traceback_with_variables import print_exc
 
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
+from app.routers.feeder import router_feeder
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 from app.routers.badges import router as router_badges
@@ -52,6 +53,8 @@ def get_app() -> FastAPI:
     # todo:
     #   log user actions middleware: Middleware(LogUserActionMiddleware),
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
+
+    app.include_router(router_feeder)
 
     app.include_router(router_people)
     app.include_router(router_directions)
