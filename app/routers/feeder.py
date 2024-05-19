@@ -1,7 +1,5 @@
 import logging
 from datetime import datetime
-from idlelib.query import Query
-from typing import Optional
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse

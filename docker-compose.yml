@@ -28,7 +28,7 @@ services:
       context: ./
     volumes:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
-      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./alembic:${VOLUME_MOUNT_PREFIX}/alembic
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
@@ -60,7 +60,7 @@ services:
       - ${API_PROXY}:${API_PORT}
     volumes:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
-      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
       postgres:
@@ -75,7 +75,7 @@ services:
       context: ./
     volumes:
       - ./updater:${VOLUME_MOUNT_PREFIX}/updater
-      - ./db:${VOLUME_MOUNT_PREFIX}/db
+      - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
     depends_on:
       postgres:
