@@ -5,7 +5,7 @@ import venusian
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
-from db.meta import PG_URL, metadata
+from database.meta import PG_URL, metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

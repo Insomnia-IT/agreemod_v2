@@ -6,14 +6,14 @@ import venusian
 
 from sqlalchemy import select
 
-from db.orm import PersonORM, DirectionORM
-from db.orm.participation import ParticipationORM
-from db.repo.logs import LogsRepository
+from database.orm import PersonORM, DirectionORM
+from database.orm.participation import ParticipationORM
+from database.repo.logs import LogsRepository
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
 from updater.src.notion.databases import DATABASE_REGISTRY, Directions, Persons, Participations
 
-from db.meta import async_session
+from database.meta import async_session
 
 logger = logging.getLogger(__name__)
 

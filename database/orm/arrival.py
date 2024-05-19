@@ -6,8 +6,8 @@ from sqlalchemy.orm import Mapped
 
 # import sys
 # sys.path.insert(1, 'C:/Users/ilyam/Documents/Insomnia_integrations/agreemod_v2/agreemod_v2/')
-from db.meta import Base
-from db.orm.base import BaseORM
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
 class ArrivalORM(Base, BaseORM):

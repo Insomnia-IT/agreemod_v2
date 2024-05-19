@@ -13,17 +13,17 @@ from app.models.badge import Badge
 from app.models.direction import Direction
 from app.models.participation import Participation, ParticipationOriginal
 from app.models.person import Person
-from db.orm.arrival import ArrivalORM
-from db.orm.badge import BadgeORM
-from db.orm.dictionaries.badge_color import BadgeColorORM
-from db.orm.dictionaries.direction_type import DirectionTypeORM
-from db.orm.dictionaries.participation_role import ParticipationRoleORM
-from db.orm.dictionaries.participation_status import ParticipationStatusORM
-from db.orm.dictionaries.participation_type import ParticipationTypeORM
-from db.orm.dictionaries.transport_type import TransportTypeORM
-from db.orm.direction import DirectionORM
-from db.orm.participation import ParticipationORM
-from db.orm.person import PersonORM
+from database.orm.arrival import ArrivalORM
+from database.orm.badge import BadgeORM
+from database.orm.dictionaries.badge_color import BadgeColorORM
+from database.orm.dictionaries.direction_type import DirectionTypeORM
+from database.orm.dictionaries.participation_role import ParticipationRoleORM
+from database.orm.dictionaries.participation_status import ParticipationStatusORM
+from database.orm.dictionaries.participation_type import ParticipationTypeORM
+from database.orm.dictionaries.transport_type import TransportTypeORM
+from database.orm.direction import DirectionORM
+from database.orm.participation import ParticipationORM
+from database.orm.person import PersonORM
 
 
 class BadgeColorAppORM(BadgeColorORM):

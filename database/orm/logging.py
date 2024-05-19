@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, JSON
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
-from db.orm.base import BaseORM
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
 class LogsORM(Base, BaseORM):

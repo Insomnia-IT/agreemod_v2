@@ -4,13 +4,13 @@ from typing import Type
 
 from pydantic import BaseModel
 
-from db.orm.participation import ParticipationORM
+from database.orm.participation import ParticipationORM
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.participation import Participation
 from updater.src.notion.models.person import Person
 
-from db.orm.direction import DirectionORM
-from db.orm.person import PersonORM
+from database.orm.direction import DirectionORM
+from database.orm.person import PersonORM
 
 DATABASE_REGISTRY: dict[str, Type["NotionDatabase"]] = {}
 

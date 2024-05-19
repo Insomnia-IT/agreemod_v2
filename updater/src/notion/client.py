@@ -8,7 +8,7 @@ from uuid import UUID
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
-from db.orm.participation import ParticipationORM
+from database.orm.participation import ParticipationORM
 from updater.src.notion.databases import NotionDatabase, Directions, Persons, Participations
 from updater.src.notion.models.base import (
     BaseNotionResponse,

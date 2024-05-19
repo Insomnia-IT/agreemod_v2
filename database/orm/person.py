@@ -3,8 +3,8 @@ from datetime import date
 from sqlalchemy import ARRAY, Column, Date, String
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
-from db.orm.base import BaseORM
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
 class PersonORM(Base, BaseORM):

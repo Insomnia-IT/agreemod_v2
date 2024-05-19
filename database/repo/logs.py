@@ -4,7 +4,7 @@ import time
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from db.orm import LogsORM
+from database.orm import LogsORM
 
 
 class LogsRepository:

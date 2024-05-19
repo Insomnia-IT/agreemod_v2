@@ -1,8 +1,8 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
-from db.orm.base import BaseORM
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
 class BadgeORM(Base, BaseORM):

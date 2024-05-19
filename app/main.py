@@ -57,7 +57,6 @@ def get_app() -> FastAPI:
     app.include_router(router_directions)
     app.include_router(router_badges)
 
-
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
         return JSONResponse(status_code=ex.status_code, content=ex.dict())
