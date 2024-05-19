@@ -1,4 +1,7 @@
 import logging
+from datetime import datetime
+from idlelib.query import Query
+from typing import Optional
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -15,10 +18,12 @@ router_feeder = APIRouter(tags=["feeder"])
     summary="API для синхронизации с кормителем. Пока возвращает MOCK данные",
     response_model=ResponseModelGET
 )
-async def create_arrival():
+async def create_arrival(from_date: datetime):
     """
     API находится в разработке и пока возвращает mock данные.
     """
+    logger.info(from_date)
+    logger.info(f"from date: from_date")
     data = generate_random_response_model_get()
     return data
 
