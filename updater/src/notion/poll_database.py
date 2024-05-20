@@ -26,7 +26,7 @@ async def poll_database(
             Participations,
         ]
 ):
-    venusian.Scanner().scan(__import__("db"))
+    venusian.Scanner().scan(__import__("database"))  # TODO: это не подхватывается рефакторингом pycharm
     response = await client.query_database(database=database, mock=False)  # TODO: read from config / DEBUG
     logger.info(f"Received {database.name} table data")
     async with async_session() as session:
