@@ -54,7 +54,7 @@ def get_app() -> FastAPI:
     #   log user actions middleware: Middleware(LogUserActionMiddleware),
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
 
-    prefix = "/api/v1/"
+    prefix = "/api/v1"
     app.include_router(router_feeder, prefix=prefix)
     app.include_router(router_people, prefix=prefix)
     app.include_router(router_directions, prefix=prefix)
