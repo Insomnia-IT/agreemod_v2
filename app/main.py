@@ -54,10 +54,11 @@ def get_app() -> FastAPI:
     #   log user actions middleware: Middleware(LogUserActionMiddleware),
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
 
-    app.include_router(router_feeder, prefix="/api")
-    app.include_router(router_people, prefix="/api")
-    app.include_router(router_directions, prefix="/api")
-    app.include_router(router_badges, prefix="/api")
+    prefix = "/api/v1/"
+    app.include_router(router_feeder, prefix=prefix)
+    app.include_router(router_people, prefix=prefix)
+    app.include_router(router_directions, prefix=prefix)
+    app.include_router(router_badges, prefix=prefix)
 
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
