@@ -1,6 +1,7 @@
+from datetime import time
 import uuid
 
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -39,6 +40,8 @@ class ParticipationORM(Base):
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
     notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))  # opt
+    last_updated: Mapped[time] = Column(TIMESTAMP)
+
 
     _unique_constraint_notion = UniqueConstraint(notion_id)
 

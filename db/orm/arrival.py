@@ -37,6 +37,7 @@ class ArrivalORM(Base):
     departure_registered: Mapped[time] = Column(TIMESTAMP)
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
+    last_updated: Mapped[time] = Column(TIMESTAMP)
 
     def __repr__(self):
         return (

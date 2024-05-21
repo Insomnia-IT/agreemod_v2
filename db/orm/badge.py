@@ -1,6 +1,7 @@
+from datetime import time
 import uuid
 
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -46,6 +47,7 @@ class BadgeORM(Base):
     )
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
+    last_updated: Mapped[time] = Column(TIMESTAMP)
 
     _unique_constraint_number = UniqueConstraint(number)
     _unique_constraint_notion = UniqueConstraint(notion_id)
