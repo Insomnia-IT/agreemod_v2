@@ -23,7 +23,9 @@ async def run_concurrently():
     notion = NotionClient(token=config.notion.token)
     updater = Updater(notion=notion)
 
-    await asyncio.gather(main(updater), rmq_eat_carrots(updater))
+    await asyncio.gather(main(updater), 
+                        #  rmq_eat_carrots(updater)
+                        )
 
 
 if __name__ == "__main__":

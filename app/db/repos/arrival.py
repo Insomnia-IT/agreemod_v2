@@ -28,22 +28,23 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             )
         return new_arrival
 
-    async def retrieve(self, notion_id):
-        result = await self.session.scalar(
-            select(ArrivalAppORM)
-            .filter_by(notion_id=notion_id)
-            .options(
-                joinedload(
-                    ArrivalAppORM.badge,
-                    # ArrivalAppORM.engagement,
-                    ArrivalAppORM.arrival_transport,
-                    ArrivalAppORM.departure_transport,
-                )
-            )
-        )
+    async def retrieve(self, id, include_badge: bool):
+        query = select(ArrivalAppORM).filter_by(id=id)
+        if include_badge:
+            query = query.options(joinedload(ArrivalAppORM.badge))
+        result = await self.session.scalar(query)
         if result is None:
             return None
-        return result.to_model()
+        return result.to_model(include_badge=include_badge)
+    
+    async def retrieve_by_badge(self, badge_id, include_badge: bool):
+        query = select(ArrivalAppORM).filter_by(badge_id=badge_id)
+        if include_badge:
+            query = query.options(joinedload(ArrivalAppORM.badge))
+        result = await self.session.scalar(query)
+        if result is None:
+            return None
+        return result.to_model(include_badge=include_badge)
 
     async def update(self, data: Arrival):
         orm = ArrivalAppORM.to_orm(data)

@@ -22,7 +22,7 @@ class ParticipationORM(Base):
 
     __tablename__ = "participation"
 
-    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     year: Mapped[int] = Column(Integer, nullable=False)  # req
     person_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True), ForeignKey("person.id"), nullable=False

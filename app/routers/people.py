@@ -22,7 +22,6 @@ def _get_person_filters_dto(
         email=email,
     )
 
-
 @router.get(
     "/persons",
     summary="Человеки",

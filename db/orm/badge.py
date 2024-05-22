@@ -20,7 +20,7 @@ class BadgeORM(Base):
 
     __tablename__ = "badge"
 
-    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = Column(String, nullable=False)
     last_name: Mapped[str] = Column(String)
     first_name: Mapped[str] = Column(String)
