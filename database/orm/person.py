@@ -5,10 +5,11 @@ from sqlalchemy import ARRAY, Column, Date, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
-class PersonORM(Base):
+class PersonORM(Base, BaseORM):
     __tablename__ = "person"
 
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

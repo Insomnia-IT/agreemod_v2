@@ -5,8 +5,8 @@ from sqlalchemy import MetaData, NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from db.config import config
-from db.create_db import create_database_if_not_exists
+from database.config import config
+from database.create_db import create_database_if_not_exists
 
 logger = logging.getLogger(__name__)
 

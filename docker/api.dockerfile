@@ -7,7 +7,7 @@ RUN pip3 install --upgrade pip poetry
 
 WORKDIR /opt/app
 
-COPY db db
+COPY database database
 COPY dictionaries dictionaries
 
 COPY .env app/poetry.lock app/pyproject.toml ./

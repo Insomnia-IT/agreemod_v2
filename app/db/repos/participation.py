@@ -4,8 +4,9 @@ from typing import List
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.orm import ParticipationAppORM
+from app.db.orm import ParticipationAppORM, ParticipationAppORM2
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
@@ -54,6 +55,12 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             self.get_query(limit=page_size, offset=offset)
         )
         return [result.to_model() for result in results]
+
+    @staticmethod
+    async def retrieve_all(session: AsyncSession) -> List[Participation]:
+        results = await session.scalars(select(ParticipationAppORM))
+        data = [i.to_model() for i in results]
+        return data
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)

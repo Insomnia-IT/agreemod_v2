@@ -11,6 +11,7 @@ from traceback_with_variables import print_exc
 from app.config import config, traceback_format
 from app.errors import RepresentativeError, intake_validation_error_handler
 from app.routers.badges import router as router_badges
+from app.routers.feeder import router_feeder
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 
@@ -31,7 +32,7 @@ async def server_error_handler(_: Request, e: Exception):
 
 
 def get_app() -> FastAPI:
-    venusian.Scanner().scan(__import__("db"))
+    venusian.Scanner().scan(__import__("database"))  # TODO: это не подхватывается рефакторингом pycharm
     venusian.Scanner().scan(__import__("app"))
 
     docs_url = f"{config.API_PREFIX}/_docs" if config.DEBUG else None
@@ -52,6 +53,7 @@ def get_app() -> FastAPI:
     #   log user actions middleware: Middleware(LogUserActionMiddleware),
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
 
+    app.include_router(router_feeder)
     app.include_router(router_people)
     app.include_router(router_directions)
     app.include_router(router_badges)

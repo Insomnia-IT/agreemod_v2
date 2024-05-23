@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
+from database.meta import Base
 
 
 class ParticipationStatusORM(Base):

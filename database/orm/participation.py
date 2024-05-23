@@ -5,11 +5,12 @@ from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueCon
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
-class ParticipationORM(Base):
-    """
+class ParticipationORM(Base, BaseORM):
+    """ TODO: док стринг не в полной мере отображает действительность
     Атрибут            Содержимое      Тип данных    Cardinality
     year               Год             Число         Req
     person             Человек         Человеки      Req FK

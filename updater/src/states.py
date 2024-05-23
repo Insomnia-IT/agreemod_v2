@@ -10,6 +10,7 @@ class UpdaterStates:
             cls._instance = super(UpdaterStates, cls).__new__(cls)
             cls._instance.people_updating = False
             cls._instance.location_updating = False
+            cls._instance.participation_updating = False
             cls._instance.all_updating = False
         return cls._instance
 
@@ -26,6 +27,14 @@ class UpdaterStates:
             cls._instance.location_updating = status
         else:
             logger.warning('status must be bool!')
+
+    @classmethod
+    def start_participation_updater(cls):
+        cls._instance.location_updating = True
+
+    @classmethod
+    def stop_participation_updater(cls):
+        cls._instance.location_updating = False
 
     @classmethod
     def start_all_updater(cls):

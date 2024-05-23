@@ -4,10 +4,11 @@ from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
+from database.meta import Base
+from database.orm.base import BaseORM
 
 
-class DirectionORM(Base):
+class DirectionORM(Base, BaseORM):
     """
     name:
     type: строка на основе справочника api.enums.services.Service

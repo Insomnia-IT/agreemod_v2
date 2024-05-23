@@ -16,7 +16,7 @@ ENV PYTHONPATH=/opt/app
 
 # ???
 COPY ../bot /opt/app
-COPY ../db /opt/app
+COPY ../database /opt/app
 COPY ../rabbit /opt/app
 
 ENTRYPOINT ["python", "-m", "main"]

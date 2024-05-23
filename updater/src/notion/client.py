@@ -1,17 +1,17 @@
 import logging
 import os.path
 import pickle
-from typing import Type
+from typing import Type, Union
 from uuid import UUID
 
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
-from updater.src.notion.databases import NotionDatabase
+from database.orm.participation import ParticipationORM
+from updater.src.notion.databases import NotionDatabase, Directions, Persons, Participations
 from updater.src.notion.models.base import (
     BaseNotionResponse,
     BaseNotionResponseItem,
-    NotionModel,
 )
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
@@ -20,13 +20,13 @@ logger = logging.getLogger("NotionDatabase")
 
 class NotionClient:
     def __init__(
-        self,
-        token: str,
+            self,
+            token: str,
     ):
         self._client = AsyncClient(auth=token)
 
     async def query_database(
-        self, database: NotionDatabase, filters: dict = None, mock=False
+            self, database: NotionDatabase, filters: dict = None, mock=False
     ) -> list[BaseNotionResponseItem]:
         """
         Метод читает данные из таблиц Notion.
@@ -38,10 +38,9 @@ class NotionClient:
 
         if mock is True:
             logger.info("try reading mock files...")
-            if database.id == "c565f5fca2df40628cd91cfd59da4a9d":  # TODO: get from enum
-                response = self.load_mocked_persons()
-                if response:
-                    return response
+            response = self.load_mocked(database.name)
+            if response:
+                return response
 
         complete_result = []
         result = BaseNotionResponse(
@@ -51,6 +50,8 @@ class NotionClient:
             )
         )
         complete_result.extend(result.results)
+        self.save_mock(database.name, complete_result)
+
         logger.info(f"{database.name}: Received {len(complete_result)} items")
         while result.has_more:
             # todo: обернуть вызов self.client.databases.query в проверку и бэкофф
@@ -65,17 +66,16 @@ class NotionClient:
             logger.info(f"{database.name}: Received {len(complete_result)} items")
         logger.info(f"{database.name}: Received {len(complete_result)} items total.")
 
-        if mock:
-            logger.info("creating mock files...")
-            # TODO: probably this should be done with decorator
-            if database.id == "c565f5fca2df40628cd91cfd59da4a9d":
-                self.save_persons_mock(complete_result)
-
         return complete_result
 
     @staticmethod
     def convert_model(
-        notion: NotionModel, target: Type[DeclarativeMeta]
+            notion: Union[
+                Directions,
+                Persons,
+                Participations,
+            ],
+            target: Type[DeclarativeMeta]
     ) -> DeclarativeMeta:
         def calculate_value(value):
             if isinstance(value, BaseNotionModel):
@@ -85,13 +85,27 @@ class NotionClient:
 
             return value
 
-        return target(
+        orm = target(
             **{key: calculate_value(val) for key, val in notion if key[-1] != "_"}
         )
 
+        if type(orm) is ParticipationORM:
+            # TODO: убрать этот костыль
+            if not orm.person_id:
+                raise Exception("No user id provided")
+            orm.direction_id = str(orm.direction_id[0].hex)
+            orm.person_id = str(orm.person_id[0].hex)
+
+        return orm
+
     @staticmethod
-    def load_mocked_persons():
-        mock_path = os.path.join("mocks", "notion_response_persons.pickle")
+    def load_mocked(db_name: str):
+        if db_name not in ["get_people", "get_participation"]:
+            logger.warning(f"{db_name} not added to pickle loader")
+            return None
+
+        os.makedirs("mocks", exist_ok=True)
+        mock_path = os.path.join("mocks", f"{db_name}.pickle")
         if os.path.exists(mock_path):
             with open(mock_path, "rb") as f:
                 return pickle.load(f)
@@ -99,7 +113,9 @@ class NotionClient:
             return None
 
     @staticmethod
-    def save_persons_mock(data):
-        mock_path = os.path.join("mocks", "notion_response_persons.pickle")
+    def save_mock(file_name: str, data):
+        logger.info("creating mock files...")
+        os.makedirs("mocks", exist_ok=True)
+        mock_path = os.path.join("mocks", f"{file_name}.pickle")
         with open(mock_path, "wb") as f:
             pickle.dump(data, f)

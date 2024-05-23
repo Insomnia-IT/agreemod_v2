@@ -2,7 +2,7 @@ import logging
 
 import asyncpg
 
-from db.config import config
+from database.config import config
 
 logger = logging.getLogger(__name__)
 
