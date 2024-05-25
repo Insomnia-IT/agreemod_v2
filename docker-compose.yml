@@ -80,3 +80,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  bot:
+    platform: linux/amd64
+    build:
+      dockerfile: docker/telegram_bot.dockerfile
+      context: ./
+    volumes:
+      - ./app:${VOLUME_MOUNT_PREFIX}/app
+      - ./bot:${VOLUME_MOUNT_PREFIX}/bot
+      - ./database:${VOLUME_MOUNT_PREFIX}/database
+      - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries

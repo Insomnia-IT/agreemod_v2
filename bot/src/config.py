@@ -27,7 +27,6 @@ class Config(BaseSettings):
         env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
     )
 
-
 config = Config()
 
 queue_name = config.rabbitmq.telegram_queue
