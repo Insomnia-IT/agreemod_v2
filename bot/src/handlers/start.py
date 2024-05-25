@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher.router import Router
 from aiogram.filters import Command
 
-from src.utils.decorators import check_access_decorator
+from bot.src.utils.decorators import check_access_decorator
 
 router_start = Router()
 
