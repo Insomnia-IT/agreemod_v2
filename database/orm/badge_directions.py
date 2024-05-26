@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
-from db.meta import Base
+from database.meta import Base
 
 
 class BadgeDirectionsORM(Base):

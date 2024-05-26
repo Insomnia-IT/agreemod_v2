@@ -19,6 +19,7 @@ traceback-with-variables = "^2.0.4"
 alembic = "^1.13.1"
 aiogram = "^3.6.0"
 aio-pika = "^9.4.1"
+deepdiff = "^7.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

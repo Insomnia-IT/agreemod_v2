@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_validator
 
 class PersonFiltersDTO(BaseModel):
     telegram: str | None = None
-    phone_number: str | None = None
+    phone: str | None = None
     email: str | None = None
 
     @field_validator("phone")

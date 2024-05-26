@@ -5,8 +5,8 @@ from updater.src.notion.models.primitives.base import Annotations, BaseNotionMod
 
 
 class TitleBody(BaseModel):
-    annotations: Annotations
-    type: str
+    annotations: Annotations | None = None
+    type: str | None = None
     text: Text
     plain_text: str
     href: str | None
@@ -25,3 +25,23 @@ class Title(BaseNotionModel):
 
     def __bool__(self):
         return bool(self.value)
+
+    @classmethod
+    def create_model(cls, values: list[str | dict]):
+        result = []
+        for value in values:
+            if isinstance(value, str):
+                result.append({
+                    'text': {'content': value},
+                    'plain_text': value
+                })
+            elif isinstance(value, dict):
+                result.append(value)
+            else:
+                raise ValueError(f'{type(value)=}, {value=} is a wrong type')
+        return cls.model_validate(
+            title=[
+                TitleBody.model_validate(x) for x in result
+            ],
+            from_attributes=True
+        )

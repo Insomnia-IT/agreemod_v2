@@ -18,8 +18,12 @@ class NotionPoller:
         self.set_status = {
             'get_people': UpdaterStates.set_people_updater,
             'get_directions': UpdaterStates.set_location_updater,
+            'get_participation': self.dummy_state
         }
         self.database = db
+
+    def dummy_state(self, state: bool):
+        pass
 
     async def __aenter__(self):
         self.set_status[self.database.name](True)
@@ -32,22 +36,22 @@ class NotionPoller:
         pass
 
     async def poll_database(self, client: NotionClient):
-        venusian.Scanner().scan(__import__("db"))
+        venusian.Scanner().scan(__import__("database"))
         response = await client.query_database(database=self.database, mock=False)
         logger.info(f"Received {self.database.name} table data")
         async with async_session() as session:
             log_repo = LogsRepository(session)
             for item in response:
                 model = self.database.model(notion_id=item.id, **item.properties)
+                exist = await session.scalar(
+                    select(self.database.orm).filter_by(notion_id=orm.notion_id)
+                )
                 try:
                     orm = client.convert_model(model, self.database.orm)
                 except Exception as e:
 
                     logger.error(f"{e.__class__.__name__}: {e}")
                     continue
-                exist = await session.scalar(
-                    select(self.database.orm).filter_by(notion_id=orm.notion_id)
-                )
                 if not exist:
                     orm.id = uuid4()
                     session.add(orm)

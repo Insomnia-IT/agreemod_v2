@@ -18,7 +18,7 @@ def _get_person_filters_dto(
 ) -> PersonFiltersDTO:
     return PersonFiltersDTO(
         telegram=telegram,
-        phone_number=phone_number,
+        phone=phone_number,
         email=email,
     )
 

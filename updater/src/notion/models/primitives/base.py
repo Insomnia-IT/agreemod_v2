@@ -8,8 +8,8 @@ from pydantic import BaseModel as BaseModel
 
 
 class BaseNotionModel(BaseModel, ABC):
-    id: str
-    type: str
+    id: str | None = None
+    type: str | None = None
 
     @property
     @abstractmethod
@@ -31,7 +31,7 @@ class Link(BaseModel):
 
 class Text(BaseModel):
     content: str
-    link: Link | None
+    link: Link | None = None
 
 
 class File(BaseModel):

@@ -1,7 +1,7 @@
 import asyncio
 
 from updater.src.config import config, logger
-from updater.src.notion import NotionClient
+from updater.src.notion.client import NotionClient
 from updater.src.rabbit.manager import rmq_eat_carrots
 from updater.src.updater import Updater
 

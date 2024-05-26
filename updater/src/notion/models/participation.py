@@ -16,8 +16,9 @@ class Participation(NotionModel):
     direction_id: Relation = Field(..., alias="Службы и локации")
     role_code: Select = Field(..., alias="Роль")
 
-    participation_code: str = ParticipationType.FELLOW.name
-    status_code: str = ParticipationStatus.PENDING.name
+    participation_code: Select = Field(..., alias="Тип")
+    status_code: Select = Field(..., alias="Статус")
+
 
     @staticmethod
     def get_key_from_value(value, enum_class):
@@ -26,7 +27,7 @@ class Participation(NotionModel):
                 return enum_member.name
         return None
 
-    @field_validator("role_code")
+    @field_validator("role_code", mode='after')
     @classmethod
     def role_code_convert(cls, value):
         if value.value:
@@ -36,7 +37,7 @@ class Participation(NotionModel):
         else:
             return ParticipationRole.OTHER.name
 
-    @field_validator("participation_code")
+    @field_validator("participation_code", mode='after')
     @classmethod
     def participation_code_convert(cls, value):
         if value.value:
@@ -46,7 +47,7 @@ class Participation(NotionModel):
         else:
             return ParticipationType.FELLOW.name
 
-    @field_validator("status_code")
+    @field_validator("status_code", mode='after')
     @classmethod
     def status_code_convert(cls, value):
         if value.value:
@@ -56,13 +57,32 @@ class Participation(NotionModel):
         else:
             return ParticipationStatus.PENDING.name
 
-    @field_validator("year")
+    @field_validator("year", mode='after')
     @classmethod
     def convert_year(cls, value: Title):
         if value.value:
             return int(value.value)
         else:
             return None
+    
+    @classmethod
+    def create_model(cls, values: dict):
+        model_dict = {}
+        for x,y in values.items():
+            print(x, y)
+            if cls.model_fields.get(x):
+                field = cls.model_fields[x]
+                if cls.model_fields[x].annotation in [
+                    Relation,
+                    RichText
+                ]:
+                    model_dict[field.alias if field.alias else x] = field.annotation.create_model([y])
+                elif field.annotation in [Select]:
+                    model_dict[field.alias if field.alias else x] = field.annotation.create_model(y)
+                else:
+                    model_dict[field.alias if field.alias else x] = y
+        return cls.model_validate(model_dict)
+    
 
 
 if __name__ == '__main__':
