@@ -1,4 +1,3 @@
-from app.dependencies.db import get_sqla_repo, get_sqla_session
 from database.meta import async_session
 from updater.src.db.repos.participation import ParticipationRepo
 from updater.src.notion.client import NotionClient

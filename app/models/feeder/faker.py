@@ -1,6 +1,6 @@
 from faker import Faker
 
-from app.models.feeder import Direction
+from app.models.feeder.directions import Direction
 from app.models.feeder.arrival import Arrival
 from app.models.feeder.badge import Badge
 from uuid import uuid4
