@@ -24,9 +24,11 @@ class Config(BaseSettings):
     API_PORT: int = 8000
 
     model_config = SettingsConfigDict(
-        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+        env_file=".env",
+        case_sensitive=False,
+        env_nested_delimiter="__",
+        extra="ignore",
     )
-
 
 config = Config()
 

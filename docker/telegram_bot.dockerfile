@@ -5,18 +5,18 @@ WORKDIR /opt/app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONPATH=/opt/app
 
-COPY ../bot/poetry.lock bot/pyproject.toml /opt/app/
+COPY ../bot/poetry.lock ../bot/pyproject.toml /opt/app/
+COPY ../bot bot
+COPY ../app app
+COPY ../database database
+COPY ../dictionaries dictionaries
+COPY ../rabbit rabbit
 
 RUN pip install --no-cache-dir --upgrade pip poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-root --only main
 
-ENV PYTHONPATH=/opt/app
-
-# ???
-COPY ../bot /opt/app
-COPY ../database /opt/app
-COPY ../rabbit /opt/app
-
+WORKDIR /opt/app/bot
 ENTRYPOINT ["python", "-m", "main"]
