@@ -15,11 +15,13 @@ def _get_person_filters_dto(
     telegram: str | None = Q("Ник в Телеграм", None),
     phone_number: str | None = Q("Номер телефона", None),
     email: str | None = Q("Почта", None),
+    strict: bool = False,
 ) -> PersonFiltersDTO:
     return PersonFiltersDTO(
         telegram=telegram,
         phone=phone_number,
         email=email,
+        strict=strict,
     )
 
 @router.get(
@@ -64,7 +66,7 @@ async def get_telebot_person(
     API для работы с телеграм ботом по промокодам
     https://github.com/Insomnia-IT/promocode_bot
     """
-    person = await repo.retrieve_by_telegram(telegram)
+    person = await repo.retrieve(None, PersonFiltersDTO(telegram=telegram, strict=True))
     participations = await repo_part.retrieve_personal(str(person.notion_id))
 
     person_for_telebot = TelebotResponseSchema(

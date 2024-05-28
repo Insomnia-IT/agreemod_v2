@@ -1,36 +1,35 @@
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class PersonFiltersDTO(BaseModel):
     telegram: str | None = None
     phone: str | None = None
     email: str | None = None
+    strict: bool = False
 
-    @field_validator("phone")
-    @classmethod
-    def format_phone(cls, value: str):
-        if not value:
-            return value
-        value = (
-            value.replace(" ", "")
+    @model_validator
+    def format_phone(self):
+        if not self.phone or self.strict:
+            return self
+        self.phone = (
+            self.phone.replace(" ", "")
             .replace("-", "")
             .replace("(", "")
             .replace(")", "")
         )
-        if value[0] == "8":
-            value = "+7" + value[1:]
-        elif value[0] == "9":
-            value = "+7" + value
-        return value
+        if self.phone[0] == "8":
+            self.phone = "+7" + self.phone[1:]
+        elif self.phone[0] == "9":
+            self.phone = "+7" + self.phone
+        return self
 
-    @field_validator("telegram")
-    @classmethod
-    def format_telegram(cls, value: str):
-        if value and value[0] != "@":
-            value = "@" + value
-        return value
+    @model_validator
+    def format_telegram(self):
+        if self.telegram and self.telegram[0] != "@" and not self.strict:
+            self.telegram = "@" + self.telegram
+        return self
 
 
 

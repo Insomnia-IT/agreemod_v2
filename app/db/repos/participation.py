@@ -17,15 +17,15 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     def get_query(
         self,
-        notion_id: str = None,
+        id: str = None,
         include_person: bool = True,
         include_direction: bool = True,
         limit: int = None,
         offset: int = None,
     ):
         query = select(ParticipationAppORM)
-        if notion_id:
-            query = query.filter(ParticipationAppORM.notion_id == notion_id)
+        if id:
+            query = query.filter(ParticipationAppORM.id == id)
         if include_person:
             query = query.options(joinedload(ParticipationAppORM.person))
         if include_direction:
@@ -36,24 +36,43 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             query = query.offset(offset)
         return query
 
-    async def retrieve(self, notion_id) -> Participation | None:
+    async def retrieve(self, id, include_person: bool, include_direction: bool) -> Participation | None:
         result: ParticipationAppORM | None = await self.session.scalar(
-            self.get_query(notion_id=notion_id)
-        )
+            self.get_query(id=id, include_person=include_person, include_direction=include_direction))
         if result is None:
             return None
-        return result.to_model()
+        return result.to_model(include_person=include_person, include_direction=include_direction)
 
-    async def retrieve_personal(self, person_id: str) -> list[Participation]:
-        results = await self.session.scalars(self.get_query().filter(ParticipationAppORM.person_id == person_id))
-        return [result.to_model() for result in results]
+    async def retrieve_personal(self, person_id: str, include_direction: bool) -> list[Participation]:
+        results = await self.session.scalars(
+            self.get_query(include_direction=include_direction)
+            .filter(ParticipationAppORM.person_id == person_id)
+        )
+        return [result.to_model(include_direction=include_direction) for result in results]
 
-    async def retrieve_all(self, page: int, page_size: int) -> List[Participation]:
+    async def retrieve_all(
+        self,
+        page: int,
+        page_size: int,
+        include_direction: bool = False,
+        include_person: bool = False
+    ) -> List[Participation]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(
-            self.get_query(limit=page_size, offset=offset)
+            self.get_query(
+                limit=page_size,
+                offset=offset,
+                include_person=include_person,
+                include_direction=include_direction
+            )
         )
-        return [result.to_model() for result in results]
+        return [
+            result.to_model(
+                include_person=include_person,
+                include_direction=include_direction
+            ) for result
+            in results
+        ]
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)
@@ -64,7 +83,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
             raise RepresentativeError(
-                title=f"participation with {data.notion_id=} already exists"
+                title=f"participation with {data.id=} already exists"
             )
         return new_participation
 
@@ -72,11 +91,9 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         await self.session.merge(ParticipationAppORM.to_orm(data))
         await self.session.flush()
 
-    async def delete(self, notion_id):
+    async def delete(self, id):
         await self.session.execute(
-            delete(ParticipationAppORM).where(
-                ParticipationAppORM.notion_id == notion_id
-            )
+            delete(ParticipationAppORM).where(ParticipationAppORM.id == id)
         )
 
     async def retrieve_many(self, filters: dict = None) -> list[Participation]:
