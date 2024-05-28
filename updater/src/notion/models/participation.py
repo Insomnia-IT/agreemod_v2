@@ -1,8 +1,7 @@
-from pydantic import Field, field_validator
-
 from dictionaries.participation_role import ParticipationRole
 from dictionaries.participation_status import ParticipationStatus
 from dictionaries.participation_type import ParticipationType
+from pydantic import Field, field_validator
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.relation import Relation
 from updater.src.notion.models.primitives.rich_text import RichText

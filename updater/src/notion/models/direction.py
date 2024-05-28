@@ -1,8 +1,7 @@
 import logging
 
-from pydantic import Field, model_validator
-
 from dictionaries.direction_type import DirectionType
+from pydantic import Field, model_validator
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.number import Number
 from updater.src.notion.models.primitives.select import Select

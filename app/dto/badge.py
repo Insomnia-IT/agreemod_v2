@@ -1,7 +1,5 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
-
 from dictionaries import (
     DietType,
     FeedType,
@@ -9,6 +7,7 @@ from dictionaries import (
     ParticipationRole,
     ParticipationType,
 )
+from pydantic import BaseModel, Field
 
 
 class BadgeDTO(BaseModel):

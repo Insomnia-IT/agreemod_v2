@@ -1,5 +1,4 @@
 from pydantic import computed_field
-
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
 

@@ -1,11 +1,6 @@
+from datetime import datetime
 from uuid import UUID
 
-from pydantic import Field, computed_field, model_validator
-
-from app.dto.badge import Infant
-from app.dto.direction import DirectionDTO
-from app.models.base import DomainModel
-from app.models.person import Person
 from dictionaries import (
     BadgeColor,
     DietType,
@@ -14,6 +9,12 @@ from dictionaries import (
     ParticipationRole,
     ParticipationType,
 )
+from pydantic import Field, computed_field, model_validator
+
+from app.dto.badge import Infant
+from app.dto.direction import DirectionDTO
+from app.models.base import DomainModel
+from app.models.person import Person
 
 
 class Badge(DomainModel):
@@ -35,6 +36,7 @@ class Badge(DomainModel):
     comment: str | None = None
     notion_id: UUID | None = None
 
+    last_updated: datetime | None = None
     directions: list[DirectionDTO] = Field(default_factory=list)
 
     @computed_field

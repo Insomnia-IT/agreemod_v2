@@ -2,10 +2,10 @@ import asyncio
 import logging
 
 from aiogram import Bot
-
 from rabbit.consumer import RabbitMQAsyncConsumer
 from updater.src.config import config
 from updater.src.updater import Updater
+
 
 logger = logging.getLogger(__name__)
 

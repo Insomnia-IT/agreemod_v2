@@ -1,16 +1,18 @@
 import logging
+
 from uuid import uuid4
 
 import venusian
-from deepdiff import DeepDiff
-from sqlalchemy import select
 
 from database.meta import async_session
 from database.repo.logs import LogsRepository
+from deepdiff import DeepDiff
+from sqlalchemy import select
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
 from updater.src.notion.databases import NotionDatabase
 from updater.src.states import UpdaterStates
+
 
 logger = logging.getLogger(__name__)
 

@@ -9,6 +9,7 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
+
 logger = logging.getLogger(__name__)
 
 
