@@ -1,4 +1,5 @@
 import random
+
 from uuid import uuid4
 
 from faker import Faker
@@ -9,6 +10,7 @@ from app.models.feeder.directions import Direction
 from app.models.feeder.engagement import Engagement
 from app.models.feeder.person import Person
 from app.models.feeder.response import ResponseModelGET
+
 
 fake = Faker()
 

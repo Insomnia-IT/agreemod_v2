@@ -1,5 +1,10 @@
 from typing import List, Self
 
+from database.orm.arrival import ArrivalORM
+from database.orm.badge import BadgeORM
+from database.orm.direction import DirectionORM
+from database.orm.participation import ParticipationORM
+from database.orm.person import PersonORM
 from sqlalchemy.orm import Mapped, relationship
 
 from app.dto.badge import BadgeDTO
@@ -8,11 +13,6 @@ from app.models.badge import Badge, DirectionDTO, Infant
 from app.models.direction import Direction
 from app.models.participation import Participation
 from app.models.person import Person
-from database.orm.arrival import ArrivalORM
-from database.orm.badge import BadgeORM
-from database.orm.direction import DirectionORM
-from database.orm.participation import ParticipationORM
-from database.orm.person import PersonORM
 
 
 class PersonAppORM(PersonORM):
@@ -54,7 +54,7 @@ class PersonAppORM(PersonORM):
             diet=self.diet,
             comment=self.comment,
             notion_id=self.notion_id,
-            last_updated=self.last_updated
+            last_updated=self.last_updated,
         )
         return person
 
@@ -73,7 +73,7 @@ class DirectionAppORM(DirectionORM):
             first_year=model.first_year,
             last_year=model.last_year,
             notion_id=model.notion_id.hex,
-            last_updated=model.last_updated
+            last_updated=model.last_updated,
         )
 
     def to_model(self, include_badges: bool = False) -> Direction:
@@ -89,7 +89,7 @@ class DirectionAppORM(DirectionORM):
                 [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
                 if include_badges
                 else None
-            )
+            ),
         )
 
 
@@ -164,7 +164,7 @@ class BadgeAppORM(BadgeORM):
             ),
             comment=self.comment,
             notion_id=self.notion_id,
-            last_updated=self.last_updated
+            last_updated=self.last_updated,
         )
 
 
@@ -184,7 +184,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
-            last_updated=model.last_updated
+            last_updated=model.last_updated,
         )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
@@ -203,7 +203,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,
-            last_updated=self.last_updated
+            last_updated=self.last_updated,
         )
 
 

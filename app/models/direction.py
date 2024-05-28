@@ -1,11 +1,11 @@
+from datetime import datetime
 from uuid import UUID
 
+from dictionaries import DirectionType
 from pydantic import Field
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
-from dictionaries import DirectionType
-from datetime import datetime
 
 
 class Direction(DomainModel):

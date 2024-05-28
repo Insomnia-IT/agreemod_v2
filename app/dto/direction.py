@@ -1,8 +1,7 @@
 from uuid import UUID
 
-from pydantic import BaseModel
-
 from dictionaries.direction_type import DirectionType
+from pydantic import BaseModel
 
 
 class DirectionDTO(BaseModel):

@@ -1,9 +1,10 @@
 from datetime import date, datetime, time
 from uuid import UUID
 
+from dictionaries import TransportType
+
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
-from dictionaries import TransportType
 
 
 class Arrival(DomainModel):

@@ -12,6 +12,7 @@ from app.schemas.person import (
     TelebotResponseSchema,
 )
 
+
 router = APIRouter()
 
 
