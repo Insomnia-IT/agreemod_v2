@@ -5,7 +5,7 @@ import venusian
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
-from db.meta import PG_URL, metadata
+from database.meta import PG_URL, metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = metadata
-venusian.Scanner().scan(__import__("db"))
+venusian.Scanner().scan(__import__("database"))  # TODO: это не подхватывается рефакторингом pycharm
 
 
 def do_run_migrations(connection):

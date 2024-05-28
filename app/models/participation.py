@@ -1,20 +1,17 @@
 from uuid import UUID
 
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_status import ParticipationStatus
-from dictionaries.participation_type import ParticipationType
-from pydantic import BaseModel
-
-from app.models.direction import Direction
+from app.dto.direction import DirectionDTO
+from app.models.base import DomainModel
 from app.models.person import Person
+from dictionaries import ParticipationRole, ParticipationStatus, ParticipationType
 from datetime import datetime
 
-class Participation(BaseModel):
+class Participation(DomainModel):
     year: int
-    person: Person
-    direction: Direction
+    person: Person | UUID
+    direction: DirectionDTO | UUID
     role: ParticipationRole
-    participation_type: ParticipationType | None = None
+    participation_type: ParticipationType
     status: ParticipationStatus
     notion_id: UUID | None = None
     last_updated: datetime = None

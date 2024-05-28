@@ -7,7 +7,7 @@ import asyncio
 
 import venusian
 
-from db.meta import engine, metadata
+from database.meta import engine, metadata
 
 
 async def main() -> None:

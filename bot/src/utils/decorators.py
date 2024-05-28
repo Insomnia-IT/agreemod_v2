@@ -1,8 +1,9 @@
 from functools import wraps
 
 from aiogram import types
+
 from app.db.repos.person import PersonRepo
-from db.meta import async_session
+from database.meta import async_session
 
 
 def check_access_decorator(func):

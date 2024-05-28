@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 from aiogram import Dispatcher
-
 from src.config import bot
 from src.handlers.direction import router_direction
 from src.handlers.person import router_person

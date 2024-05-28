@@ -15,6 +15,10 @@
     "name": "get_participants",
     "id": "a74526e5620f4260b3bbd3b5e4c62b53"
   },
+  "get_participation": {
+    "name": "get_participation",
+    "id": "9f19e90d8ef74620b5c005ddf0dea4e4"
+  },
   "unnamed_badges": {
     "name": "unnamed_badges",
     "id": "dcb0ace1c2b04375ae68ceb33279d554"

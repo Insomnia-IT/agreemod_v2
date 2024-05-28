@@ -1,23 +1,21 @@
 from typing import List
 
-from sqlalchemy import select
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 from app.db.orm import BadgeAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
-from sqlalchemy.orm import joinedload
+
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def retrieve(self, notion_id) -> Badge:
         result: BadgeAppORM = await self.session.scalar(
-            select(BadgeAppORM).filter_by(notion_id=notion_id).options(joinedload(
-                BadgeAppORM.role,
-                BadgeAppORM.person,
-                BadgeAppORM.direction
-            ))
+            select(BadgeAppORM)
+            .filter_by(notion_id=notion_id)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         if result is None:
             return None
@@ -26,11 +24,10 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
     async def retrieve_all(self, page: int, page_size: int) -> List[Badge]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(
-            select(BadgeAppORM).limit(page_size).offset(offset).options(joinedload(
-                BadgeAppORM.role,
-                BadgeAppORM.person,
-                BadgeAppORM.direction
-            ))
+            select(BadgeAppORM)
+            .limit(page_size)
+            .offset(offset)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         if not results:
             return []
@@ -38,12 +35,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def retrieve_by_phone(self, phone) -> Badge:
         result = await self.session.scalar(
-            select(BadgeAppORM).filter_by(phone=phone).options(joinedload(
-                BadgeAppORM.role,
-                BadgeAppORM.person,
-                BadgeAppORM.direction
-            )
-            )
+            select(BadgeAppORM)
+            .filter_by(phone=phone)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         if result is None:
             return None
@@ -68,11 +62,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         )
 
     async def retrieve_many(self, filters: dict = None) -> list[Badge]:
-        result = await self.session.scalars(select(BadgeAppORM).filter_by(**filters).options(joinedload(
-            BadgeAppORM.role,
-            BadgeAppORM.person,
-            BadgeAppORM.direction
-        )
-        )
+        result = await self.session.scalars(
+            select(BadgeAppORM)
+            .filter_by(**filters)
+            .options(joinedload(BadgeAppORM.person, BadgeAppORM.direction))
         )
         return [x.to_model() for x in result]

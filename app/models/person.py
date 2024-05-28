@@ -1,11 +1,12 @@
 from datetime import date
 from typing import List
+from uuid import UUID
 
-from dictionaries.diet_type import DietType
-from dictionaries.gender import Gender
 from pydantic import Field
 
 from app.models.base import DomainModel
+from dictionaries.diet_type import DietType
+from dictionaries.gender import Gender
 from datetime import datetime
 
 
@@ -23,4 +24,5 @@ class Person(DomainModel):
     email: str | None = None
     diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
+    notion_id: UUID | None = None
     last_updated: datetime = None

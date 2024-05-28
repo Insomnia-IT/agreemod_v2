@@ -5,12 +5,13 @@ RUN pip3 install --upgrade pip poetry
 
 WORKDIR /opt/app
 
-COPY db db
+COPY database database
 COPY dictionaries dictionaries
+COPY rabbit rabbit
 
 COPY .env updater/poetry.lock updater/pyproject.toml ./
 COPY updater updater
 
 RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 
-ENTRYPOINT ["python", "-m", "updater.main"]
+ENTRYPOINT ["python", "-m", "updater.main_updater"]
