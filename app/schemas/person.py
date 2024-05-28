@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, model_validator
 
 
 class PersonFiltersDTO(BaseModel):
@@ -30,7 +30,6 @@ class PersonFiltersDTO(BaseModel):
         if self.telegram and self.telegram[0] != "@" and not self.strict:
             self.telegram = "@" + self.telegram
         return self
-
 
 
 class PersonResponseSchema(BaseModel): ...

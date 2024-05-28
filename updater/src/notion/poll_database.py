@@ -1,24 +1,26 @@
 import logging
 from uuid import uuid4
-from deepdiff import DeepDiff
+
 import venusian
+from deepdiff import DeepDiff
 from sqlalchemy import select
 
-from updater.src.states import UpdaterStates
+from database.meta import async_session
 from database.repo.logs import LogsRepository
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
 from updater.src.notion.databases import NotionDatabase
+from updater.src.states import UpdaterStates
 
-from database.meta import async_session
 logger = logging.getLogger(__name__)
+
 
 class NotionPoller:
     def __init__(self, db: NotionDatabase) -> None:
         self.set_status = {
-            'get_people': UpdaterStates.set_people_updater,
-            'get_directions': UpdaterStates.set_location_updater,
-            'get_participation': self.dummy_state
+            "get_people": UpdaterStates.set_people_updater,
+            "get_directions": UpdaterStates.set_location_updater,
+            "get_participation": self.dummy_state,
         }
         self.database = db
 
@@ -44,7 +46,7 @@ class NotionPoller:
             for item in response:
                 model = self.database.model(notion_id=item.id, **item.properties)
                 exist = await session.scalar(
-                    select(self.database.orm).filter_by(notion_id=orm.notion_id)
+                    select(self.database.orm).filter_by(notion_id=model.notion_id)
                 )
                 try:
                     orm = client.convert_model(model, self.database.orm)
@@ -68,6 +70,7 @@ class NotionPoller:
                     await session.merge(orm)
             await session.commit()
             logger.info("Notion direction table data was stored to db")
+
 
 if __name__ == "__main__":
     client = NotionClient(token=config.notion.token)

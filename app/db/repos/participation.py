@@ -36,26 +36,40 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             query = query.offset(offset)
         return query
 
-    async def retrieve(self, id, include_person: bool, include_direction: bool) -> Participation | None:
+    async def retrieve(
+        self, id, include_person: bool, include_direction: bool
+    ) -> Participation | None:
         result: ParticipationAppORM | None = await self.session.scalar(
-            self.get_query(id=id, include_person=include_person, include_direction=include_direction))
+            self.get_query(
+                id=id,
+                include_person=include_person,
+                include_direction=include_direction,
+            )
+        )
         if result is None:
             return None
-        return result.to_model(include_person=include_person, include_direction=include_direction)
-
-    async def retrieve_personal(self, person_id: str, include_direction: bool) -> list[Participation]:
-        results = await self.session.scalars(
-            self.get_query(include_direction=include_direction)
-            .filter(ParticipationAppORM.person_id == person_id)
+        return result.to_model(
+            include_person=include_person, include_direction=include_direction
         )
-        return [result.to_model(include_direction=include_direction) for result in results]
+
+    async def retrieve_personal(
+        self, person_id: str, include_direction: bool
+    ) -> list[Participation]:
+        results = await self.session.scalars(
+            self.get_query(include_direction=include_direction).filter(
+                ParticipationAppORM.person_id == person_id
+            )
+        )
+        return [
+            result.to_model(include_direction=include_direction) for result in results
+        ]
 
     async def retrieve_all(
         self,
         page: int,
         page_size: int,
         include_direction: bool = False,
-        include_person: bool = False
+        include_person: bool = False,
     ) -> List[Participation]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(
@@ -63,15 +77,14 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
                 limit=page_size,
                 offset=offset,
                 include_person=include_person,
-                include_direction=include_direction
+                include_direction=include_direction,
             )
         )
         return [
             result.to_model(
-                include_person=include_person,
-                include_direction=include_direction
-            ) for result
-            in results
+                include_person=include_person, include_direction=include_direction
+            )
+            for result in results
         ]
 
     async def create(self, data: Participation):

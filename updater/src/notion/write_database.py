@@ -2,7 +2,6 @@ from database.meta import async_session
 from updater.src.db.repos.participation import ParticipationRepo
 from updater.src.notion.client import NotionClient
 
-
 # def convert_to_notion_object(participation):
 #     properties = {
 #         "Name": {
@@ -70,8 +69,9 @@ async def write_database(client: NotionClient, database=None):
             print("An error occurred:", e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import asyncio
+
     from updater.src.config import config
 
     notion = NotionClient(token=config.notion.token_write)

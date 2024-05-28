@@ -57,7 +57,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         await self.session.flush()
 
     async def delete(self, notion_id):
-        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))
+        await self.session.execute(
+            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
+        )
 
     async def retrieve_many(self, filters: dict = None) -> list[Badge]:
         result = await self.session.scalars(

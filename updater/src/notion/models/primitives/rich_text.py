@@ -43,17 +43,17 @@ class RichText(BaseNotionModel):
         result = []
         for value in values:
             if isinstance(value, str):
-                result.append({
-                    'type': 'rich_text',
-                    'text': {'content': value},
-                    'plain_text': value
-                })
+                result.append(
+                    {
+                        "type": "rich_text",
+                        "text": {"content": value},
+                        "plain_text": value,
+                    }
+                )
             elif isinstance(value, dict):
                 result.append(value)
             else:
-                raise ValueError(f'{type(value)=}, {value=} is a wrong type')
+                raise ValueError(f"{type(value)=}, {value=} is a wrong type")
         return cls.model_validate(
-            dict(rich_text=[
-                RichTextBody.model_validate(x) for x in result
-            ])
+            dict(rich_text=[RichTextBody.model_validate(x) for x in result])
         )

@@ -31,17 +31,11 @@ class Title(BaseNotionModel):
         result = []
         for value in values:
             if isinstance(value, str):
-                result.append({
-                    'text': {'content': value},
-                    'plain_text': value
-                })
+                result.append({"text": {"content": value}, "plain_text": value})
             elif isinstance(value, dict):
                 result.append(value)
             else:
-                raise ValueError(f'{type(value)=}, {value=} is a wrong type')
+                raise ValueError(f"{type(value)=}, {value=} is a wrong type")
         return cls.model_validate(
-            title=[
-                TitleBody.model_validate(x) for x in result
-            ],
-            from_attributes=True
+            title=[TitleBody.model_validate(x) for x in result], from_attributes=True
         )

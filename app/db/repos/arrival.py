@@ -9,7 +9,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +35,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         if result is None:
             return None
         return result.to_model(include_badge=include_badge)
-    
+
     async def retrieve_by_badge(self, badge_id, include_badge: bool):
         query = select(ArrivalAppORM).filter_by(badge_id=badge_id)
         if include_badge:

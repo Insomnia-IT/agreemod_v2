@@ -1,11 +1,11 @@
+import random
+from uuid import uuid4
+
 from faker import Faker
 
-from app.models.feeder.directions import Direction
 from app.models.feeder.arrival import Arrival
 from app.models.feeder.badge import Badge
-from uuid import uuid4
-import random
-
+from app.models.feeder.directions import Direction
 from app.models.feeder.engagement import Engagement
 from app.models.feeder.person import Person
 from app.models.feeder.response import ResponseModelGET
@@ -32,7 +32,7 @@ def generate_random_badge() -> Badge:
         photo=fake.image_url(),
         person=str(uuid4()),
         comment=fake.sentence(),
-        notion_id=str(uuid4())
+        notion_id=str(uuid4()),
     )
 
 
@@ -45,7 +45,7 @@ def generate_random_arrival() -> Arrival:
         arrival_date=str(fake.date_this_year()),
         arrival_transport=random.choice(["CAR", "PLANE", "TRAIN", "UNDEFINED"]),
         departure_date=str(fake.date_this_year()),
-        departure_transport=random.choice(["CAR", "PLANE", "TRAIN", "UNDEFINED"])
+        departure_transport=random.choice(["CAR", "PLANE", "TRAIN", "UNDEFINED"]),
     )
 
 
@@ -91,7 +91,7 @@ def generate_random_direction() -> Direction:
         first_year=fake.year(),
         last_year=fake.year(),
         type=fake.word(),
-        notion_id=str(uuid4())
+        notion_id=str(uuid4()),
     )
 
 
@@ -101,5 +101,5 @@ def generate_random_response_model_get() -> ResponseModelGET:
         arrivals=[generate_random_arrival() for _ in range(5)],
         engagements=[generate_random_engagement() for _ in range(5)],
         persons=[generate_random_person() for _ in range(5)],
-        directions=[generate_random_direction() for _ in range(5)]
+        directions=[generate_random_direction() for _ in range(5)],
     )

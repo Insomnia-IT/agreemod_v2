@@ -10,10 +10,10 @@ async def main(updater: Updater):
     while True:
         try:
             if not any(
-                    [
-                        updater.states.people_updating,
-                        updater.states.location_updating,
-                    ]
+                [
+                    updater.states.people_updating,
+                    updater.states.location_updating,
+                ]
             ):
                 await updater.run()
         except Exception as e:
@@ -27,10 +27,8 @@ async def run_concurrently():
     notion = NotionClient(token=config.notion.token)
     updater = Updater(notion=notion)
 
-    await asyncio.gather(
-        main(updater), 
-        rmq_eat_carrots(updater)
-    )
+    await asyncio.gather(main(updater), rmq_eat_carrots(updater))
+
 
 if __name__ == "__main__":
     asyncio.run(run_concurrently())

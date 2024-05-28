@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class UpdaterStates:
     _instance = None
 
@@ -19,14 +20,14 @@ class UpdaterStates:
         if isinstance(status, bool):
             cls._instance.people_updating = status
         else:
-            logger.warning('status must be bool!')
+            logger.warning("status must be bool!")
 
     @classmethod
     def set_location_updater(cls, status: bool):
         if isinstance(status, bool):
             cls._instance.location_updating = status
         else:
-            logger.warning('status must be bool!')
+            logger.warning("status must be bool!")
 
     @classmethod
     def start_participation_updater(cls):

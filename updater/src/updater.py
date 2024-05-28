@@ -1,8 +1,14 @@
 import asyncio
 
+from updater.src.notion.databases import (
+    DATABASE_REGISTRY,
+    Directions,
+    NotionDatabase,
+    Participations,
+    Persons,
+)
 from updater.src.notion.poll_database import NotionPoller
 from updater.src.notion.write_database import write_database
-from updater.src.notion.databases import DATABASE_REGISTRY, Directions, Persons, Participations, NotionDatabase
 from updater.src.states import UpdaterStates
 
 
@@ -16,12 +22,9 @@ class Updater:
         async def run_single_db(db: NotionDatabase):
             async with NotionPoller(db()) as poll:
                 await poll.poll_database(self.notion)
-        
+
         await asyncio.gather(
-            *[
-                run_single_db(db)
-                for name, db in DATABASE_REGISTRY.items()
-            ]
+            *[run_single_db(db) for name, db in DATABASE_REGISTRY.items()]
         )
 
     async def run_locations(self, user_id=None, bot=None):
@@ -42,14 +45,15 @@ class Updater:
         Её не нужно включать в основной поток синхронизации.
         """
         async with NotionPoller(Participations()) as poll:
-            await poll.poll_database(self.notion, )
+            await poll.poll_database(
+                self.notion,
+            )
         self.states.stop_participation_updater()
         if user_id and bot:
             await bot.send_message(user_id, "Обновление таблицы Участия завершено")
 
     async def run_participation_db_to_notion(self, user_id=None, bot=None):
-        """DB to Notion
-        """
+        """DB to Notion"""
         self.states.start_participation_updater()
         # get db data
         await write_database(self.notion, "Participations")

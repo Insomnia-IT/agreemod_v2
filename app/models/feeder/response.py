@@ -4,9 +4,9 @@ from typing import List
 
 from pydantic import BaseModel
 
-from app.models.feeder.directions import Direction
 from app.models.feeder.arrival import Arrival, ArrivalWithMetadata
 from app.models.feeder.badge import Badge, BadgeWithMetadata
+from app.models.feeder.directions import Direction
 from app.models.feeder.engagement import Engagement
 from app.models.feeder.person import Person
 

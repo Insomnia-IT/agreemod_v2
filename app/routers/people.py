@@ -6,7 +6,11 @@ from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.models.participation import Participation
 from app.models.person import Person
-from app.schemas.person import PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+from app.schemas.person import (
+    PersonFiltersDTO,
+    PersonResponseSchema,
+    TelebotResponseSchema,
+)
 
 router = APIRouter()
 
@@ -23,6 +27,7 @@ def _get_person_filters_dto(
         email=email,
         strict=strict,
     )
+
 
 @router.get(
     "/persons",

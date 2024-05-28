@@ -14,25 +14,20 @@ router_feeder = APIRouter(tags=["feeder"])
 @router_feeder.get(
     "/feeder/sync",
     summary="API для синхронизации с кормителем. Пока возвращает MOCK данные",
-    response_model=ResponseModelGET
+    response_model=ResponseModelGET,
 )
-async def create_arrival(from_date: datetime):
+async def sync(from_date: datetime):
     """
     API находится в разработке и пока возвращает mock данные.
     """
     logger.info(from_date)
-    logger.info(f"from date: from_date")
+    logger.info(f"from date: {from_date}")
     data = generate_random_response_model_get()
     return data
 
 
-@router_feeder.post(
-    "/feeder/back-sync",
-    summary="API для синхронизации с кормителем"
-)
-async def create_arrival(arrival: RequestModelPOST):
+@router_feeder.post("/feeder/back-sync", summary="API для синхронизации с кормителем")
+async def back_sync(arrival: RequestModelPOST):
     logger.debug(arrival)
-    msg = "Данные прошлы валидацию. Запись в бд находится в процессе разработки."
-    return JSONResponse(
-        status_code=200,
-        content={"message": f"OK. {msg}"})
+    msg = "Данные прошли валидацию. Запись в бд находится в процессе разработки."
+    return JSONResponse(status_code=200, content={"message": f"OK. {msg}"})

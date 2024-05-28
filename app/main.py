@@ -32,7 +32,9 @@ async def server_error_handler(_: Request, e: Exception):
 
 
 def get_app() -> FastAPI:
-    venusian.Scanner().scan(__import__("database"))  # TODO: это не подхватывается рефакторингом pycharm
+    venusian.Scanner().scan(
+        __import__("database")
+    )  # TODO: это не подхватывается рефакторингом pycharm
     venusian.Scanner().scan(__import__("app"))
 
     docs_url = f"{config.API_PREFIX}/_docs" if config.DEBUG else None
@@ -71,7 +73,9 @@ def get_app() -> FastAPI:
 
 
 def run_api():
-    logger.debug(f"starting... : host={config.API_HOST} port={config.API_PORT} debug={config.DEBUG}")
+    logger.debug(
+        f"starting... : host={config.API_HOST} port={config.API_PORT} debug={config.DEBUG}"
+    )
     uvicorn.run(
         "app.main:get_app",
         factory=True,
