@@ -25,4 +25,4 @@ class Person(DomainModel):
     diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
     notion_id: UUID | None = None
-    last_updated: datetime = None
+    last_updated: datetime | None = None
