@@ -1,6 +1,8 @@
-from datetime import date
+import uuid
+from datetime import date, time
 
-from sqlalchemy import ARRAY, Column, Date, String
+from sqlalchemy import ARRAY, TIMESTAMP, Column, Date, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
 from database.meta import Base
@@ -10,6 +12,7 @@ from database.orm.base import BaseORM
 class PersonORM(Base, BaseORM):
     __tablename__ = "person"
 
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = Column(String, nullable=False)
     last_name: Mapped[str] = Column(String)
     first_name: Mapped[str] = Column(String)
@@ -23,7 +26,10 @@ class PersonORM(Base, BaseORM):
     email: Mapped[str] = Column(String)
     diet: Mapped[str] = Column(String)
     comment: Mapped[str] = Column(String)
-    notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
+    last_updated: Mapped[time] = Column(TIMESTAMP)
+
+    _unique_constraint_notion = UniqueConstraint(notion_id)
 
     def __repr__(self):
         return (

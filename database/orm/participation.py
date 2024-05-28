@@ -1,4 +1,8 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from datetime import time
+import uuid
+
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
 from database.meta import Base
@@ -19,13 +23,13 @@ class ParticipationORM(Base, BaseORM):
 
     __tablename__ = "participation"
 
-    id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     year: Mapped[int] = Column(Integer, nullable=False)  # req
-    person_id: Mapped[str] = Column(
-        String, ForeignKey("person.notion_id"), nullable=False
+    person_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("person.id"), nullable=False
     )  # req fk
-    direction_id: Mapped[str] = Column(
-        String, ForeignKey("direction.notion_id"), nullable=False
+    direction_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("direction.id"), nullable=False
     )  # req fk
     role_code: Mapped[str] = Column(
         String, ForeignKey("participation_role.code")
@@ -36,7 +40,11 @@ class ParticipationORM(Base, BaseORM):
     status_code: Mapped[str] = Column(
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
-    notion_id: Mapped[str] = Column(String)  # opt
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))  # opt
+    last_updated: Mapped[time] = Column(TIMESTAMP)
+
+
+    _unique_constraint_notion = UniqueConstraint(notion_id)
 
     def __repr__(self):
         return (

@@ -50,6 +50,8 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+    ports:
+      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
 
   agreemod:
     platform: linux/amd64

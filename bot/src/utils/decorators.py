@@ -1,6 +1,7 @@
 from functools import wraps
 
 from aiogram import types
+
 from app.db.repos.person import PersonRepo
 from database.meta import async_session
 

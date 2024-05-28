@@ -1,4 +1,8 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from datetime import time
+import uuid
+
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
 from database.meta import Base
@@ -16,13 +20,19 @@ class DirectionORM(Base, BaseORM):
 
     __tablename__ = "direction"
 
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = Column(String, nullable=False)
     type: Mapped[str] = Column(
-        String, ForeignKey("direction_type.code"), nullable=False
+        String,
+        ForeignKey("direction_type.code"),
+        nullable=False,
     )
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
-    notion_id: Mapped[str] = Column(String, nullable=False, primary_key=True)
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
+    last_updated: Mapped[time] = Column(TIMESTAMP)
+
+    _unique_constraint = UniqueConstraint(notion_id)
 
     def __repr__(self):
         return (

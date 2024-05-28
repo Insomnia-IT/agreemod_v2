@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class Person(BaseModel):
     id: str
     deleted: bool

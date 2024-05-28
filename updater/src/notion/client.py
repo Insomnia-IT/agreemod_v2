@@ -5,29 +5,31 @@ import pickle
 from typing import Type, Union
 from uuid import UUID
 
+from database.orm.participation import ParticipationORM
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-
-from database.orm.participation import ParticipationORM
-from updater.src.notion.databases import NotionDatabase, Directions, Persons, Participations
-from updater.src.notion.models.base import (
-    BaseNotionResponse,
-    BaseNotionResponseItem,
+from updater.src.notion.databases import (
+    Directions,
+    NotionDatabase,
+    Participations,
+    Persons,
 )
+from updater.src.notion.models.base import BaseNotionResponse, BaseNotionResponseItem
 from updater.src.notion.models.primitives.base import BaseNotionModel
+
 
 logger = logging.getLogger("NotionDatabase")
 
 
 class NotionClient:
     def __init__(
-            self,
-            token: str,
+        self,
+        token: str,
     ):
         self._client = AsyncClient(auth=token)
 
     async def query_database(
-            self, database: NotionDatabase, filters: dict = None, mock=False
+        self, database: NotionDatabase, filters: dict = None, mock=False
     ) -> list[BaseNotionResponseItem]:
         """
         Метод читает данные из таблиц Notion.
@@ -71,12 +73,12 @@ class NotionClient:
 
     @staticmethod
     def convert_model(
-            notion: Union[
-                Directions,
-                Persons,
-                Participations,
-            ],
-            target: Type[DeclarativeMeta]
+        notion: Union[
+            Directions,
+            Persons,
+            Participations,
+        ],
+        target: Type[DeclarativeMeta],
     ) -> DeclarativeMeta:
         def calculate_value(value):
             if isinstance(value, BaseNotionModel):

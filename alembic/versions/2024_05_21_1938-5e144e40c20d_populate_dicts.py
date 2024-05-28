@@ -1,11 +1,10 @@
 """populate_dicts
 
-Revision ID: 606a14968f4e
-Revises: 0bfcc405c30e
-Create Date: 2024-03-07 17:50:21.267237
+Revision ID: 5e144e40c20d
+Revises: cb45113c1ad4
+Create Date: 2024-05-21 19:38:53.467610
 
 """
-
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -20,8 +19,8 @@ from app.db.orm import (
 )
 
 # revision identifiers, used by Alembic.
-revision: str = "606a14968f4e"
-down_revision: Union[str, None] = "0bfcc405c30e"
+revision: str = '5e144e40c20d'
+down_revision: Union[str, None] = 'cb45113c1ad4'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

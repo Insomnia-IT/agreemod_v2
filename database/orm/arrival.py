@@ -1,7 +1,8 @@
+import uuid
 from datetime import date, time
 
-from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped
 
 # import sys
@@ -25,9 +26,9 @@ class ArrivalORM(Base, BaseORM):
     """
 
     __tablename__ = "arrival"
-    id: Mapped[int] = Column(Integer, primary_key=True)
-    badge_id: Mapped[str] = Column(
-        String, ForeignKey("badge.notion_id"), nullable=False
+    id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    badge_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("badge.id"), nullable=False
     )
     arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String)
@@ -37,6 +38,7 @@ class ArrivalORM(Base, BaseORM):
     departure_registered: Mapped[time] = Column(TIMESTAMP)
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
+    last_updated: Mapped[time] = Column(TIMESTAMP)
 
     def __repr__(self):
         return (

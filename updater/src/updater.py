@@ -1,8 +1,14 @@
 import asyncio
 
+from updater.src.notion.databases import (
+    DATABASE_REGISTRY,
+    Directions,
+    NotionDatabase,
+    Participations,
+    Persons,
+)
+from updater.src.notion.poll_database import NotionPoller
 from updater.src.notion.write_database import write_database
-from updater.src.notion.databases import DATABASE_REGISTRY, Directions, Persons, Participations
-from updater.src.notion.poll_database import poll_database
 from updater.src.states import UpdaterStates
 
 
@@ -13,30 +19,23 @@ class Updater:
         self.states = UpdaterStates()
 
     async def run(self):
-        if not self.states.all_updating:  # check if not ran by telegram users
-            self.states.start_all_updater()
-            await asyncio.gather(
-                *[
-                    poll_database(self.notion, db())
-                    for name, db in DATABASE_REGISTRY.items()
-                ]
-            )
-            self.states.stop_all_updater()
+        async def run_single_db(db: NotionDatabase):
+            async with NotionPoller(db()) as poll:
+                await poll.poll_database(self.notion)
 
-    async def run_locations(self, user_id, bot):
-        """Notion to DB
-        """
-        self.states.start_location_updater()
-        await poll_database(self.notion, Directions())
-        self.states.stop_location_updater()
-        await bot.send_message(user_id, "Обновление таблицы Направлений завершено")
+        await asyncio.gather(
+            *[run_single_db(db) for name, db in DATABASE_REGISTRY.items()]
+        )
+
+    async def run_locations(self, user_id=None, bot=None):
+        async with NotionPoller(Directions()) as poll:
+            await poll.poll_database(self.notion)
+        if user_id and bot:
+            await bot.send_message(user_id, "Обновление таблицы Направлений завершено")
 
     async def run_persons(self, user_id=None, bot=None):
-        """Notion to DB
-        """
-        self.states.start_people_updater()
-        await poll_database(self.notion, Persons())
-        self.states.stop_people_updater()
+        async with NotionPoller(Persons()) as poll:
+            await poll.poll_database(self.notion)
         if user_id and bot:
             await bot.send_message(user_id, "Обновление таблицы Человеков завершено")
 
@@ -45,23 +44,19 @@ class Updater:
         Эту синхронизацию не нужно было делать.
         Её не нужно включать в основной поток синхронизации.
         """
-        self.states.start_participation_updater()
-        await poll_database(self.notion, Participations())
+        async with NotionPoller(Participations()) as poll:
+            await poll.poll_database(
+                self.notion,
+            )
         self.states.stop_participation_updater()
         if user_id and bot:
             await bot.send_message(user_id, "Обновление таблицы Участия завершено")
 
     async def run_participation_db_to_notion(self, user_id=None, bot=None):
-        """DB to Notion
-        """
+        """DB to Notion"""
         self.states.start_participation_updater()
         # get db data
         await write_database(self.notion, "Participations")
         self.states.stop_participation_updater()
         if user_id and bot:
             await bot.send_message(user_id, "Обновление таблицы Участия завершено")
-
-    async def run_participation_to_notion(self):
-        """DB to Notion
-        """
-        await write_database(self.notion)

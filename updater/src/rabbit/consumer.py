@@ -3,20 +3,18 @@ import logging
 
 from aiogram import Bot
 from rabbit.consumer import RabbitMQAsyncConsumer
+from updater.src.config import config
 from updater.src.updater import Updater
 
-from app.config import Config
 
-
-config = Config()
 logger = logging.getLogger(__name__)
-bot = Bot(token=config.TELEBOT_TOKEN)
 
 
 class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
     def __init__(self, queue_name, rabbitmq_url, updater: Updater):
         super().__init__(queue_name, rabbitmq_url)
         self.updater = updater
+        self.bot = Bot(token=config.TELEBOT_TOKEN)
 
     async def callback(self, message):
         try:
@@ -45,10 +43,10 @@ class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
             and not self.updater.states.all_updating
         ):
             logger.info("start updating directions")
-            await bot.send_message(
+            await self.bot.send_message(
                 user_id, "Команда выполнена. Обновление Направлений запущено."
             )
-            asyncio.create_task(self.updater.run_locations(user_id, bot))
+            asyncio.create_task(self.updater.run_locations(user_id, self.bot))
         else:
             await self.notify_updater_running(user_id)
 
@@ -58,15 +56,15 @@ class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
             and not self.updater.states.all_updating
         ):
             logger.info("start updating persons")
-            await bot.send_message(
+            await self.bot.send_message(
                 user_id, "Команда выполнена. Обновление Человеков запущено."
             )
-            asyncio.create_task(self.updater.run_persons(user_id, bot))
+            asyncio.create_task(self.updater.run_persons(user_id, self.bot))
         else:
             await self.notify_updater_running(user_id)
 
     async def notify_updater_running(self, user_id):
         logger.info("Updater is already running")
-        await bot.send_message(
+        await self.bot.send_message(
             user_id, "Отмена команды. Обновление было запущено ранее."
         )

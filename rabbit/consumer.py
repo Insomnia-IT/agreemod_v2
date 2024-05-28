@@ -1,5 +1,6 @@
 import json
 import logging
+
 import aio_pika
 
 from .interface import RMQConsumerInterface
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class RabbitMQAsyncConsumer(RMQConsumerInterface):
-    def __init__(self, queue_name, rabbitmq_url):
+    def __init__(self, queue_name: str, rabbitmq_url: str):
         self.queue_name = queue_name
         self.rabbitmq_url = rabbitmq_url
         self.connection = None
@@ -25,7 +26,7 @@ class RabbitMQAsyncConsumer(RMQConsumerInterface):
             logger.info("Connection to RabbitMQ closed")
 
     @staticmethod
-    async def callback(message):
+    async def callback(message: aio_pika.IncomingMessage):
         try:
             async with message.process() as msg:
                 decoded_msg: str = msg.body.decode()
@@ -37,17 +38,12 @@ class RabbitMQAsyncConsumer(RMQConsumerInterface):
             logger.error(f"unable to process message: {e}")
 
     async def consume_messages(self):
-        try:
-            await self.connect()
+        await self.connect()
+        async with self.connection:
+            channel = await self.connection.channel()
+            queue = await channel.declare_queue(self.queue_name, auto_delete=False)
+            await queue.purge()  # TODO: to do or not to do?
 
-            async with self.connection:
-                channel = await self.connection.channel()
-                queue = await channel.declare_queue(self.queue_name, auto_delete=False)
-                await queue.purge()  # TODO: to do or not to do?
-
-                async with queue.iterator() as queue_iter:
-                    async for message in queue_iter:
-                        await self.callback(message)
-
-        except Exception as e:
-            logger.error(f"Error consuming messages: {e}")
+            async with queue.iterator() as queue_iter:
+                async for message in queue_iter:
+                    await self.callback(message)

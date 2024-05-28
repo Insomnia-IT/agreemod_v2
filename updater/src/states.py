@@ -1,3 +1,9 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 class UpdaterStates:
     _instance = None
 
@@ -11,20 +17,18 @@ class UpdaterStates:
         return cls._instance
 
     @classmethod
-    def start_people_updater(cls):
-        cls._instance.people_updating = True
+    def set_people_updater(cls, status: bool):
+        if isinstance(status, bool):
+            cls._instance.people_updating = status
+        else:
+            logger.warning("status must be bool!")
 
     @classmethod
-    def stop_people_updater(cls):
-        cls._instance.people_updating = False
-
-    @classmethod
-    def start_location_updater(cls):
-        cls._instance.location_updating = True
-
-    @classmethod
-    def stop_location_updater(cls):
-        cls._instance.location_updating = False
+    def set_location_updater(cls, status: bool):
+        if isinstance(status, bool):
+            cls._instance.location_updating = status
+        else:
+            logger.warning("status must be bool!")
 
     @classmethod
     def start_participation_updater(cls):

@@ -2,15 +2,14 @@ import json
 
 from typing import Type
 
-from pydantic import BaseModel
-
+from database.orm.direction import DirectionORM
 from database.orm.participation import ParticipationORM
+from database.orm.person import PersonORM
+from pydantic import BaseModel
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.participation import Participation
 from updater.src.notion.models.person import Person
 
-from database.orm.direction import DirectionORM
-from database.orm.person import PersonORM
 
 DATABASE_REGISTRY: dict[str, Type["NotionDatabase"]] = {}
 
