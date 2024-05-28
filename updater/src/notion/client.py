@@ -1,13 +1,13 @@
 import logging
 import os.path
 import pickle
+
 from typing import Type, Union
 from uuid import UUID
 
+from database.orm.participation import ParticipationORM
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-
-from database.orm.participation import ParticipationORM
 from updater.src.notion.databases import (
     Directions,
     NotionDatabase,
@@ -16,6 +16,7 @@ from updater.src.notion.databases import (
 )
 from updater.src.notion.models.base import BaseNotionResponse, BaseNotionResponseItem
 from updater.src.notion.models.primitives.base import BaseNotionModel
+
 
 logger = logging.getLogger("NotionDatabase")
 

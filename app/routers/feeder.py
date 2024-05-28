@@ -1,4 +1,5 @@
 import logging
+
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -6,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.models.feeder.faker import generate_random_response_model_get
 from app.models.feeder.response import RequestModelPOST, ResponseModelGET
+
 
 logger = logging.getLogger(__name__)
 router_feeder = APIRouter(tags=["feeder"])

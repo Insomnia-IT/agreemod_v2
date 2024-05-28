@@ -2,6 +2,7 @@ from database.meta import async_session
 from updater.src.db.repos.participation import ParticipationRepo
 from updater.src.notion.client import NotionClient
 
+
 # def convert_to_notion_object(participation):
 #     properties = {
 #         "Name": {

@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from pydantic import BaseModel, Field, computed_field
-
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
 

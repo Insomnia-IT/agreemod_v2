@@ -1,5 +1,10 @@
 from typing import List, Self
 
+from database.orm.arrival import ArrivalORM
+from database.orm.badge import BadgeORM
+from database.orm.direction import DirectionORM
+from database.orm.participation import ParticipationORM
+from database.orm.person import PersonORM
 from sqlalchemy.orm import Mapped, relationship
 
 from app.dto.badge import BadgeDTO
@@ -8,101 +13,6 @@ from app.models.badge import Badge, DirectionDTO, Infant
 from app.models.direction import Direction
 from app.models.participation import Participation
 from app.models.person import Person
-from database.orm.arrival import ArrivalORM
-from database.orm.badge import BadgeORM
-from database.orm.dictionaries.badge_color import BadgeColorORM
-from database.orm.dictionaries.direction_type import DirectionTypeORM
-from database.orm.dictionaries.participation_role import ParticipationRoleORM
-from database.orm.dictionaries.participation_status import ParticipationStatusORM
-from database.orm.dictionaries.participation_type import ParticipationTypeORM
-from database.orm.dictionaries.transport_type import TransportTypeORM
-from database.orm.direction import DirectionORM
-from database.orm.participation import ParticipationORM
-from database.orm.person import PersonORM
-from dictionaries.badge_color import BadgeColor
-from dictionaries.direction_type import DirectionType
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_status import ParticipationStatus
-from dictionaries.participation_type import ParticipationType
-from dictionaries.transport_type import TransportType
-
-
-class BadgeColorAppORM(BadgeColorORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                color=x.value,
-            )
-            for x in BadgeColor
-        ]
-
-
-class DirectionTypeAppORM(DirectionTypeORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                is_federal=x.is_federal,
-            )
-            for x in DirectionType
-        ]
-
-
-class ParticipationRoleAppORM(ParticipationRoleORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                is_lead=x.is_lead,
-                is_team=x.is_team,
-                is_free_feed=x.free_feed,
-            )
-            for x in ParticipationRole
-        ]
-
-
-class ParticipationTypeAppORM(ParticipationTypeORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                badge_color=x.badge_color.name,
-            )
-            for x in ParticipationType
-        ]
-
-
-class ParticipationStatusAppORM(ParticipationStatusORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-                to_list=x.to_list,
-            )
-            for x in ParticipationStatus
-        ]
-
-
-class TransportTypeAppORM(TransportTypeORM):
-    @classmethod
-    def fill_table(cls):
-        return [
-            cls(
-                code=x.name,
-                name=x.value,
-            )
-            for x in TransportType
-        ]
 
 
 class PersonAppORM(PersonORM):
@@ -123,7 +33,8 @@ class PersonAppORM(PersonORM):
             email=person.email,
             diet=person.diet,
             comment=person.comment,
-            notion_id=person.notion_id,
+            notion_id=person.notion_id.hex,
+            last_updated=person.last_updated,
         )
 
     def to_model(self) -> Person:
@@ -143,6 +54,7 @@ class PersonAppORM(PersonORM):
             diet=self.diet,
             comment=self.comment,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )
         return person
 
@@ -160,7 +72,8 @@ class DirectionAppORM(DirectionORM):
             type=model.type.name,
             first_year=model.first_year,
             last_year=model.last_year,
-            notion_id=model.notion_id,
+            notion_id=model.notion_id.hex,
+            last_updated=model.last_updated,
         )
 
     def to_model(self, include_badges: bool = False) -> Direction:
@@ -171,6 +84,7 @@ class DirectionAppORM(DirectionORM):
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
             badges=(
                 [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
                 if include_badges
@@ -206,7 +120,7 @@ class BadgeAppORM(BadgeORM):
             photo=model.photo,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
-            notion_id=model.notion_id,
+            notion_id=model.notion_id.hex,
         )
 
     def to_model(
@@ -250,6 +164,7 @@ class BadgeAppORM(BadgeORM):
             ),
             comment=self.comment,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )
 
 
@@ -269,6 +184,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=model.departure_registered,
             extra_data=model.extra_data,
             comment=model.comment,
+            last_updated=model.last_updated,
         )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
@@ -287,6 +203,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_registered=self.departure_registered,
             extra_data=self.extra_data,
             comment=self.comment,
+            last_updated=self.last_updated,
         )
 
 
@@ -305,6 +222,7 @@ class ParticipationAppORM(ParticipationORM):
             participation_code=model.participation_type.name,
             status_code=model.status.name,
             notion_id=model.notion_id,
+            last_updated=model.last_updated,
         )
 
     def to_model(
@@ -322,4 +240,5 @@ class ParticipationAppORM(ParticipationORM):
             participation=self.participation_code,
             status=self.status_code,
             notion_id=self.notion_id,
+            last_updated=self.last_updated,
         )

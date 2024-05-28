@@ -1,4 +1,5 @@
 import logging
+
 from typing import List
 
 from sqlalchemy import delete, select
@@ -9,6 +10,7 @@ from app.db.orm import ParticipationAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
+
 
 logger = logging.getLogger(__name__)
 

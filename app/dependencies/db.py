@@ -1,11 +1,13 @@
 import logging
+
 from typing import AsyncGenerator, Callable, Type, TypeVar
 
+from database.meta import async_session
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repos.base import BaseSqlaRepo
-from database.meta import async_session
+
 
 _logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from uuid import UUID
+
+from dictionaries import TransportType
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
-from dictionaries import TransportType
 
 
 class Arrival(DomainModel):
@@ -17,3 +18,4 @@ class Arrival(DomainModel):
     departure_registered: time | None = None
     extra_data: dict | None = None
     comment: str | None = None
+    last_updated: datetime | None = None

@@ -1,10 +1,11 @@
+from datetime import datetime
 from uuid import UUID
 
+from dictionaries import DirectionType
 from pydantic import Field
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
-from dictionaries import DirectionType
 
 
 class Direction(DomainModel):
@@ -12,6 +13,8 @@ class Direction(DomainModel):
     type: DirectionType | None = None
     first_year: int | None = None
     last_year: int | None = None
+    last_updated: datetime | None = None
+
     notion_id: UUID
 
     badges: list[BadgeDTO] = Field(default_factory=list)
