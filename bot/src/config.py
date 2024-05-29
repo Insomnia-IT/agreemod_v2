@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from rabbit.publisher import RabbitMQAsyncPublisher
 
 
-class RabbitMQ(BaseModel):
+class RabbitMQ(BaseSettings):
     host: str = "localhost"
     user: str = "guest"
     password: str = "guest"
@@ -13,6 +13,8 @@ class RabbitMQ(BaseModel):
     queue_port: int = 5672
     telegram_queue: str = "telegram"
     link: str = f"amqp://{password}:{password}@{host}/"
+
+    model_config = SettingsConfigDict(extra="ignore")
 
 
 class Config(BaseSettings):

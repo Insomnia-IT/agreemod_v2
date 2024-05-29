@@ -5,10 +5,6 @@ RUN pip3 install --upgrade pip poetry
 
 WORKDIR /opt/app
 
-COPY database database
-COPY dictionaries dictionaries
-COPY rabbit rabbit
-
 COPY .env updater/poetry.lock updater/pyproject.toml ./
 COPY updater updater
 

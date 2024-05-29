@@ -7,11 +7,7 @@ RUN pip3 install --upgrade pip poetry
 
 WORKDIR /opt/app
 
-COPY database database
-COPY dictionaries dictionaries
-
 COPY .env app/poetry.lock app/pyproject.toml ./
-COPY app app
 
 RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi
 
