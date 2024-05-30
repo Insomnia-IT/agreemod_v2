@@ -44,4 +44,4 @@ engine = create_async_engine(
     **engine_params,
 )
 
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, autoflush=False)

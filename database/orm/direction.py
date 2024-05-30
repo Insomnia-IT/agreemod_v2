@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import datetime
 import uuid
 
 from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
@@ -30,7 +30,7 @@ class DirectionORM(Base, BaseORM):
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
     notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
-    last_updated: Mapped[time] = Column(TIMESTAMP)
+    last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
     _unique_constraint = UniqueConstraint(notion_id)
 

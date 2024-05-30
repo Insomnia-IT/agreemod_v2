@@ -5,6 +5,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
 
 
+class CodaConfig(BaseSettings):
+    api_key: str
+    doc_id: str
+
+    model_config = SettingsConfigDict(extra="ignore")
+
+
 class NotionConfig(BaseSettings):
     token: str = Field(alias="token")
     token_write: str = Field(alias="write_token")
@@ -33,7 +40,7 @@ class RabbitMQ(BaseSettings):
     @computed_field
     @property
     def rabbitmq_url(self) -> str:
-        return f"amqp://{self.DEFAULT_USER}:{self.DEFAULT_PASS}@{self.DEFAULT_HOST}/"  # TODO: move to conf
+        return f"amqp://{self.DEFAULT_USER}:{self.DEFAULT_PASS}@{self.DEFAULT_HOST}/"
 
 
 class Config(BaseSettings):
@@ -44,6 +51,7 @@ class Config(BaseSettings):
     notion: NotionConfig
     postgres: PostgresConfig
     rabbitmq: RabbitMQ
+    coda: CodaConfig
     TELEBOT_TOKEN: str = ""
 
     model_config = SettingsConfigDict(

@@ -79,6 +79,7 @@ services:
       - ./updater:${VOLUME_MOUNT_PREFIX}/updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
+      - ./rabbit:${VOLUME_MOUNT_PREFIX}/rabbit
     depends_on:
       postgres:
         condition: service_healthy
