@@ -30,21 +30,22 @@ class BadgeORM(Base, BaseORM):
     phone: Mapped[str] = Column(String)
     infant_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True),
-        ForeignKey("badge.id"),
+        ForeignKey("badge.notion_id"),
         nullable=True,
     )
     diet: Mapped[str] = Column(String)
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    participation_code: Mapped[str] = Column(
-        String, ForeignKey("participation_type.code"), nullable=False
-    )
+    # participation_code: Mapped[str] = Column(
+    #     String, ForeignKey("participation_type.code"), nullable=False
+    # )
+    occupation: Mapped[str] = Column(String)
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
     person_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True),
-        ForeignKey("person.id"),
+        ForeignKey("person.notion_id"),
     )
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))

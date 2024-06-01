@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from alembic import op
-from app.db.dictionaries_orm import (
+from updater.src.db.orm.dictionaries_orm import (
     BadgeColorAppORM,
     DirectionTypeAppORM,
     ParticipationRoleAppORM,
@@ -30,8 +30,6 @@ def upgrade() -> None:
     session = orm.Session(bind=op.get_bind())
     session.add_all(BadgeColorAppORM.fill_table())
     session.add_all(DirectionTypeAppORM.fill_table())
-    session.add_all(ParticipationRoleAppORM.fill_table())
-    session.add_all(ParticipationTypeAppORM.fill_table())
     session.commit()
     pass
     # ### end Alembic commands ###
