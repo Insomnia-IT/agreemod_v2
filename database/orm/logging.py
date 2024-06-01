@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, JSON
+from datetime import datetime
+import uuid
+from sqlalchemy import UUID, Column, Integer, String, TIMESTAMP, JSON
 from sqlalchemy.orm import Mapped
 
 from database.meta import Base
@@ -20,10 +22,10 @@ class LogsORM(Base, BaseORM):
     id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
     author: Mapped[str] = Column(String, nullable=True)
     table_name: Mapped[str] = Column(String, nullable=False)
-    row_id: Mapped[str] = Column(String, nullable=False)
+    row_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), nullable=False)
     operation: Mapped[str] = Column(String, nullable=False)
-    timestamp: Mapped[TIMESTAMP] = Column(TIMESTAMP, nullable=False)
-    new_data: Mapped[JSON] = Column(JSON)
+    timestamp: Mapped[datetime] = Column(TIMESTAMP, nullable=False)
+    new_data: Mapped[dict] = Column(JSON)
 
     @classmethod
     def bake(self):

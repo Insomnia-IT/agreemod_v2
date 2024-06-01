@@ -4,6 +4,7 @@ import logging
 from aiogram import Bot
 from rabbit.consumer import RabbitMQAsyncConsumer
 from updater.src.config import config
+from updater.src.states import UpdaterStates
 from updater.src.updater import Updater
 
 
@@ -11,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
-    def __init__(self, queue_name, rabbitmq_url, updater: Updater):
+    def __init__(self, queue_name, rabbitmq_url):
         super().__init__(queue_name, rabbitmq_url)
-        self.updater = updater
         self.bot = Bot(token=config.TELEBOT_TOKEN)
+        self.updater_states = UpdaterStates()
 
     async def callback(self, message):
         try:
@@ -39,8 +40,8 @@ class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
 
     async def update_directions(self, user_id):
         if (
-            not self.updater.states.location_updating
-            and not self.updater.states.all_updating
+            not self.updater_states.location_updating
+            and not self.updater_states.all_updating
         ):
             logger.info("start updating directions")
             await self.bot.send_message(
@@ -52,8 +53,8 @@ class UpdaterRabbitConsumer(RabbitMQAsyncConsumer):
 
     async def update_persons(self, user_id):
         if (
-            not self.updater.states.people_updating
-            and not self.updater.states.all_updating
+            not self.updater_states.people_updating
+            and not self.updater_states.all_updating
         ):
             logger.info("start updating persons")
             await self.bot.send_message(

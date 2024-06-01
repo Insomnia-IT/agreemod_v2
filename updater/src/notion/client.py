@@ -2,19 +2,16 @@ import logging
 import os.path
 import pickle
 
+from datetime import datetime
 from typing import Type, Union
 from uuid import UUID
 
-from database.orm.participation import ParticipationORM
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-from updater.src.notion.databases import (
-    Directions,
-    NotionDatabase,
-    Participations,
-    Persons,
-)
+from updater.src.notion.databases import NotionDatabase
 from updater.src.notion.models.base import BaseNotionResponse, BaseNotionResponseItem
+from updater.src.notion.models.direction import Direction
+from updater.src.notion.models.person import Person
 from updater.src.notion.models.primitives.base import BaseNotionModel
 
 
@@ -73,32 +70,21 @@ class NotionClient:
 
     @staticmethod
     def convert_model(
-        notion: Union[
-            Directions,
-            Persons,
-            Participations,
-        ],
+        notion: Union[Direction, Person],
         target: Type[DeclarativeMeta],
     ) -> DeclarativeMeta:
         def calculate_value(value):
             if isinstance(value, BaseNotionModel):
                 return value.value
             elif isinstance(value, UUID):
-                return value.hex
+                return value
 
             return value
 
         orm = target(
-            **{key: calculate_value(val) for key, val in notion if key[-1] != "_"}
+            **{key: calculate_value(val) for key, val in notion if key[-1] != "_"},
+            last_updated=datetime.now(),
         )
-
-        if type(orm) is ParticipationORM:
-            # TODO: убрать этот костыль
-            if not orm.person_id:
-                raise Exception("No user id provided")
-            orm.direction_id = str(orm.direction_id[0].hex)
-            orm.person_id = str(orm.person_id[0].hex)
-
         return orm
 
     @staticmethod

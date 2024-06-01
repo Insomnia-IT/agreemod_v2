@@ -16,4 +16,4 @@ class Date(BaseNotionModel):
     @computed_field
     @property
     def value(self) -> str | None:
-        return date.fromisoformat(self.date.start) if self.date else None
+        return date.fromisoformat(self.date.start.split("T")[0]) if self.date else None

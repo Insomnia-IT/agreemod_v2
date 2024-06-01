@@ -20,6 +20,8 @@ alembic = "^1.13.1"
 aiogram = "^3.6.0"
 aio-pika = "^9.4.1"
 deepdiff = "^7.0.1"
+codaio = "^0.6.12"
+pandas = "^2.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

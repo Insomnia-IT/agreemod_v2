@@ -3,28 +3,21 @@
     "name": "get_people",
     "id": "c565f5fca2df40628cd91cfd59da4a9d"
   },
-  "get_locations": {
-    "name": "get_locations",
-    "id": "ea246f2445574f2c8815036b3f4cf12b"
-  },
   "get_directions": {
     "name": "get_directions",
     "id": "0755cd9bb4ee4c09b70a2602f5ad6590"
   },
-  "get_participants": {
-    "name": "get_participants",
-    "id": "a74526e5620f4260b3bbd3b5e4c62b53"
+  "get_badges": {
+    "name": "get_badges",
+    "id": "961e56d8f00e474bb3ab468c00eab53a"
   },
-  "get_participation": {
-    "name": "get_participation",
-    "id": "9f19e90d8ef74620b5c005ddf0dea4e4"
+  "get_participations": {
+    "name": "Engagement",
+    "id": "grid-NnDAOlOFAu"
   },
-  "unnamed_badges": {
-    "name": "unnamed_badges",
-    "id": "dcb0ace1c2b04375ae68ceb33279d554"
-  },
-  "location_schedules": {
-    "name": "location_schedules",
-    "id": "805ad097114c4a77a8ee11361d68959a"
-  }
+  "get_arrivals": {
+    "name": "Arrivals",
+    "id": "grid--SMbvhP-1c"
+}
+
 }

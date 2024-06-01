@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, time
+from datetime import date, datetime
 
 from sqlalchemy import ARRAY, TIMESTAMP, Column, Date, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -27,7 +27,7 @@ class PersonORM(Base, BaseORM):
     diet: Mapped[str] = Column(String)
     comment: Mapped[str] = Column(String)
     notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
-    last_updated: Mapped[time] = Column(TIMESTAMP)
+    last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
     _unique_constraint_notion = UniqueConstraint(notion_id)
 

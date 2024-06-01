@@ -1,30 +1,40 @@
 import asyncio
 
+from typing import Type
+
 from updater.src.notion.databases import (
-    DATABASE_REGISTRY,
+    CodaDatabase,
     Directions,
     NotionDatabase,
     Participations,
     Persons,
 )
-from updater.src.notion.poll_database import NotionPoller
+from updater.src.notion.poll_database import CodaPoller, NotionPoller, Poller
 from updater.src.notion.write_database import write_database
 from updater.src.states import UpdaterStates
 
 
 class Updater:
 
-    def __init__(self, notion):
-        self.notion = notion
+    def __init__(self, client, poller: Type[Poller], registry: dict):
+        self.client = client
+        self.poller = poller
+        self.registry = registry
         self.states = UpdaterStates()
 
     async def run(self):
-        async def run_single_db(db: NotionDatabase):
-            async with NotionPoller(db()) as poll:
-                await poll.poll_database(self.notion)
+        async def run_single_db(
+            poller: Type[NotionPoller | CodaPoller], db: NotionDatabase | CodaDatabase
+        ):
+            async with poller(db()) as poll:
+                await poll.poll_database(self.client)
 
         await asyncio.gather(
-            *[run_single_db(db) for name, db in DATABASE_REGISTRY.items()]
+            *[
+                run_single_db(self.poller, db)
+                for name, db in self.registry.items()
+                if name != "get_arrivals"
+            ]
         )
 
     async def run_locations(self, user_id=None, bot=None):
