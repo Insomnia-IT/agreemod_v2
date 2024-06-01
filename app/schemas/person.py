@@ -9,7 +9,7 @@ class PersonFiltersDTO(BaseModel):
     email: str | None = None
     strict: bool = False
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def format_phone(self):
         if not self.phone or self.strict:
             return self
@@ -25,7 +25,7 @@ class PersonFiltersDTO(BaseModel):
             self.phone = "+7" + self.phone
         return self
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def format_telegram(self):
         if self.telegram and self.telegram[0] != "@" and not self.strict:
             self.telegram = "@" + self.telegram

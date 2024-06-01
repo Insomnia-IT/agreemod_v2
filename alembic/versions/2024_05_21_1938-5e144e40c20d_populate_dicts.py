@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from alembic import op
-from app.db.orm import (
+from app.db.dictionaries_orm import (
     BadgeColorAppORM,
     DirectionTypeAppORM,
     ParticipationRoleAppORM,

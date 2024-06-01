@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, time
 
-from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, String
+from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped
 
@@ -27,8 +27,9 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    coda_index: Mapped[int] = Column(Integer, nullable=False)
     badge_id: Mapped[uuid.UUID] = Column(
-        UUID(as_uuid=True), ForeignKey("badge.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("badge.notion_id"), nullable=False
     )
     arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String)
@@ -39,6 +40,8 @@ class ArrivalORM(Base, BaseORM):
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
     last_updated: Mapped[time] = Column(TIMESTAMP)
+
+    _unique_constraint_coda = UniqueConstraint(coda_index)
 
     def __repr__(self):
         return (

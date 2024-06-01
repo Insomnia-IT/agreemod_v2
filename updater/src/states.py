@@ -13,6 +13,7 @@ class UpdaterStates:
             cls._instance.people_updating = False
             cls._instance.location_updating = False
             cls._instance.participation_updating = False
+            cls._instance.arrival_updating = False
             cls._instance.all_updating = False
         return cls._instance
 
@@ -31,12 +32,18 @@ class UpdaterStates:
             logger.warning("status must be bool!")
 
     @classmethod
-    def start_participation_updater(cls):
-        cls._instance.location_updating = True
+    def set_participation_updater(cls, status: bool):
+        if isinstance(status, bool):
+            cls._instance.participation_updating = status
+        else:
+            logger.warning("status must be bool!")
 
     @classmethod
-    def stop_participation_updater(cls):
-        cls._instance.location_updating = False
+    def set_arrival_updater(cls, status: bool):
+        if isinstance(status, bool):
+            cls._instance.arrival_updating = status
+        else:
+            logger.warning("status must be bool!")
 
     @classmethod
     def start_all_updater(cls):
