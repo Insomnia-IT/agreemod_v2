@@ -1,6 +1,5 @@
 from enum import StrEnum
 
-
 class DirectionType(StrEnum):
     """
     сделан для поля type таблицы Direction api/db/models/directions.py

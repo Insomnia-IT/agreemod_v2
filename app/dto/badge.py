@@ -1,12 +1,7 @@
 from uuid import UUID
 
-from dictionaries import (
-    DietType,
-    FeedType,
-    Gender,
-    ParticipationRole,
-    ParticipationType,
-)
+from dictionaries import DietType, FeedType, Gender
+from dictionaries.dictionaries import ParticipationRole, ParticipationType
 from pydantic import BaseModel, Field
 
 
