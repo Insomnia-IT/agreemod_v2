@@ -5,7 +5,6 @@ from aiogram import Bot
 from rabbit.consumer import RabbitMQAsyncConsumer
 from updater.src.config import config
 from updater.src.states import UpdaterStates
-from updater.src.updater import Updater
 
 
 logger = logging.getLogger(__name__)

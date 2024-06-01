@@ -1,9 +1,11 @@
 from datetime import datetime
 from uuid import UUID
 
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_status import ParticipationStatus
-from dictionaries.participation_type import ParticipationType
+from dictionaries.dictionaries import (
+    ParticipationRole,
+    ParticipationStatus,
+    ParticipationType,
+)
 from pydantic import BaseModel, Field, field_validator
 
 

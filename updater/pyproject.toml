@@ -22,6 +22,7 @@ aio-pika = "^9.4.1"
 deepdiff = "^7.0.1"
 codaio = "^0.6.12"
 pandas = "^2.2.2"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

@@ -1,6 +1,6 @@
 import logging
 
-from dictionaries.direction_type import DirectionType
+from dictionaries.dictionaries import DirectionType
 from pydantic import Field, model_validator
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.number import Number
