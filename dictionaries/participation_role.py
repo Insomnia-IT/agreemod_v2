@@ -4,11 +4,11 @@ from enum import StrEnum
 class ParticipationRole(StrEnum):
     ORGANIZER = "организатор"  # красный
 
-    VICE_HEAD = "зам руководителя"  # зелёный
+    VICE = "зам руководителя"  # зелёный
     TEAM_LEAD = "бригадир"
     VOLUNTEER = "волонтёр"
 
-    MEDICIAN = "медик"  # фиолетовый
+    MEDIC = "медик"  # фиолетовый
 
     CAMP_LEAD = "лидер нефедеральной локации"  # Синий
     CAMP_GUY = "волонтёр нефедеральной локации"
@@ -17,6 +17,7 @@ class ParticipationRole(StrEnum):
     LECTOR = "лектор"
     MASTER = "мастер"
     ARTIST = "артист"
+    ART_FELLOW = "сопровождающий артиста"
 
     FELLOW = "свои"  # Желтый
     VIP = "VIP"
@@ -30,10 +31,10 @@ class ParticipationRole(StrEnum):
         if self in [
             ParticipationRole.ORGANIZER,
             ParticipationRole.CAMP_LEAD,
-            ParticipationRole.VICE_HEAD,
+            ParticipationRole.VICE,
             ParticipationRole.TEAM_LEAD,
             ParticipationRole.VOLUNTEER,
-            ParticipationRole.MEDICIAN,
+            ParticipationRole.MEDIC,
         ]:
             return True
         return False
@@ -52,10 +53,10 @@ class ParticipationRole(StrEnum):
         if self in [
             ParticipationRole.ORGANIZER,
             ParticipationRole.CAMP_LEAD,
-            ParticipationRole.VICE_HEAD,
+            ParticipationRole.VICE,
             ParticipationRole.TEAM_LEAD,
             ParticipationRole.VOLUNTEER,
-            ParticipationRole.MEDICIAN,
+            ParticipationRole.MEDIC,
             ParticipationRole.LECTOR,
             ParticipationRole.MASTER,
             ParticipationRole.ARTIST,

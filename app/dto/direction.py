@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from dictionaries.direction_type import DirectionType
+from dictionaries.dictionaries import DirectionType
 from pydantic import BaseModel
 
 

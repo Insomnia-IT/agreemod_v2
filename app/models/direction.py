@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from dictionaries import DirectionType
+from dictionaries.dictionaries import DirectionType
 from pydantic import Field
 
 from app.dto.badge import BadgeDTO

@@ -10,10 +10,13 @@ import asyncpg
 import venusian
 
 from database.meta import async_session
+from database.orm.badge import BadgeORM
+from database.orm.badge_directions import BadgeDirectionsORM
 from database.repo.logs import LogsRepository
 from deepdiff import DeepDiff
 from pydantic import BaseModel, ValidationError
-from sqlalchemy import select
+from sqlalchemy import and_, select
+from sqlalchemy.exc import IntegrityError
 from updater.src.coda.client import CodaClient
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
@@ -62,6 +65,7 @@ class NotionPoller(Poller):
         self.set_status = {
             "get_people": UpdaterStates.set_people_updater,
             "get_directions": UpdaterStates.set_location_updater,
+            "get_badges": UpdaterStates.set_badge_updater,
         }
         self.database = db
 
@@ -80,55 +84,78 @@ class NotionPoller(Poller):
         response = await client.query_database(database=self.database, mock=False)
         logger.info(f"Received {self.database.name} table data")
         for items in [response[x : x + 10] for x in range(0, len(response), 10)]:
-            async with async_session() as session:
-                log_repo = LogsRepository(session)
-                for item in items:
-                    try:
-                        model = self.database.model(
-                            notion_id=item.id, **item.properties
-                        )
-                    except ValidationError as e:
-                        logger.error(
-                            f"{self.database.name} model validation error: {e.errors()}"
-                        )
-                        continue
-                    exist = await session.scalar(
-                        select(self.database.orm).filter_by(notion_id=model.notion_id)
-                    )
-                    try:
-                        orm = client.convert_model(model, self.database.orm)
-                    except Exception as e:
-
-                        logger.error(f"{e.__class__.__name__}: {e}")
-                        continue
-                    if not exist:
-                        orm.id = uuid4()
-                        session.add(orm)
-                    else:
-                        orm.id = exist.id
-                        diff = DeepDiff(
-                            {
-                                x: adapt_value(y)
-                                for x, y in dict(exist).items()
-                                if x != "last_updated"
-                            },
-                            {
-                                x: adapt_value(y)
-                                for x, y in dict(orm).items()
-                                if x != "last_updated"
-                            },
-                        )
-                        if diff:
-                            diff = mk_diff_serializable(diff)
-                            await log_repo.add_log(
-                                table_name=self.database.orm.__tablename__,
-                                operation="MERGE",
-                                row_id=exist.id,
-                                new_data=diff,
-                                author="Notion",
+            try:
+                async with async_session() as session:
+                    log_repo = LogsRepository(session)
+                    for item in items:
+                        try:
+                            model = self.database.model(
+                                notion_id=item.id, **item.properties
                             )
-                        await session.merge(orm)
-                await session.commit()
+                        except ValidationError as e:
+                            logger.error(
+                                f"{self.database.name} model validation error: {e.errors()}"
+                            )
+                            continue
+                        exist = await session.scalar(
+                            select(self.database.orm).filter_by(
+                                notion_id=model.notion_id
+                            )
+                        )
+                        try:
+                            orm = client.convert_model(model, self.database.orm)
+                        except Exception as e:
+
+                            logger.error(f"{e.__class__.__name__}: {e}")
+                            continue
+                        if not exist:
+                            orm.id = uuid4()
+                            session.add(orm)
+                        else:
+                            orm.id = exist.id
+                            diff = DeepDiff(
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(exist).items()
+                                    if x != "last_updated"
+                                },
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(orm).items()
+                                    if x != "last_updated"
+                                },
+                            )
+                            if diff:
+                                diff = mk_diff_serializable(diff)
+                                await log_repo.add_log(
+                                    table_name=self.database.orm.__tablename__,
+                                    operation="MERGE",
+                                    row_id=exist.id,
+                                    new_data=diff,
+                                    author="Notion",
+                                )
+                            await session.merge(orm)
+                        if isinstance(orm, BadgeORM):
+                            for direction in model.direction_id_.value:
+                                badge_dir_exist = await session.scalar(
+                                    select(BadgeDirectionsORM).where(
+                                        and_(
+                                            BadgeDirectionsORM.badge_id == orm.id,
+                                            BadgeDirectionsORM.direction_id
+                                            == direction,
+                                        )
+                                    )
+                                )
+                                if not badge_dir_exist:
+                                    session.add(
+                                        BadgeDirectionsORM(
+                                            badge_id=orm.id, direction_id=direction
+                                        )
+                                    )
+                    await session.commit()
+            except IntegrityError as e:
+                logger.error(e)
+                continue
             logger.info(
                 f"{self.database.name} table {len(items)} rows were stored to db"
             )
@@ -154,61 +181,68 @@ class CodaPoller(Poller):
         data = coda.get_table(self.database.id)
         logger.info(f"Received {self.database.name} table data")
         for items in [data[x : x + 10] for x in range(0, len(data), 10)]:
-            async with async_session() as session:
-                log_repo = LogsRepository(session)
-                for item in items:
-                    try:
-                        model: BaseModel = self.database.model(**item)
-                    except ValidationError as e:
-                        if not next(
-                            (
-                                x
-                                for x in e.errors()
-                                if x["type"] == "assertion_error"
-                                and ("Год" in x["loc"] or "Дата заезда" in x["loc"])
-                            ),
-                            None,
-                        ):
-                            logger.error(
-                                f"{self.database.name} model validation error: {e.errors()}"
+            try:
+                async with async_session() as session:
+                    log_repo = LogsRepository(session)
+                    for item in items:
+                        try:
+                            model: BaseModel = self.database.model(**item)
+                        except ValidationError as e:
+                            if not next(
+                                (
+                                    x
+                                    for x in e.errors()
+                                    if x["type"] == "assertion_error"
+                                    and ("Год" in x["loc"] or "Дата заезда" in x["loc"])
+                                ),
+                                None,
+                            ):
+                                logger.error(
+                                    f"{self.database.name} model validation error: {e.errors()}"
+                                )
+                                logger.error(str(item))
+                            continue
+                        exist = await session.scalar(
+                            select(self.database.orm).filter_by(
+                                coda_index=model.coda_index
                             )
-                            logger.error(str(item))
-                        continue
-                    exist = await session.scalar(
-                        select(self.database.orm).filter_by(coda_index=model.coda_index)
-                    )
-                    try:
-                        orm = self.database.orm(**model.model_dump())
-                    except Exception as e:
-                        logger.error(f"{e.__class__.__name__}: {e}")
-                        continue
-                    if not exist:
-                        orm.id = uuid4()
-                        session.add(orm)
-                    else:
-                        orm.id = exist.id
-                        diff = DeepDiff(
-                            {
-                                x: adapt_value(y)
-                                for x, y in dict(exist).items()
-                                if x != "last_updated"
-                            },
-                            {
-                                x: adapt_value(y)
-                                for x, y in dict(orm).items()
-                                if x != "last_updated"
-                            },
                         )
-                        if diff:
-                            await log_repo.add_log(
-                                table_name=self.database.orm.__tablename__,
-                                operation="MERGE",
-                                row_id=exist.id,
-                                new_data=diff,
-                                author="Coda",
+                        try:
+                            orm = self.database.orm(**model.model_dump())
+                        except Exception as e:
+                            logger.error(f"{e.__class__.__name__}: {e}")
+                            continue
+                        if not exist:
+                            orm.id = uuid4()
+                            session.add(orm)
+                        else:
+                            orm.id = exist.id
+                            diff = DeepDiff(
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(exist).items()
+                                    if x != "last_updated"
+                                },
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(orm).items()
+                                    if x != "last_updated"
+                                },
                             )
-                        await session.merge(orm)
-                await session.commit()
+                            if diff:
+                                diff = mk_diff_serializable(diff)
+                                await log_repo.add_log(
+                                    table_name=self.database.orm.__tablename__,
+                                    operation="MERGE",
+                                    row_id=exist.id,
+                                    new_data=diff,
+                                    author="Coda",
+                                )
+                            await session.merge(orm)
+                    await session.commit()
+            except IntegrityError as e:
+                logger.error(e)
+                continue
             logger.info(
                 f"{self.database.name} table {len(items)} rows were stored to db"
             )

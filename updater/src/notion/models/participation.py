@@ -1,6 +1,8 @@
-from dictionaries.participation_role import ParticipationRole
-from dictionaries.participation_status import ParticipationStatus
-from dictionaries.participation_type import ParticipationType
+from dictionaries.dictionaries import (
+    ParticipationRole,
+    ParticipationStatus,
+    ParticipationType,
+)
 from pydantic import Field, field_validator
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.relation import Relation
@@ -28,7 +30,7 @@ class Participation(NotionModel):
 
     @field_validator("role_code", mode="after")
     @classmethod
-    def role_code_convert(cls, value):
+    def role_code_convert(cls, value: Select):
         if value.value:
             key_to_look = value.value.lower()
             participation_role = cls.get_key_from_value(key_to_look, ParticipationRole)
@@ -38,7 +40,7 @@ class Participation(NotionModel):
 
     @field_validator("participation_code", mode="after")
     @classmethod
-    def participation_code_convert(cls, value):
+    def participation_code_convert(cls, value: Select):
         if value.value:
             key_to_look = value.value.lower()
             participation_role = cls.get_key_from_value(key_to_look, ParticipationType)
@@ -48,7 +50,7 @@ class Participation(NotionModel):
 
     @field_validator("status_code", mode="after")
     @classmethod
-    def status_code_convert(cls, value):
+    def status_code_convert(cls, value: Select):
         if value.value:
             key_to_look = value.value.lower()
             participation_role = cls.get_key_from_value(

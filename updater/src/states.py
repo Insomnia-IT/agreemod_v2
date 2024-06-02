@@ -14,6 +14,7 @@ class UpdaterStates:
             cls._instance.location_updating = False
             cls._instance.participation_updating = False
             cls._instance.arrival_updating = False
+            cls._instance.badge_updating = False
             cls._instance.all_updating = False
         return cls._instance
 
@@ -42,6 +43,13 @@ class UpdaterStates:
     def set_arrival_updater(cls, status: bool):
         if isinstance(status, bool):
             cls._instance.arrival_updating = status
+        else:
+            logger.warning("status must be bool!")
+
+    @classmethod
+    def set_badge_updater(cls, status: bool):
+        if isinstance(status, bool):
+            cls._instance.badge_updating = status
         else:
             logger.warning("status must be bool!")
 

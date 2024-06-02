@@ -21,6 +21,6 @@ class BadgeDirectionsORM(Base):
     )
     direction_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True),
-        ForeignKey("direction.id", onupdate="CASCADE"),
+        ForeignKey("direction.notion_id", onupdate="CASCADE"),
         primary_key=True,
     )

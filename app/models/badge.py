@@ -1,14 +1,9 @@
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID
 
-from dictionaries import (
-    BadgeColor,
-    DietType,
-    FeedType,
-    Gender,
-    ParticipationRole,
-    ParticipationType,
-)
+from dictionaries import DietType, FeedType, Gender
+from dictionaries.dictionaries import BadgeColor, ParticipationRole, ParticipationType
 from pydantic import Field, computed_field, model_validator
 
 from app.dto.badge import Infant
@@ -44,8 +39,13 @@ class Badge(DomainModel):
     def color(self) -> BadgeColor:
         return self.participation.badge_color
 
+    @staticmethod
+    def get_default_file(color: BadgeColor):
+        path_to_files = Path.cwd() / Path("media/image/faces_no_photo")
+        return path_to_files / Path(f"{color.value}.png")
+
     @model_validator(mode="after")
     def set_default_photo(self) -> str:
         if not self.photo:
-            self.photo = self.color.get_default_file()
+            self.photo = self.get_default_file(self.color)
         return self
