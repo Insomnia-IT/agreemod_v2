@@ -4,7 +4,6 @@ from uuid import UUID
 from dictionaries.dictionaries import (
     ParticipationRole,
     ParticipationStatus,
-    ParticipationType,
 )
 
 from app.dto.direction import DirectionDTO
@@ -17,7 +16,6 @@ class Participation(DomainModel):
     person: Person | UUID
     direction: DirectionDTO | UUID
     role: ParticipationRole
-    participation_type: ParticipationType
     status: ParticipationStatus
     notion_id: UUID | None = None
     last_updated: datetime = None

@@ -1,7 +1,6 @@
 from dictionaries.dictionaries import (
     ParticipationRole,
     ParticipationStatus,
-    ParticipationType,
 )
 from pydantic import Field, field_validator
 from updater.src.notion.models.base import NotionModel
@@ -17,8 +16,6 @@ class Participation(NotionModel):
     year: RichText = Field(..., alias="Год")
     direction_id: Relation = Field(..., alias="Службы и локации")
     role_code: Select = Field(..., alias="Роль")
-
-    participation_code: Select = Field(..., alias="Тип")
     status_code: Select = Field(..., alias="Статус")
 
     @staticmethod
@@ -37,16 +34,6 @@ class Participation(NotionModel):
             return participation_role
         else:
             return ParticipationRole.OTHER.name
-
-    @field_validator("participation_code", mode="after")
-    @classmethod
-    def participation_code_convert(cls, value: Select):
-        if value.value:
-            key_to_look = value.value.lower()
-            participation_role = cls.get_key_from_value(key_to_look, ParticipationType)
-            return participation_role
-        else:
-            return ParticipationType.FELLOW.name
 
     @field_validator("status_code", mode="after")
     @classmethod

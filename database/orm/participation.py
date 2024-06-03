@@ -35,9 +35,6 @@ class ParticipationORM(Base, BaseORM):
     role_code: Mapped[str] = Column(
         String, ForeignKey("participation_role.code")
     )  # req fk
-    participation_code: Mapped[str] = Column(
-        String, ForeignKey("participation_type.code"), nullable=False
-    )  # opt
     status_code: Mapped[str] = Column(
         String, ForeignKey("participation_status.code"), nullable=False
     )  # req fk
@@ -54,7 +51,6 @@ class ParticipationORM(Base, BaseORM):
             f"person='{self.person_id}',"
             f"direction='{self.direction_id}',"
             f"role='{self.role_code}',"
-            f"participation='{self.participation_code}',"
             f"status='{self.status_code}',"
             f"notion_id='{self.notion_id}',"
         )

@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from dictionaries import DietType, FeedType, Gender
-from dictionaries.dictionaries import BadgeColor, ParticipationRole, ParticipationType
+from dictionaries.dictionaries import BadgeColor, ParticipationRole
 from pydantic import Field, computed_field, model_validator
 
 from app.dto.badge import Infant
@@ -24,7 +24,6 @@ class Badge(DomainModel):
     feed: FeedType | None = None
     number: str
     batch: int
-    participation: ParticipationType
     role: ParticipationRole | None
     photo: str | None = None
     person: Person | UUID | None = None

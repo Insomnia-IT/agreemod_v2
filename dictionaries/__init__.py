@@ -5,5 +5,4 @@ from .feed_type import FeedType
 from .gender import Gender
 from .participation_role import ParticipationRole
 from .participation_status import ParticipationStatus
-from .participation_type import ParticipationType
 from .transport_type import TransportType

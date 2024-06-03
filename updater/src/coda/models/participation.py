@@ -4,7 +4,6 @@ from uuid import UUID
 from dictionaries.dictionaries import (
     ParticipationRole,
     ParticipationStatus,
-    ParticipationType,
 )
 from pydantic import BaseModel, Field, field_validator
 
@@ -15,7 +14,6 @@ class CodaParticipation(BaseModel):
     person_id: UUID = Field(..., alias="person_id")
     direction_id: UUID = Field(..., alias="direction_id")
     role_code: ParticipationRole = Field(..., alias="Роль")
-    participation_code: ParticipationType = Field(..., alias="Роль")
     status_code: ParticipationStatus = Field(..., alias="Статус")
     notion_id: UUID | None = None
     last_updated: datetime = Field(default_factory=datetime.now)
@@ -35,11 +33,6 @@ class CodaParticipation(BaseModel):
     @classmethod
     def format_role(cls, value: str) -> str:
         return ParticipationRole(value).name
-
-    @field_validator("participation_code", mode="after")
-    @classmethod
-    def format_type(cls, value: str) -> str:
-        return ParticipationType(value).name
 
     @field_validator("status_code", mode="after")
     @classmethod

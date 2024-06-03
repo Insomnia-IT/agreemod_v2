@@ -37,9 +37,6 @@ class BadgeORM(Base, BaseORM):
     feed: Mapped[str] = Column(String)
     number: Mapped[str] = Column(String, nullable=False)
     batch: Mapped[int] = Column(Integer, nullable=False)
-    # participation_code: Mapped[str] = Column(
-    #     String, ForeignKey("participation_type.code"), nullable=False
-    # )
     occupation: Mapped[str] = Column(String)
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)

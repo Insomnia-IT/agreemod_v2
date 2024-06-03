@@ -30,8 +30,6 @@ try:
     participation_roles = cur.fetchall()
     cur.execute(f"SELECT code, name FROM public.participation_status")
     participation_statuses = cur.fetchall()
-    cur.execute(f"SELECT code, name FROM public.participation_type")
-    participation_types = cur.fetchall()
     # cur.execute(f"SELECT code, transport FROM public.transport_type")
     # transport_types = cur.fetchall()
 
@@ -39,6 +37,5 @@ try:
     DirectionType = StrEnum('DirectionType', direction_types)
     ParticipationRole = StrEnum('ParticipationRole', participation_roles)
     ParticipationStatus = StrEnum('ParticipationStatus', participation_statuses)
-    ParticipationType = StrEnum('ParticipationType', participation_types)
 finally:
     conn.close()

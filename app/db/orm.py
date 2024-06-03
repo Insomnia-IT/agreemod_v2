@@ -115,7 +115,6 @@ class BadgeAppORM(BadgeORM):
             feed=model.feed.name if model.feed else None,
             number=model.number,
             batch=model.batch,
-            participation=model.participation.name,
             role=model.role.name if model.role else None,
             photo=model.photo,
             person_id=model.person.id if model.person else None,
@@ -146,7 +145,6 @@ class BadgeAppORM(BadgeORM):
             feed=self.feed,
             number=self.number,
             batch=self.batch,
-            participation=self.participation_code,
             role=self.role_code,
             photo=self.photo,
             person=(
@@ -219,7 +217,6 @@ class ParticipationAppORM(ParticipationORM):
             person_id=model.person.id,
             direction_id=model.direction.id,
             role_code=model.role.name,
-            participation_code=model.participation_type.name,
             status_code=model.status.name,
             notion_id=model.notion_id,
             last_updated=model.last_updated,
@@ -237,7 +234,6 @@ class ParticipationAppORM(ParticipationORM):
                 else self.direction_id
             ),
             role=self.role_code,
-            participation=self.participation_code,
             status=self.status_code,
             notion_id=self.notion_id,
             last_updated=self.last_updated,

@@ -2,7 +2,6 @@ from database.orm.dictionaries.badge_color import BadgeColorORM
 from database.orm.dictionaries.direction_type import DirectionTypeORM
 from database.orm.dictionaries.participation_role import ParticipationRoleORM
 from database.orm.dictionaries.participation_status import ParticipationStatusORM
-from database.orm.dictionaries.participation_type import ParticipationTypeORM
 from database.orm.dictionaries.transport_type import TransportTypeORM
 from dictionaries.badge_color import BadgeColor
 from dictionaries.direction_type import DirectionType
@@ -45,10 +44,6 @@ class ParticipationRoleAppORM(ParticipationRoleORM):
         roles_raw = query_notion_database("bae439d794944ccfb361774f57d6b43d")
         roles = [ParticipationRoleNotion.model_validate(x) for x in roles_raw]
         return [cls(**convert_model(x)) for x in roles]
-
-
-class ParticipationTypeAppORM(ParticipationTypeORM):
-    pass
 
 
 class ParticipationStatusAppORM(ParticipationStatusORM):
