@@ -14,8 +14,6 @@ from alembic import op
 from updater.src.db.orm.dictionaries_orm import (
     BadgeColorAppORM,
     DirectionTypeAppORM,
-    ParticipationRoleAppORM,
-    ParticipationTypeAppORM,
 )
 
 # revision identifiers, used by Alembic.
