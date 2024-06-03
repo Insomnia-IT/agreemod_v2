@@ -26,7 +26,7 @@ class CodaParticipation(BaseModel):
         assert value == datetime.now().year
         return value
 
-    @field_validator("role_code", "participation_code", "status_code", mode="before")
+    @field_validator("status_code", mode="before")
     @classmethod
     def format_str(cls, value: str) -> str:
         return value.lower().replace(".", " ").replace(" (плюсодин)", "").strip()
