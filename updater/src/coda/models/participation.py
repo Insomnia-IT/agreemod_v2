@@ -29,6 +29,17 @@ class CodaParticipation(BaseModel):
     def format_str(cls, value: str) -> str:
         return value.lower().replace(".", " ").replace(" (плюсодин)", "").strip()
 
+    @field_validator("role_code", mode="before")
+    @classmethod
+    def role_code_prepare(cls, value: str) -> str:
+        if value == 'Зам.руководителя':
+            return 'Зам. руководителя'
+        elif value == 'Свои (плюсодин)':
+            return 'Свои (плюсодины)'
+        return value
+
+
+
     @field_validator("role_code", mode="after")
     @classmethod
     def format_role(cls, value: str) -> str:
