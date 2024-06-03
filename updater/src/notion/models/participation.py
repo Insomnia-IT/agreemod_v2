@@ -25,6 +25,15 @@ class Participation(NotionModel):
                 return enum_member.name
         return None
 
+    @field_validator("role_code", mode="before")
+    @classmethod
+    def role_code_prepare(cls, value: Select):
+        if value.value == 'Зам.руководителя':
+            value.value = 'Зам. руководителя'
+        elif value.value == 'Свои (плюсодин)':
+            value.value = 'Свои (плюсодины)'
+        return value
+
     @field_validator("role_code", mode="after")
     @classmethod
     def role_code_convert(cls, value: Select):

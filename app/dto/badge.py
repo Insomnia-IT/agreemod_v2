@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from dictionaries import DietType, FeedType, Gender
-from dictionaries.dictionaries import ParticipationRole, ParticipationType
+from dictionaries.dictionaries import ParticipationRole
 from pydantic import BaseModel, Field
 
 
@@ -14,7 +14,6 @@ class BadgeDTO(BaseModel):
     number: str
     batch: int
     role: ParticipationRole | None
-    participation: ParticipationType
     notion_id: UUID | None = None
 
 
