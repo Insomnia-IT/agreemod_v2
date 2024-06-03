@@ -83,7 +83,8 @@ class NotionPoller(Poller):
         venusian.Scanner().scan(__import__("database"))
         response = await client.query_database(database=self.database, mock=False)
         logger.info(f"Received {self.database.name} table data")
-        for items in [response[x : x + 10] for x in range(0, len(response), 10)]:
+        chunk = 50 if self.database.name != 'get_badges' else 1
+        for items in [response[x : x + chunk] for x in range(0, len(response), chunk)]:
             try:
                 async with async_session() as session:
                     log_repo = LogsRepository(session)
