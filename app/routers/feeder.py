@@ -10,7 +10,7 @@ from app.models.feeder.response import RequestModelPOST, ResponseModelGET
 
 
 logger = logging.getLogger(__name__)
-router_feeder = APIRouter(tags=["feeder"])
+router_feeder = APIRouter()
 
 
 @router_feeder.get(
