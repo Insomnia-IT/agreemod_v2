@@ -5,29 +5,32 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from dictionaries import FeedType
+from dictionaries.dictionaries import ParticipationRole
+
 
 class Badge(BaseModel):
-    id: str
-    deleted: bool
-    name: str
-    first_name: str
-    last_name: str
-    gender: str
-    phone: str
-    infant: bool
-    vegan: bool
-    feed: str
-    number: str
-    batch: str
-    role: str
-    position: str
-    photo: str
-    person: str
-    comment: str
-    notion_id: str
+    id: str | None = None
+    deleted: bool | None = None
+    name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    gender: str | None = None
+    phone: str | None = None
+    infant: bool | None = None
+    vegan: bool | None = None
+    feed: FeedType | None = None
+    number: str | None = None
+    batch: str | None = None
+    role: ParticipationRole | None = None
+    position: str | None = None
+    photo: str | None = None
+    person: str | None = None
+    comment: str | None = None
+    notion_id: str | None = None
 
 
 class BadgeWithMetadata(BaseModel):
-    actor_badge: UUID
-    date: datetime
-    data: Badge
+    actor_badge: UUID | None = None
+    date: datetime | None = None
+    data: Badge | None = None

@@ -12,13 +12,13 @@ from app.models.feeder.person import Person
 
 
 class ResponseModelGET(BaseModel):
-    badges: List[Badge]
-    arrivals: List[Arrival]
-    engagements: List[Engagement]
-    persons: List[Person]
-    directions: List[Direction]
+    badges: List[Badge] | None = None
+    arrivals: List[Arrival] | None = None
+    engagements: List[Engagement] | None = None
+    persons: List[Person] | None = None
+    directions: List[Direction] | None = None
 
 
 class RequestModelPOST(BaseModel):
-    badges: List[BadgeWithMetadata]
-    arrivals: List[ArrivalWithMetadata]
+    badges: List[BadgeWithMetadata] | None = None
+    arrivals: List[ArrivalWithMetadata] | None = None

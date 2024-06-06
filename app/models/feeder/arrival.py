@@ -3,19 +3,21 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from dictionaries import TransportType
+
 
 class Arrival(BaseModel):
-    id: str
-    deleted: bool
-    badge: str
-    status: str
-    arrival_date: str
-    arrival_transport: str
-    departure_date: str
-    departure_transport: str
+    id: str | None = None
+    deleted: bool | None = None
+    badge: str | None = None
+    status: str | None = None
+    arrival_date: datetime | None = None
+    arrival_transport: TransportType | None = None
+    departure_date: datetime | None = None
+    departure_transport: str | None = None
 
 
 class ArrivalWithMetadata(BaseModel):
-    actor_badge: UUID
-    date: datetime
-    data: Arrival
+    actor_badge: UUID | None = None
+    date: datetime | None = None
+    data: Arrival | None = None

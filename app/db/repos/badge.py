@@ -56,6 +56,14 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         await self.session.merge(BadgeAppORM.to_orm(data))
         await self.session.flush()
 
+    async def update_2(self, data: Badge):
+        """
+        TODO: костыль для feeder
+        """
+        obj = BadgeAppORM.to_orm_2(data)
+        await self.session.merge(obj)
+        await self.session.flush()
+
     async def delete(self, notion_id):
         await self.session.execute(
             delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
