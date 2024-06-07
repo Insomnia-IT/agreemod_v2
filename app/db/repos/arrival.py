@@ -9,7 +9,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +45,14 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
 
     async def update(self, data: Arrival):
         orm = ArrivalAppORM.to_orm(data)
+        await self.session.merge(orm)
+        await self.session.flush([orm])
+
+    async def update2(self, data: Arrival):
+        """
+        Сделано специально для back_sync feeder т.к. ArrivalAppORM.to_orm есть несостыковка
+        """
+        orm = ArrivalAppORM.to_orm_2(data)
         await self.session.merge(orm)
         await self.session.flush([orm])
 

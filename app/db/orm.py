@@ -116,6 +116,31 @@ class BadgeAppORM(BadgeORM):
             notion_id=model.notion_id.hex,
         )
 
+    @classmethod
+    def to_orm_2(cls, model: Badge) -> Self:
+        """
+        TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
+        """
+        return cls(
+            id=model.id,
+            name=model.name,
+            last_name=model.last_name,
+            first_name=model.first_name,
+            nickname=model.nickname,
+            gender=model.gender,
+            phone=model.phone,
+            infant_id=model.infant if model.infant else None,
+            diet=model.diet if model.diet else None,
+            feed=model.feed if model.feed else None,
+            number=model.number,
+            batch=model.batch,
+            role_code=model.role or None,
+            photo=model.photo,
+            person_id=model.person or None,
+            comment=model.comment,
+            notion_id=model.notion_id.hex,
+        )
+
     def to_model(
         self,
         include_person: bool = False,
@@ -162,6 +187,25 @@ class ArrivalAppORM(ArrivalORM):
         return cls(
             id=model.id,
             badge_id=model.badge.id,
+            arrival_date=model.arrival_date,
+            arrival_transport=model.arrival_transport,
+            arrival_registered=model.arrival_registered,
+            departure_date=model.departure_date,
+            departure_transport=model.departure_transport,
+            departure_registered=model.departure_registered,
+            extra_data=model.extra_data,
+            comment=model.comment,
+            last_updated=model.last_updated,
+        )
+
+    @classmethod
+    def to_orm_2(cls, model: Arrival) -> Self:
+        """
+        TODO: несостыковка в to_orm с model.badge.id
+        """
+        return cls(
+            id=model.id,
+            badge_id=model.badge,
             arrival_date=model.arrival_date,
             arrival_transport=model.arrival_transport,
             arrival_registered=model.arrival_registered,

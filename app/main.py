@@ -41,6 +41,7 @@ def get_app() -> FastAPI:
     redoc_url = f"{config.API_PREFIX}/_redoc"  # if config.DEBUG else None
 
     logger.info(f"doc url: {docs_url}")
+    logger.info(f"dev doc url: http://0.0.0.0:8000{docs_url}")
     app = FastAPI(
         title=config.TITLE,
         debug=config.DEBUG,
