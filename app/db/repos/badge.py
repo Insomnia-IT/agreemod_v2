@@ -76,9 +76,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             return None
         if result is None:
             return None
-        return result.to_model(
-            include_person=True, include_directions=True, include_infant=True
-        )
+        return result.to_model(include_person=True, include_directions=True, include_infant=True)
 
     async def retrieve_many(
         self,
@@ -125,6 +123,4 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         await self.session.flush()
 
     async def delete(self, notion_id):
-        await self.session.execute(
-            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
-        )
+        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))

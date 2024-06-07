@@ -1,10 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from dictionaries.dictionaries import (
-    ParticipationRole,
-    ParticipationStatus,
-)
+from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -32,13 +29,11 @@ class CodaParticipation(BaseModel):
     @field_validator("role_code", mode="before")
     @classmethod
     def role_code_prepare(cls, value: str) -> str:
-        if value == 'Зам.руководителя':
-            return 'Зам. руководителя'
-        elif value == 'Свои (плюсодин)':
-            return 'Свои (плюсодины)'
+        if value == "Зам.руководителя":
+            return "Зам. руководителя"
+        elif value == "Свои (плюсодин)":
+            return "Свои (плюсодины)"
         return value
-
-
 
     @field_validator("role_code", mode="after")
     @classmethod

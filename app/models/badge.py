@@ -41,11 +41,7 @@ class Badge(DomainModel):
             case ParticipationRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case (
-                ParticipationRole.VOLUNTEER
-                | ParticipationRole.VICE
-                | ParticipationRole.TEAM_LEAD
-            ):
+            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE | ParticipationRole.TEAM_LEAD:
                 return BadgeColor.GREEN
 
             case ParticipationRole.MEDIC:
