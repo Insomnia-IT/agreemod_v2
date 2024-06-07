@@ -95,7 +95,7 @@ class DirectionAppORM(DirectionORM):
 
 class BadgeAppORM(BadgeORM):
     infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
-    person: Mapped[PersonAppORM] = relationship("PersonORM")
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
     directions: Mapped[List["DirectionAppORM"]] = relationship(
         back_populates="badges", secondary="badge_directions"
     )
@@ -112,7 +112,7 @@ class BadgeAppORM(BadgeORM):
             phone=model.phone,
             infant_id=model.infant.id if model.infant else None,
             diet=model.diet.name if model.diet else None,
-            feed=model.feed.name if model.feed else None,
+            feed=model.feed if model.feed else None,
             number=model.number,
             batch=model.batch,
             role=model.role.name if model.role else None,
@@ -139,7 +139,7 @@ class BadgeAppORM(BadgeORM):
             infant=(
                 Infant.model_validate(self.infant, from_attributes=True)
                 if self.infant and include_infant
-                else self.infant_id
+                else None  # self.infant_id
             ),
             diet=self.diet,
             feed=self.feed,
@@ -150,7 +150,7 @@ class BadgeAppORM(BadgeORM):
             person=(
                 self.person.to_model()
                 if self.person and include_person
-                else self.person_id
+                else None  # self.person_id
             ),
             directions=(
                 [
@@ -161,13 +161,14 @@ class BadgeAppORM(BadgeORM):
                 else None
             ),
             comment=self.comment,
+            occupation=self.occupation,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
         )
 
 
 class ArrivalAppORM(ArrivalORM):
-    badge: Mapped[BadgeAppORM] = relationship("BadgeORM")
+    badge: Mapped[BadgeAppORM] = relationship("BadgeAppORM")
 
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
@@ -206,8 +207,8 @@ class ArrivalAppORM(ArrivalORM):
 
 
 class ParticipationAppORM(ParticipationORM):
-    person: Mapped[PersonAppORM] = relationship("PersonORM")
-    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionAppORM")
 
     @classmethod
     def to_orm(cls, model: Participation):

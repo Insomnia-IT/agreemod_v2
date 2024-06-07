@@ -62,8 +62,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 joinedload(
                     ArrivalAppORM.badge,
                     # ArrivalAppORM.engagement,
-                    ArrivalAppORM.arrival_transport,
-                    ArrivalAppORM.departure_transport,
+                    # ArrivalAppORM.arrival_transport,
+                    # ArrivalAppORM.departure_transport,
                 )
             )
         )

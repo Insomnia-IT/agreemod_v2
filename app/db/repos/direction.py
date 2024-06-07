@@ -49,7 +49,7 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         result = await self.session.scalar(
             select(DirectionAppORM)
             .filter_by(notion_id=notion_id)
-            .options(joinedload(DirectionAppORM.direction_type))
+            .options(joinedload(DirectionAppORM.type))
         )
         if result is None:
             return None
@@ -69,12 +69,12 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         result = await self.session.scalars(
             select(DirectionAppORM)
             .filter_by(**filters)
-            .options(joinedload(DirectionAppORM.direction_type))
+            .options(joinedload(DirectionAppORM.type))
         )
         return [x.to_model() for x in result]
 
     async def retrieve_all(self) -> list[Direction]:
         result = await self.session.scalars(
-            select(DirectionAppORM).options(joinedload(DirectionAppORM.direction_type))
+            select(DirectionAppORM).options(joinedload(DirectionAppORM.type))
         )
         return [x.to_model() for x in result]
