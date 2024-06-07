@@ -60,9 +60,7 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    badges: Mapped[List["BadgeAppORM"]] = relationship(
-        back_populates="directions", secondary="badge_directions"
-    )
+    badges: Mapped[List["BadgeAppORM"]] = relationship(back_populates="directions", secondary="badge_directions")
 
     @classmethod
     def to_orm(cls, model: Direction):
@@ -86,19 +84,15 @@ class DirectionAppORM(DirectionORM):
             notion_id=self.notion_id,
             last_updated=self.last_updated,
             badges=(
-                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
-                if include_badges
-                else None
+                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges] if include_badges else None
             ),
         )
 
 
 class BadgeAppORM(BadgeORM):
     infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
-    person: Mapped[PersonAppORM] = relationship("PersonORM")
-    directions: Mapped[List["DirectionAppORM"]] = relationship(
-        back_populates="badges", secondary="badge_directions"
-    )
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
+    directions: Mapped[List["DirectionAppORM"]] = relationship(back_populates="badges", secondary="badge_directions")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -112,12 +106,37 @@ class BadgeAppORM(BadgeORM):
             phone=model.phone,
             infant_id=model.infant.id if model.infant else None,
             diet=model.diet.name if model.diet else None,
-            feed=model.feed.name if model.feed else None,
+            feed=model.feed if model.feed else None,
             number=model.number,
             batch=model.batch,
             role=model.role.name if model.role else None,
             photo=model.photo,
             person_id=model.person.id if model.person else None,
+            comment=model.comment,
+            notion_id=model.notion_id.hex,
+        )
+
+    @classmethod
+    def to_orm_2(cls, model: Badge) -> Self:
+        """
+        TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
+        """
+        return cls(
+            id=model.id,
+            name=model.name,
+            last_name=model.last_name,
+            first_name=model.first_name,
+            nickname=model.nickname,
+            gender=model.gender,
+            phone=model.phone,
+            infant_id=model.infant if model.infant else None,
+            diet=model.diet if model.diet else None,
+            feed=model.feed if model.feed else None,
+            number=model.number,
+            batch=model.batch,
+            role_code=model.role or None,
+            photo=model.photo,
+            person_id=model.person or None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
         )
@@ -139,7 +158,7 @@ class BadgeAppORM(BadgeORM):
             infant=(
                 Infant.model_validate(self.infant, from_attributes=True)
                 if self.infant and include_infant
-                else self.infant_id
+                else None  # self.infant_id
             ),
             diet=self.diet,
             feed=self.feed,
@@ -147,27 +166,21 @@ class BadgeAppORM(BadgeORM):
             batch=self.batch,
             role=self.role_code,
             photo=self.photo,
-            person=(
-                self.person.to_model()
-                if self.person and include_person
-                else self.person_id
-            ),
+            person=(self.person.to_model() if self.person and include_person else None),  # self.person_id
             directions=(
-                [
-                    DirectionDTO.model_validate(x, from_attributes=True)
-                    for x in self.directions
-                ]
+                [DirectionDTO.model_validate(x, from_attributes=True) for x in self.directions]
                 if include_directions
                 else None
             ),
             comment=self.comment,
+            occupation=self.occupation,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
         )
 
 
 class ArrivalAppORM(ArrivalORM):
-    badge: Mapped[BadgeAppORM] = relationship("BadgeORM")
+    badge: Mapped[BadgeAppORM] = relationship("BadgeAppORM")
 
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
@@ -185,14 +198,29 @@ class ArrivalAppORM(ArrivalORM):
             last_updated=model.last_updated,
         )
 
+    @classmethod
+    def to_orm_2(cls, model: Arrival) -> Self:
+        """
+        TODO: несостыковка в to_orm с model.badge.id
+        """
+        return cls(
+            id=model.id,
+            badge_id=model.badge,
+            arrival_date=model.arrival_date,
+            arrival_transport=model.arrival_transport,
+            arrival_registered=model.arrival_registered,
+            departure_date=model.departure_date,
+            departure_transport=model.departure_transport,
+            departure_registered=model.departure_registered,
+            extra_data=model.extra_data,
+            comment=model.comment,
+            last_updated=model.last_updated,
+        )
+
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
             id=self.id,
-            badge=(
-                BadgeDTO.model_validate(self.badge, from_attributes=True)
-                if include_badge
-                else self.badge_id
-            ),
+            badge=(BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id),
             arrival_date=self.arrival_date,
             arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
@@ -206,8 +234,8 @@ class ArrivalAppORM(ArrivalORM):
 
 
 class ParticipationAppORM(ParticipationORM):
-    person: Mapped[PersonAppORM] = relationship("PersonORM")
-    direction: Mapped[DirectionAppORM] = relationship("DirectionORM")
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionAppORM")
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -222,9 +250,7 @@ class ParticipationAppORM(ParticipationORM):
             last_updated=model.last_updated,
         )
 
-    def to_model(
-        self, include_person: bool = False, include_direction: bool = False
-    ) -> Participation:
+    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
         return Participation(
             year=self.year,
             person=self.person.to_model() if include_person else self.person_id,

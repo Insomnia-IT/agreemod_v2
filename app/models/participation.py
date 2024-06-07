@@ -1,10 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from dictionaries.dictionaries import (
-    ParticipationRole,
-    ParticipationStatus,
-)
+from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
 
 from app.dto.direction import DirectionDTO
 from app.models.base import DomainModel

@@ -2,12 +2,12 @@ from pydantic import BaseModel
 
 
 class Engagement(BaseModel):
-    id: str
-    deleted: bool
-    year: int
-    person: str
-    role: str
-    position: str
-    status: str
-    direction: str
-    notion_id: str
+    id: str | None = None
+    deleted: bool | None = None
+    year: int | None = None
+    person: str | None = None
+    role: str | None = None
+    position: str | None = None
+    status: str | None = None
+    direction: str | None = None
+    notion_id: str | None = None

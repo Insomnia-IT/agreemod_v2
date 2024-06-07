@@ -2,18 +2,18 @@ from pydantic import BaseModel
 
 
 class Person(BaseModel):
-    id: str
-    deleted: bool
-    name: str
-    first_name: str
-    last_name: str
-    nickname: str
-    other_names: str
-    gender: str
-    birth_date: str
-    phone: str
-    telegram: str
-    email: str
-    city: str
-    vegan: bool
-    notion_id: str
+    id: str | None = None
+    deleted: bool | None = None
+    name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    nickname: str | None = None
+    other_names: str | None = None
+    gender: str | None = None
+    birth_date: str | None = None
+    phone: str | None = None
+    telegram: str | None = None
+    email: str | None = None
+    city: str | None = None
+    vegan: bool | None = None
+    notion_id: str | None = None

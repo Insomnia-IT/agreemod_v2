@@ -6,6 +6,7 @@ from rabbit.consumer import RabbitMQAsyncConsumer
 from updater.src.config import config
 from updater.src.states import UpdaterStates
 
+
 logger = logging.getLogger(__name__)
 
 

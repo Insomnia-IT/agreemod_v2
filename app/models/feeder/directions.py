@@ -2,10 +2,10 @@ from pydantic import BaseModel
 
 
 class Direction(BaseModel):
-    id: str
-    deleted: bool
-    name: str
-    first_year: int
-    last_year: int
-    type: str
-    notion_id: str
+    id: str | None = None
+    deleted: bool | None = None
+    name: str | None = None
+    first_year: int | None = None
+    last_year: int | None = None
+    type: str | None = None
+    notion_id: str | None = None

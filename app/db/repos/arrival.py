@@ -9,7 +9,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,9 +22,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(
-                title=f"arrival with {data.notion_id=} already exists"
-            )
+            raise RepresentativeError(title=f"arrival with {data.id=} already exists")
         return new_arrival
 
     async def retrieve(self, id, include_badge: bool):
@@ -51,6 +48,14 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         await self.session.merge(orm)
         await self.session.flush([orm])
 
+    async def update2(self, data: Arrival):
+        """
+        Сделано специально для back_sync feeder т.к. ArrivalAppORM.to_orm есть несостыковка
+        """
+        orm = ArrivalAppORM.to_orm_2(data)
+        await self.session.merge(orm)
+        await self.session.flush([orm])
+
     async def delete(self, id):
         await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.id == id))
 
@@ -62,8 +67,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 joinedload(
                     ArrivalAppORM.badge,
                     # ArrivalAppORM.engagement,
-                    ArrivalAppORM.arrival_transport,
-                    ArrivalAppORM.departure_transport,
+                    # ArrivalAppORM.arrival_transport,
+                    # ArrivalAppORM.departure_transport,
                 )
             )
         )
