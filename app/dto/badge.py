@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from dictionaries import DietType, FeedType, Gender
+from dictionaries import DietType
 from dictionaries.dictionaries import ParticipationRole
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class BadgeDTO(BaseModel):
@@ -23,9 +23,19 @@ class Infant(BaseModel):
     last_name: str | None = None
     first_name: str | None = None
     nickname: str | None = None
-    gender: Gender | None = None
+    gender: str | None = None
     phone: str | None = None
-    diet: DietType = Field(default_factory=DietType.default)
-    feed: FeedType | None = None
+    diet: DietType | None = Field(default_factory=DietType.default)
+    feed: str | None = None
     number: str
     batch: int
+
+    @field_validator("diet", mode="before")
+    @classmethod
+    def convert_diet(cls, value: str):
+        if not value:
+            return None
+        try:
+            return DietType[value.lower()]
+        except KeyError:
+            return value.lower()

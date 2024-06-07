@@ -22,9 +22,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(
-                title=f"arrival with {data.notion_id=} already exists"
-            )
+            raise RepresentativeError(title=f"arrival with {data.id=} already exists")
         return new_arrival
 
     async def retrieve(self, id, include_badge: bool):
@@ -69,8 +67,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 joinedload(
                     ArrivalAppORM.badge,
                     # ArrivalAppORM.engagement,
-                    ArrivalAppORM.arrival_transport,
-                    ArrivalAppORM.departure_transport,
+                    # ArrivalAppORM.arrival_transport,
+                    # ArrivalAppORM.departure_transport,
                 )
             )
         )
