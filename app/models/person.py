@@ -4,7 +4,7 @@ from uuid import UUID
 
 from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from app.models.base import DomainModel
 
@@ -25,3 +25,8 @@ class Person(DomainModel):
     comment: str | None = None
     notion_id: UUID | None = None
     last_updated: datetime | None = None
+
+    @field_validator("gender", mode="before")
+    def convert_gender(cls, value: str):
+        if value not in [x.value for x in Gender]:
+            return Gender.ATTACK_HELICOPTER_APACHE.value

@@ -38,9 +38,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             query = query.offset(offset)
         return query
 
-    async def retrieve(
-        self, id, include_person: bool, include_direction: bool
-    ) -> Participation | None:
+    async def retrieve(self, id, include_person: bool, include_direction: bool) -> Participation | None:
         result: ParticipationAppORM | None = await self.session.scalar(
             self.get_query(
                 id=id,
@@ -50,21 +48,13 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         )
         if result is None:
             return None
-        return result.to_model(
-            include_person=include_person, include_direction=include_direction
-        )
+        return result.to_model(include_person=include_person, include_direction=include_direction)
 
-    async def retrieve_personal(
-        self, person_id: str, include_direction: bool
-    ) -> list[Participation]:
+    async def retrieve_personal(self, person_id: str, include_direction: bool) -> list[Participation]:
         results = await self.session.scalars(
-            self.get_query(include_direction=include_direction).filter(
-                ParticipationAppORM.person_id == person_id
-            )
+            self.get_query(include_direction=include_direction).filter(ParticipationAppORM.person_id == person_id)
         )
-        return [
-            result.to_model(include_direction=include_direction) for result in results
-        ]
+        return [result.to_model(include_direction=include_direction) for result in results]
 
     async def retrieve_all(
         self,
@@ -83,10 +73,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             )
         )
         return [
-            result.to_model(
-                include_person=include_person, include_direction=include_direction
-            )
-            for result in results
+            result.to_model(include_person=include_person, include_direction=include_direction) for result in results
         ]
 
     async def create(self, data: Participation):
@@ -97,9 +84,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(
-                title=f"participation with {data.id=} already exists"
-            )
+            raise RepresentativeError(title=f"participation with {data.id=} already exists")
         return new_participation
 
     async def update(self, data: Participation):
@@ -107,9 +92,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         await self.session.flush()
 
     async def delete(self, id):
-        await self.session.execute(
-            delete(ParticipationAppORM).where(ParticipationAppORM.id == id)
-        )
+        await self.session.execute(delete(ParticipationAppORM).where(ParticipationAppORM.id == id))
 
     async def retrieve_many(self, filters: dict = None) -> list[Participation]:
         result = await self.session.scalars(self.get_query())
