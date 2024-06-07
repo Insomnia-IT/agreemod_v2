@@ -10,7 +10,6 @@ from app.db.repos.base import BaseSqlaRepo
 # from app.errors import RepresentativeError
 from app.models.direction import Direction
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,3 +77,25 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
             select(DirectionAppORM).options(joinedload(DirectionAppORM.direction_type))
         )
         return [x.to_model() for x in result]
+
+    async def retrieve_all_2(self, page: int, page_size: int) -> list[Direction]:
+        offset = (page - 1) * page_size
+        result_scalars = await self.session.scalars(
+            select(DirectionAppORM)
+            .limit(page_size)
+            .offset(offset)
+        )
+        results = result_scalars.all()
+
+        if not results:
+            return []
+
+        processed_results = []
+        for result in results:
+            try:
+                data = result.to_model()
+                processed_results.append(data)
+            except Exception as e:
+                logger.critical(f"Error processing result {result}: {e}")
+
+        return processed_results

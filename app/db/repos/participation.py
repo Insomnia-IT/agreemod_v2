@@ -11,19 +11,18 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
 
-
 logger = logging.getLogger(__name__)
 
 
 class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     def get_query(
-        self,
-        id: str = None,
-        include_person: bool = True,
-        include_direction: bool = True,
-        limit: int = None,
-        offset: int = None,
+            self,
+            id: str = None,
+            include_person: bool = True,
+            include_direction: bool = True,
+            limit: int = None,
+            offset: int = None,
     ):
         query = select(ParticipationAppORM)
         if id:
@@ -39,7 +38,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         return query
 
     async def retrieve(
-        self, id, include_person: bool, include_direction: bool
+            self, id, include_person: bool, include_direction: bool
     ) -> Participation | None:
         result: ParticipationAppORM | None = await self.session.scalar(
             self.get_query(
@@ -55,7 +54,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         )
 
     async def retrieve_personal(
-        self, person_id: str, include_direction: bool
+            self, person_id: str, include_direction: bool
     ) -> list[Participation]:
         results = await self.session.scalars(
             self.get_query(include_direction=include_direction).filter(
@@ -67,11 +66,11 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         ]
 
     async def retrieve_all(
-        self,
-        page: int,
-        page_size: int,
-        include_direction: bool = False,
-        include_person: bool = False,
+            self,
+            page: int,
+            page_size: int,
+            include_direction: bool = False,
+            include_person: bool = False,
     ) -> List[Participation]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(
@@ -82,12 +81,17 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
                 include_direction=include_direction,
             )
         )
-        return [
-            result.to_model(
-                include_person=include_person, include_direction=include_direction
-            )
-            for result in results
-        ]
+        data = []
+        for result in results:
+            try:
+                model = result.to_model(
+                    include_person=include_person,
+                    include_direction=include_direction
+                )
+                data.append(model)
+            except Exception as e:
+                logger.critical(f"Error processing result {result}: {e}")
+        return data
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)

@@ -37,21 +37,24 @@ class Badge(DomainModel):
     last_updated: datetime | None = None
     directions: list[DirectionDTO] = Field(default_factory=list)
 
-    @computed_field
-    @property
-    def color(self) -> BadgeColor:
-        return self.participation.badge_color
+    # TODO: проверить нужен ли этот метод, participation атрибута нету
+    # @computed_field
+    # @property
+    # def color(self) -> BadgeColor:
+    #     return self.participation.badge_color
 
     @staticmethod
     def get_default_file(color: BadgeColor):
         path_to_files = Path.cwd() / Path("media/image/faces_no_photo")
         return path_to_files / Path(f"{color.value}.png")
 
-    @model_validator(mode="after")
-    def set_default_photo(self) -> str:
-        if not self.photo:
-            self.photo = self.get_default_file(self.color)
-        return self
+    # TODO: проверить нужен ли этот метод, приводит к ошибке при синхронизации в feeder
+    # TODO: AttributeError: 'Badge' object has no attribute 'color'
+    # @model_validator(mode="after")
+    # def set_default_photo(self) -> str:
+    #     if not self.photo:
+    #         self.photo = self.get_default_file(self.color)
+    #     return self
 
     @staticmethod
     def from_feeder(actor_badge, data: 'BadgeAPI') -> 'Badge':

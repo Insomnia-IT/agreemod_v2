@@ -76,6 +76,17 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         )
         return [x.to_model() for x in result]
 
-    async def retrieve_all(self) -> list[Arrival]:
+    async def retrieve_all(self, page: int, page_size: int) -> list[Arrival]:
+        offset = (page - 1) * page_size
+        results = await self.session.scalars(
+            select(ArrivalAppORM)
+            .limit(page_size)
+            .offset(offset)
+        )
+        if not results:
+            return []
+        return [result.to_model() for result in results]
+
+    async def retrieve_all_2(self) -> list[Arrival]:
         result = await self.session.scalars(select(ArrivalAppORM))
         return [x.to_model() for x in result]
