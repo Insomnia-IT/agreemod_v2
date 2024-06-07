@@ -29,7 +29,7 @@ router_feeder = APIRouter(tags=["feeder"])
 
 @router_feeder.get(
     "/feeder/sync",
-    summary="API для синхронизации с кормителем. Пока возвращает MOCK данные",
+    summary="API для синхронизации с кормителем.",
     response_model=ResponseModelGET,
 )
 async def sync(from_date: datetime):
