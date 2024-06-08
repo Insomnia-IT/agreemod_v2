@@ -1,9 +1,9 @@
 import logging
 
 from datetime import datetime
-from typing import Any, Union
+from typing import Union, Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from app.db.repos.arrival import ArrivalRepo
@@ -13,8 +13,8 @@ from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
 from app.models.arrival import Arrival
 from app.models.badge import Badge
-from app.models.feeder.faker import generate_random_response_model_get
 from app.models.feeder.response import RequestModelPOST, ResponseModelGET
+from app.utils.verify_credentials import verify_credentials
 from database.meta import async_session
 
 from app.models.feeder.arrival import Arrival as ArrivalFeeder
@@ -32,7 +32,11 @@ router_feeder = APIRouter()
     summary="API для синхронизации с кормителем.",
     response_model=ResponseModelGET,
 )
-async def sync(from_date: datetime):
+async def sync(
+        from_date: datetime,
+        username: Annotated[str, Depends(verify_credentials)],
+):
+    logger.info(f"{username} requested for sync")
     async with async_session() as session:
         repo_arrival = ArrivalRepo(session)
         arrivals = await repo_arrival.retrieve_all(1, 10)
@@ -72,7 +76,11 @@ def convert_objects(data: list, dist_model: Union[type(ArrivalFeeder)]) -> list:
 
 
 @router_feeder.post("/feeder/back-sync", summary="API для синхронизации с кормителем")
-async def back_sync(data: RequestModelPOST):
+async def back_sync(
+        data: RequestModelPOST,
+        username: Annotated[str, Depends(verify_credentials)],
+):
+    logger.info(f"{username} requested for sync")
     async with async_session() as session:
 
         repo_arrival = ArrivalRepo(session)

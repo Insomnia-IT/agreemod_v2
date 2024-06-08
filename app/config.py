@@ -78,6 +78,9 @@ class Config(BaseSettings):
     API_HOST: str = "127.0.0.1"
     API_PORT: int = 8000
 
+    API_AUTH_USER: str
+    API_AUTH_PASSWORD: str
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
 
     @property
