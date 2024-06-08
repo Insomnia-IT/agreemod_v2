@@ -24,7 +24,7 @@ from app.models.feeder.person import Person as PersonFeeder
 from app.models.feeder.directions import Direction as DirectionFeeder
 
 logger = logging.getLogger(__name__)
-router_feeder = APIRouter(tags=["feeder"])
+router_feeder = APIRouter()
 
 
 @router_feeder.get(
