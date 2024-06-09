@@ -1,0 +1,30 @@
+name: Build and Deploy on push to dev or main
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        script: |
+          tmux new-session -d -s gh-actions
+          tmux a -t gh-actions
+          cd /deploy/agreemod-${{ github.ref_name }}/agreemod_v2
+          git pull origin ${{ github.ref_name }}
+          git checkout ${{ github.ref_name }}
+          docker compose build
+          docker compose up -d
