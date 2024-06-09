@@ -5,21 +5,7 @@ on:
     branches:
       - dev
       - main
-    paths:
-      - '.github/**'
-      - 'Dockerfile'
-      - 'poetry.lock'
-      - 'docker-compose.yml'
-      - 'pyproject.toml'
-      - 'alembic.ini'
-      - 'alembic/**'
-      - 'app/**'
-      - 'bot/**'
-      - 'database/**'
-      - 'docker/**'
-      - 'dictionaries/**'
-      - 'rabbit/**'
-      - 'updater/**'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
