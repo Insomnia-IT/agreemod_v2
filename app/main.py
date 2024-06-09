@@ -56,6 +56,7 @@ def get_app() -> FastAPI:
     #   send log error to sentry or some another collector: Middleware(SentryMiddleware) (custom)
 
     app.include_router(router_feeder, prefix="/api/v1", tags=["feeder"])
+    app.include_router(router_feeder, prefix="/api/v2", tags=["feeder"])
     app.include_router(router_people, prefix="/api/v1", tags=["people"])
     app.include_router(router_directions, prefix="/api/v1", tags=["directions"])
     app.include_router(router_badges, prefix="/api/v1", tags=["badges"])
