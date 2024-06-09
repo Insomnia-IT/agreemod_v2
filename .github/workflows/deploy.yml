@@ -21,10 +21,10 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         script: |
-          tmux new-session -d -s gh-actions
-          tmux a -t gh-actions
+          tmux new-session -d -s gh-actions-${{ github.ref_name }}
+          tmux a -t gh-actions-${{ github.ref_name }}
           cd /deploy/agreemod-${{ github.ref_name }}/agreemod_v2
           git pull origin ${{ github.ref_name }}
           git checkout ${{ github.ref_name }}
           docker compose build
-          docker compose up -d
+          docker compose --project-name agreemod-${{ github.ref_name }} up -d
