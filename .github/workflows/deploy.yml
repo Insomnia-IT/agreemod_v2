@@ -5,7 +5,21 @@ on:
     branches:
       - dev
       - main
-
+    paths:
+      - '.github/**'
+      - 'Dockerfile'
+      - 'poetry.lock'
+      - 'docker-compose.yml'
+      - 'pyproject.toml'
+      - 'alembic.ini'
+      - 'alembic/**'
+      - 'app/**'
+      - 'bot/**'
+      - 'database/**'
+      - 'docker/**'
+      - 'dictionaries/**'
+      - 'rabbit/**'
+      - 'updater/**'
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -27,5 +41,6 @@ jobs:
           git pull origin ${{ github.ref_name }}
           git checkout ${{ github.ref_name }}
           docker compose build
+          docker compose down
           docker compose --project-name agreemod-${{ github.ref_name }} up -d
           docker update --restart always $(docker ps --filter "name=agreemod-${{ github.ref_name }}" -q)
