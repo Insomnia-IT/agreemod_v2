@@ -71,17 +71,9 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
                 include_direction=include_direction,
             )
         )
-        data = []
-        for result in results:
-            try:
-                model = result.to_model(
-                    include_person=include_person,
-                    include_direction=include_direction
-                )
-                data.append(model)
-            except Exception as e:
-                logger.critical(f"Error processing result {result}: {e}")
-        return data
+        return [
+            result.to_model(include_person=include_person, include_direction=include_direction) for result in results
+        ]
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)

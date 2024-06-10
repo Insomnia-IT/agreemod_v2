@@ -1,16 +1,16 @@
 import logging
 from typing import List
+from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from app.db.orm import BadgeAppORM
+from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
+from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
-
-logger = logging.getLogger(__name__)
 
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
@@ -27,7 +27,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         page: int = None,
         filters: BadgeFilterDTO = None,
     ):
-        query = select(BadgeAppORM)
+        query = select(BadgeAppORM, BadgeDirectionsAppORM)
         if notion_id:
             query = query.filter_by(notion_id=notion_id)
         if badge_number:
@@ -40,7 +40,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         if include_person:
             query = query.options(joinedload(BadgeAppORM.person))
         if include_directions:
-            query = query.options(joinedload(BadgeAppORM.directions))
+            query = query.options(joinedload(BadgeAppORM.directions)).options(joinedload(BadgeDirectionsAppORM.direction))
         if include_infant:
             query = query.options(joinedload(BadgeAppORM.infant))
         if filters:
@@ -122,37 +122,26 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         return data
 
     async def update(self, data: Badge):
-        await self.session.merge(BadgeAppORM.to_orm(data))
+        badge = BadgeAppORM.to_orm(data)
+        for d in data.directions:
+            direction = self.session.scalar(
+                select(DirectionAppORM).filter_by(
+                    notion_id=d.notion_id if isinstance(d, Direction) else d
+                )
+            )
+            badge_dir = BadgeDirectionsAppORM()
+            badge_dir.direction = direction
+            badge.directions.append(badge_dir)
+        await self.session.merge(badge)
         await self.session.flush()
 
-    async def update_2(self, data: Badge):
-        """
-        TODO: костыль для feeder
-        """
-        obj = BadgeAppORM.to_orm_2(data)
-        await self.session.merge(obj)
-        await self.session.flush()
+    # async def update_2(self, data: Badge):
+    #     """
+    #     TODO: костыль для feeder
+    #     """
+    #     obj = BadgeAppORM.to_orm_2(data)
+    #     await self.session.merge(obj)
+    #     await self.session.flush()
 
     async def delete(self, notion_id):
         await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))
-
-    async def retrieve_all_2(self, page: int, page_size: int) -> list[Badge]:
-        offset = (page - 1) * page_size
-        result_scalars = await self.session.scalars(
-            select(BadgeAppORM)
-            .limit(page_size)
-            .offset(offset)
-        )
-        results = result_scalars.all()
-
-        if not results:
-            return []
-
-        processed_results = []
-        for result in results:
-            try:
-                processed_results.append(result.to_model_2())
-            except Exception as e:
-                logger.critical(f"Error processing result {result}: {e}")
-
-        return processed_results

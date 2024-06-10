@@ -26,7 +26,10 @@ class BadgeService:
     async def get_photo(self, link: str, filename: str, color: BadgeColor, client: httpx.AsyncClient) -> str:
         if link.split("/")[-1] == f"{color.value}.png":
             return f"{color.value}.png"
-        file_exists = os.path.isfile(path=f"{color.name}/{filename}.jpg")
+        file_exists = (
+            os.path.isfile(path=f"{color.name}/{filename}.jpg")
+            or os.path.isfile(path=f"{color.name}/{filename}.jpeg")
+        )
         if file_exists:
             return f"{filename}.jpg"
         image_file = await client.get(link)

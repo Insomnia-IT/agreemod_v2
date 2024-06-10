@@ -7,6 +7,8 @@ from fastapi.responses import FileResponse
 import logging
 from typing import Annotated
 
+from app.dependencies.service import get_badge_service
+from app.services.badge import BadgeService
 from app.utils.verify_credentials import verify_credentials
 from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
 import os
@@ -27,14 +29,13 @@ from app.schemas.badge import BadgeFilterDTO
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-
 def _get_badges_filters_dto(
-        batch: int = Q("Номер партии", None),
-        color: BadgeColor | None = Q("Цвет бейджа", None),
-        direction: DirectionType | None = Q("Название службы (направления)", None),
-        role: ParticipationRole | None = Q("Роль", None),
-        occupation: str = Q("Тип участия", None),
-        infants: str | None = Q("Найти детей по notion_id бейджа родителя", None),
+    batch: int = Q("Номер партии", None),
+    color: BadgeColor | None = Q("Цвет бейджа", None),
+    direction: DirectionType | None = Q("Название службы (направления)", None),
+    role: ParticipationRole | None = Q("Роль", None),
+    occupation: str = Q("Тип участия", None),
+    infants: str | None = Q("Найти детей по notion_id бейджа родителя", None),
 ) -> BadgeFilterDTO:
     return BadgeFilterDTO(
         batch=batch,
@@ -91,43 +92,46 @@ ARCHIVE_NAME = "archive.zip"
 TEXT_FILE_NAME = "hello.txt"
 
 
-def create_zip_file():
-    time.sleep(5)  # Имитация долгой задачи
-    with zipfile.ZipFile(ARCHIVE_NAME, 'w') as zipf:
-        # Создание временного текстового файла
-        with open(TEXT_FILE_NAME, 'w') as file:
-            file.write("Hello World")
+# def create_zip_file():
+#     time.sleep(5)  # Имитация долгой задачи
+#     with zipfile.ZipFile(ARCHIVE_NAME, 'w') as zipf:
+#         # Создание временного текстового файла
+#         with open(TEXT_FILE_NAME, 'w') as file:
+#             file.write("Hello World")
 
-        # Добавление текстового файла в архив
-        zipf.write(TEXT_FILE_NAME)
+#         # Добавление текстового файла в архив
+#         zipf.write(TEXT_FILE_NAME)
 
-        # Удаление временного текстового файла после добавления в архив
-        os.remove(TEXT_FILE_NAME)
+#         # Удаление временного текстового файла после добавления в архив
+#         os.remove(TEXT_FILE_NAME)
 
 
-@router.post("/start-task/")
+@router.post("/prepare-badges/")
 
 async def start_task(
         username: Annotated[str, Depends(verify_credentials)],
-        background_tasks: BackgroundTasks
+        background_tasks: BackgroundTasks,
+        batch: int,
+        service: BadgeService = Depends(get_badge_service),
 ):
     """
     Создание задачи на создание .zip файла со всеми данными
     """
     logger.info(f"Starting task: {username}")
-    background_tasks.add_task(create_zip_file)
+    background_tasks.add_task(await service.prepare_to_print(batch))
     return {"message": "Фоновая задача по созданию архива запущена"}
 
 
 @router.get("/download-archive/")
 async def download_archive(
         username: Annotated[str, Depends(verify_credentials)],
+        batch: int
 ):
     """
     Возвращает файл который подготовил /start-task эндпоинт
     """
     logger.info(f"Starting task: {username}")
-    if os.path.exists(ARCHIVE_NAME):
-        return FileResponse(path=ARCHIVE_NAME, media_type='application/zip', filename=ARCHIVE_NAME)
+    if os.path.exists(f"batch_{batch}.zip"):
+        return FileResponse(path=f"batch_{batch}.zip", media_type='application/zip', filename=f"batch_{batch}.zip")
     else:
         raise HTTPException(status_code=404, detail="Архив не найден")

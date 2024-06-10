@@ -1,8 +1,11 @@
 from typing import List, Self
 
+from app.models.logging import Logs
 from database.orm.arrival import ArrivalORM
 from database.orm.badge import BadgeORM
+from database.orm.badge_directions import BadgeDirectionsORM
 from database.orm.direction import DirectionORM
+from database.orm.logging import LogsORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from sqlalchemy.orm import Mapped, relationship
@@ -62,7 +65,7 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    badges: Mapped[List["BadgeAppORM"]] = relationship(back_populates="directions", secondary="badge_directions")
+    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="direction")
 
     @classmethod
     def to_orm(cls, model: Direction):
@@ -94,7 +97,7 @@ class DirectionAppORM(DirectionORM):
 class BadgeAppORM(BadgeORM):
     infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
     person: Mapped[PersonAppORM] = relationship("PersonAppORM")
-    directions: Mapped[List["DirectionAppORM"]] = relationship(back_populates="badges", secondary="badge_directions")
+    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -113,35 +116,36 @@ class BadgeAppORM(BadgeORM):
             batch=model.batch,
             role=model.role.name if model.role else None,
             photo=model.photo,
+            occupation=model.occupation,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
         )
 
-    @classmethod
-    def to_orm_2(cls, model: Badge) -> Self:
-        """
-        TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
-        """
-        return cls(
-            id=model.id,
-            name=model.name,
-            last_name=model.last_name,
-            first_name=model.first_name,
-            nickname=model.nickname,
-            gender=model.gender,
-            phone=model.phone,
-            infant_id=model.infant if model.infant else None,
-            diet=model.diet if model.diet else None,
-            feed=model.feed if model.feed else None,
-            number=model.number,
-            batch=model.batch,
-            role_code=model.role or None,
-            photo=model.photo,
-            person_id=model.person or None,
-            comment=model.comment,
-            notion_id=model.notion_id.hex,
-        )
+    # @classmethod
+    # def to_orm_2(cls, model: Badge) -> Self:
+    #     """
+    #     TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
+    #     """
+    #     return cls(
+    #         id=model.id,
+    #         name=model.name,
+    #         last_name=model.last_name,
+    #         first_name=model.first_name,
+    #         nickname=model.nickname,
+    #         gender=model.gender,
+    #         phone=model.phone,
+    #         infant_id=model.infant if model.infant else None,
+    #         diet=model.diet if model.diet else None,
+    #         feed=model.feed if model.feed else None,
+    #         number=model.number,
+    #         batch=model.batch,
+    #         role_code=model.role or None,
+    #         photo=model.photo,
+    #         person_id=model.person or None,
+    #         comment=model.comment,
+    #         notion_id=model.notion_id.hex,
+    #     )
 
     def to_model(
             self,
@@ -170,39 +174,11 @@ class BadgeAppORM(BadgeORM):
             photo=self.photo,
             person=(self.person.to_model() if self.person and include_person else None),  # self.person_id
             directions=(
-                [DirectionDTO.model_validate(x, from_attributes=True) for x in self.directions]
+                [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
                 else None
             ),
-            comment=self.comment,
             occupation=self.occupation,
-            notion_id=self.notion_id,
-            last_updated=self.last_updated,
-        )
-
-    def to_model_2(
-            self,
-            include_person: bool = False,
-            include_directions: bool = False,
-            include_infant: bool = False,
-    ) -> Badge:
-        return Badge(
-            id=self.id,
-            name=self.name,
-            last_name=self.last_name,
-            first_name=self.first_name,
-            nickname=self.nickname,
-            gender=Gender[self.gender].value if self.gender else None,
-            phone=self.phone,
-            infant=None,  # TODO: уточнить и добавить
-            diet=self.diet.lower(),
-            feed=self.feed,
-            number=self.number,
-            batch=self.batch,
-            role=ParticipationRole[self.role_code].value.capitalize(),
-            photo=self.photo,
-            person=self.person_id,  # TODO: нужен ли обьект человека как это было в v1 to_model
-            directions=[],  # TODO: уточнить и добавить
             comment=self.comment,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
@@ -228,24 +204,24 @@ class ArrivalAppORM(ArrivalORM):
             last_updated=model.last_updated,
         )
 
-    @classmethod
-    def to_orm_2(cls, model: Arrival) -> Self:
-        """
-        TODO: несостыковка в to_orm с model.badge.id
-        """
-        return cls(
-            id=model.id,
-            badge_id=model.badge,
-            arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport,
-            arrival_registered=model.arrival_registered,
-            departure_date=model.departure_date,
-            departure_transport=model.departure_transport,
-            departure_registered=model.departure_registered,
-            extra_data=model.extra_data,
-            comment=model.comment,
-            last_updated=model.last_updated,
-        )
+    # @classmethod
+    # def to_orm_2(cls, model: Arrival) -> Self:
+    #     """
+    #     TODO: несостыковка в to_orm с model.badge.id
+    #     """
+    #     return cls(
+    #         id=model.id,
+    #         badge_id=model.badge,
+    #         arrival_date=model.arrival_date,
+    #         arrival_transport=model.arrival_transport,
+    #         arrival_registered=model.arrival_registered,
+    #         departure_date=model.departure_date,
+    #         departure_transport=model.departure_transport,
+    #         departure_registered=model.departure_registered,
+    #         extra_data=model.extra_data,
+    #         comment=model.comment,
+    #         last_updated=model.last_updated,
+    #     )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
@@ -293,4 +269,30 @@ class ParticipationAppORM(ParticipationORM):
             status=ParticipationStatus[self.status_code].value,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
+        )
+
+class BadgeDirectionsAppORM(BadgeDirectionsORM):
+    badge: Mapped[BadgeAppORM] = relationship(back_populates='directions')
+    direction: Mapped[DirectionAppORM] = relationship(back_populates='badges')
+
+class LogsAppORM(LogsORM):
+    @classmethod
+    def to_orm(cls, model: Logs):
+        return cls(
+            author=model.author,
+            table_name=model.table_name,
+            row_id=model.row_id,
+            operation=model.operation,
+            timestamp=model.timestamp,
+            new_data=model.new_data,
+        )
+    
+    def to_model(self):
+        return Logs(
+            author=self.author,
+            table_name=self.table_name,
+            row_id=self.row_id,
+            operation=self.operation,
+            timestamp=self.timestamp,
+            new_data=self.new_data,
         )

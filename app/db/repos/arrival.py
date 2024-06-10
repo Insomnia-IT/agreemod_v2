@@ -25,7 +25,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             raise RepresentativeError(title=f"arrival with {data.id=} already exists")
         return new_arrival
 
-    async def retrieve(self, id, include_badge: bool):
+    async def retrieve(self, id, include_badge: bool) -> Arrival | None:
         query = select(ArrivalAppORM).filter_by(id=id)
         if include_badge:
             query = query.options(joinedload(ArrivalAppORM.badge))
