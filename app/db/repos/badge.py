@@ -1,13 +1,16 @@
 from typing import List
+from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from app.db.orm import BadgeAppORM
+from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
+from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
+from database.orm.badge_directions import BadgeDirectionsORM
 
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
@@ -119,16 +122,26 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         return data
 
     async def update(self, data: Badge):
-        await self.session.merge(BadgeAppORM.to_orm(data))
+        badge = BadgeAppORM.to_orm(data)
+        for d in data.directions:
+            direction = self.session.scalar(
+                select(DirectionAppORM).filter_by(
+                    notion_id=d.notion_id if isinstance(d, Direction) else d
+                )
+            )
+            badge_dir = BadgeDirectionsAppORM()
+            badge_dir.direction = direction
+            badge.directions.append(badge_dir)
+        await self.session.merge(badge)
         await self.session.flush()
 
-    async def update_2(self, data: Badge):
-        """
-        TODO: костыль для feeder
-        """
-        obj = BadgeAppORM.to_orm_2(data)
-        await self.session.merge(obj)
-        await self.session.flush()
+    # async def update_2(self, data: Badge):
+    #     """
+    #     TODO: костыль для feeder
+    #     """
+    #     obj = BadgeAppORM.to_orm_2(data)
+    #     await self.session.merge(obj)
+    #     await self.session.flush()
 
     async def delete(self, notion_id):
         await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))

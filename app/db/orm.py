@@ -1,8 +1,11 @@
 from typing import List, Self
 
+from app.models.logging import Logs
 from database.orm.arrival import ArrivalORM
 from database.orm.badge import BadgeORM
+from database.orm.badge_directions import BadgeDirectionsORM
 from database.orm.direction import DirectionORM
+from database.orm.logging import LogsORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from sqlalchemy.orm import Mapped, relationship
@@ -60,7 +63,7 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    badges: Mapped[List["BadgeAppORM"]] = relationship(back_populates="directions", secondary="badge_directions")
+    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="direction")
 
     @classmethod
     def to_orm(cls, model: Direction):
@@ -92,7 +95,7 @@ class DirectionAppORM(DirectionORM):
 class BadgeAppORM(BadgeORM):
     infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
     person: Mapped[PersonAppORM] = relationship("PersonAppORM")
-    directions: Mapped[List["DirectionAppORM"]] = relationship(back_populates="badges", secondary="badge_directions")
+    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -116,30 +119,30 @@ class BadgeAppORM(BadgeORM):
             notion_id=model.notion_id.hex,
         )
 
-    @classmethod
-    def to_orm_2(cls, model: Badge) -> Self:
-        """
-        TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
-        """
-        return cls(
-            id=model.id,
-            name=model.name,
-            last_name=model.last_name,
-            first_name=model.first_name,
-            nickname=model.nickname,
-            gender=model.gender,
-            phone=model.phone,
-            infant_id=model.infant if model.infant else None,
-            diet=model.diet if model.diet else None,
-            feed=model.feed if model.feed else None,
-            number=model.number,
-            batch=model.batch,
-            role_code=model.role or None,
-            photo=model.photo,
-            person_id=model.person or None,
-            comment=model.comment,
-            notion_id=model.notion_id.hex,
-        )
+    # @classmethod
+    # def to_orm_2(cls, model: Badge) -> Self:
+    #     """
+    #     TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
+    #     """
+    #     return cls(
+    #         id=model.id,
+    #         name=model.name,
+    #         last_name=model.last_name,
+    #         first_name=model.first_name,
+    #         nickname=model.nickname,
+    #         gender=model.gender,
+    #         phone=model.phone,
+    #         infant_id=model.infant if model.infant else None,
+    #         diet=model.diet if model.diet else None,
+    #         feed=model.feed if model.feed else None,
+    #         number=model.number,
+    #         batch=model.batch,
+    #         role_code=model.role or None,
+    #         photo=model.photo,
+    #         person_id=model.person or None,
+    #         comment=model.comment,
+    #         notion_id=model.notion_id.hex,
+    #     )
 
     def to_model(
         self,
@@ -263,4 +266,30 @@ class ParticipationAppORM(ParticipationORM):
             status=self.status_code,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
+        )
+
+class BadgeDirectionsAppORM(BadgeDirectionsORM):
+    badge: Mapped[Badge] = relationship(back_populates='directions')
+    direction: Mapped[Direction] = relationship(back_populates='badges')
+
+class LogsAppORM(LogsORM):
+    @classmethod
+    def to_orm(cls, model: Logs):
+        return cls(
+            author=model.author,
+            table_name=model.table_name,
+            row_id=model.row_id,
+            operation=model.operation,
+            timestamp=model.timestamp,
+            new_data=model.new_data,
+        )
+    
+    def to_model(self):
+        return Logs(
+            author=self.author,
+            table_name=self.table_name,
+            row_id=self.row_id,
+            operation=self.operation,
+            timestamp=self.timestamp,
+            new_data=self.new_data,
         )
