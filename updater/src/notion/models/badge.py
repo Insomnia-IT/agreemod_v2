@@ -48,20 +48,34 @@ class Badge(NotionModel):
     def generate_number(self):
         if self.number.value:
             return self
-        role_num: int = next(
-            i for i, x in enumerate(ParticipationRole) if self.role_code == x.name
-        )
+        try:
+            conn = psycopg2.connect(
+                database=config.postgres.name,
+                user=config.postgres.user,
+                password=config.postgres.password,
+                host=config.postgres.host,
+                port=config.postgres.port,
+            )
+            cur = conn.cursor()
+            cur.execute("SELECT name, number, notion_id FROM public.badge")
+            badges = cur.fetchall()
+        finally:
+            conn.close()
+        exist = next((
+            number for name, number, notion_id
+            in badges if notion_id == str(self.notion_id) or name == self.name
+        ), None)
+        if exist:
+            self.number = exist
         direction_num: int = (
             self.direction_id_.value[0].int % 1000 if self.direction_id_.value else 0
         )
-        if self.person_id:
-            personal_num: int = self.person_id.int % 10000
-        else:
-            h = hashlib.sha1()
-            h.update(bytes(self.name, encoding="utf-8"))
-            personal_num = int(h.hexdigest(), 16) % 10000
-
-        self.number = f"{role_num:03}-{direction_num:03}-{personal_num:04}"
+        personal_num = max([
+            int(number.split('-')[-1]) for name, number, notion_id
+            in badges
+            if int(number.split('-')[0]) == direction_num
+        ], default=0) + 1
+        self.number = f"{direction_num:03}-{personal_num:03}"
         return self
 
     @field_validator("role_code", mode="after")
