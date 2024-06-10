@@ -1,3 +1,9 @@
+import os
+import time
+import zipfile
+
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse
 import logging
 from typing import Annotated
 
@@ -100,6 +106,7 @@ def create_zip_file():
 
 
 @router.post("/start-task/")
+
 async def start_task(
         username: Annotated[str, Depends(verify_credentials)],
         background_tasks: BackgroundTasks
