@@ -11,7 +11,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
 from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
-from database.orm.badge_directions import BadgeDirectionsORM
 
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
@@ -28,7 +27,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         page: int = None,
         filters: BadgeFilterDTO = None,
     ):
-        query = select(BadgeAppORM)
+        query = select(BadgeAppORM, BadgeDirectionsAppORM)
         if notion_id:
             query = query.filter_by(notion_id=notion_id)
         if badge_number:
@@ -41,7 +40,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         if include_person:
             query = query.options(joinedload(BadgeAppORM.person))
         if include_directions:
-            query = query.options(joinedload(BadgeAppORM.directions))
+            query = query.options(joinedload(BadgeAppORM.directions)).options(joinedload(BadgeDirectionsAppORM.direction))
         if include_infant:
             query = query.options(joinedload(BadgeAppORM.infant))
         if filters:

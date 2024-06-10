@@ -63,10 +63,11 @@ class Badge(NotionModel):
             conn.close()
         exist = next((
             number for name, number, notion_id
-            in badges if notion_id == str(self.notion_id) or name == self.name
+            in badges if str(notion_id) == str(self.notion_id) or name == self.name
         ), None)
         if exist:
             self.number = exist
+            return self
         direction_num: int = (
             self.direction_id_.value[0].int % 1000 if self.direction_id_.value else 0
         )
@@ -136,6 +137,8 @@ class Badge(NotionModel):
             gender = cls.get_key_from_value("женский", Gender)
         elif value.select.name.lower() in ["м", "мужской", "m", "male"]:
             gender = cls.get_key_from_value("мужской", Gender)
+        elif value.select.name.lower() in ["другой","other"]:
+            gender = cls.get_key_from_value("другой", Gender)
         else:
             return None
         return gender

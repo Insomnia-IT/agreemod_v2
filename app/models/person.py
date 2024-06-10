@@ -29,4 +29,4 @@ class Person(DomainModel):
     @field_validator("gender", mode="before")
     def convert_gender(cls, value: str):
         if value not in [x.value for x in Gender]:
-            return Gender.ATTACK_HELICOPTER_APACHE.value
+            return Gender.OTHER.value

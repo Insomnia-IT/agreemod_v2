@@ -116,6 +116,7 @@ class BadgeAppORM(BadgeORM):
             batch=model.batch,
             role=model.role.name if model.role else None,
             photo=model.photo,
+            occupation=model.occupation,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
             notion_id=model.notion_id.hex,
@@ -173,10 +174,11 @@ class BadgeAppORM(BadgeORM):
             photo=self.photo,
             person=(self.person.to_model() if self.person and include_person else None),  # self.person_id
             directions=(
-                [DirectionDTO.model_validate(x, from_attributes=True) for x in self.directions]
+                [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
                 else None
             ),
+            occupation=self.occupation,
             comment=self.comment,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
@@ -202,24 +204,24 @@ class ArrivalAppORM(ArrivalORM):
             last_updated=model.last_updated,
         )
 
-    @classmethod
-    def to_orm_2(cls, model: Arrival) -> Self:
-        """
-        TODO: несостыковка в to_orm с model.badge.id
-        """
-        return cls(
-            id=model.id,
-            badge_id=model.badge,
-            arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport,
-            arrival_registered=model.arrival_registered,
-            departure_date=model.departure_date,
-            departure_transport=model.departure_transport,
-            departure_registered=model.departure_registered,
-            extra_data=model.extra_data,
-            comment=model.comment,
-            last_updated=model.last_updated,
-        )
+    # @classmethod
+    # def to_orm_2(cls, model: Arrival) -> Self:
+    #     """
+    #     TODO: несостыковка в to_orm с model.badge.id
+    #     """
+    #     return cls(
+    #         id=model.id,
+    #         badge_id=model.badge,
+    #         arrival_date=model.arrival_date,
+    #         arrival_transport=model.arrival_transport,
+    #         arrival_registered=model.arrival_registered,
+    #         departure_date=model.departure_date,
+    #         departure_transport=model.departure_transport,
+    #         departure_registered=model.departure_registered,
+    #         extra_data=model.extra_data,
+    #         comment=model.comment,
+    #         last_updated=model.last_updated,
+    #     )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
@@ -270,8 +272,8 @@ class ParticipationAppORM(ParticipationORM):
         )
 
 class BadgeDirectionsAppORM(BadgeDirectionsORM):
-    badge: Mapped[Badge] = relationship(back_populates='directions')
-    direction: Mapped[Direction] = relationship(back_populates='badges')
+    badge: Mapped[BadgeAppORM] = relationship(back_populates='directions')
+    direction: Mapped[DirectionAppORM] = relationship(back_populates='badges')
 
 class LogsAppORM(LogsORM):
     @classmethod

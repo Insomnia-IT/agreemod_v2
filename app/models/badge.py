@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 from uuid import UUID
 
 from dictionaries import DietType
@@ -30,7 +31,7 @@ class Badge(DomainModel):
     photo: str | None = None
     person: Person | UUID | None = None
     comment: str | None = None
-    occupation: str = "Свои"
+    occupation: str
     notion_id: UUID | None = None
 
     last_updated: datetime | None = None
@@ -89,6 +90,14 @@ class Badge(DomainModel):
         if not self.photo:
             self.photo = self.get_default_file(self.color)
         return self
+
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_empty_occupation(cl, data: Any):
+        if not data.get('occupation'):
+            data['occupation'] = ParticipationRole[data['role']].value
+        return data
 
     # @staticmethod
     # def from_feeder(actor_badge, data: BadgeAPI) -> 'Badge':
