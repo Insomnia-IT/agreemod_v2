@@ -4,12 +4,12 @@ from uuid import uuid4
 
 from faker import Faker
 
-from app.models.feeder.arrival import Arrival
-from app.models.feeder.badge import Badge
-from app.models.feeder.directions import Direction
-from app.models.feeder.engagement import Engagement
-from app.models.feeder.person import Person
-from app.models.feeder.response import ResponseModelGET
+from app.schemas.feeder.arrival import Arrival
+from app.schemas.feeder.badge import Badge
+from app.schemas.feeder.directions import Direction
+from app.schemas.feeder.engagement import Engagement
+from app.schemas.feeder.person import Person
+from app.schemas.feeder.requests import SyncResponseSchema
 
 
 fake = Faker()
@@ -97,8 +97,8 @@ def generate_random_direction() -> Direction:
     )
 
 
-def generate_random_response_model_get() -> ResponseModelGET:
-    return ResponseModelGET(
+def generate_random_response_model_get() -> SyncResponseSchema:
+    return SyncResponseSchema(
         badges=[generate_random_badge() for _ in range(5)],
         arrivals=[generate_random_arrival() for _ in range(5)],
         engagements=[generate_random_engagement() for _ in range(5)],

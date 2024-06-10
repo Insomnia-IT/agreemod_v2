@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
@@ -21,13 +21,14 @@ class Badge(BaseModel):
     vegan: bool | None = None
     feed: FeedType | None = None
     number: str | None = None
-    batch: str | None = None
+    batch: int | None = None
     role: ParticipationRole | None = None
     position: str | None = None
     photo: str | None = None
     person: str | None = None
     comment: str | None = None
     notion_id: str | None = None
+    directions: list[UUID] = Field(default_factory=list)
 
     @staticmethod
     def from_db(badge: 'Badge') -> Badge:

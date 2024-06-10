@@ -6,13 +6,14 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from dictionaries import TransportType
+from dictionaries.dictionaries import ParticipationStatus
 
 
 class Arrival(BaseModel):
     id: str | None = None
     deleted: bool | None = None
-    badge: str | None = None
-    status: str | None = None
+    badge: UUID | None = None
+    status: ParticipationStatus | None = None
     arrival_date: datetime | None = None
     arrival_transport: TransportType | None = None
     departure_date: datetime | None = None

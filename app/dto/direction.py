@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_validator
 
 
 class DirectionDTO(BaseModel):
-    id: UUID
+    id: UUID | None = None
     name: str | None = None
     type: DirectionType | None = None
     notion_id: UUID
