@@ -16,7 +16,6 @@ from app.routers.feeder import router_feeder
 from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 
-
 logger = logging.getLogger(__name__)
 
 

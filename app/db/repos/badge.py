@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from sqlalchemy import delete, select
@@ -8,6 +9,8 @@ from app.db.orm import BadgeAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
 from app.schemas.badge import BadgeFilterDTO
+
+logger = logging.getLogger(__name__)
 
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
@@ -132,3 +135,24 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def delete(self, notion_id):
         await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))
+
+    async def retrieve_all_2(self, page: int, page_size: int) -> list[Badge]:
+        offset = (page - 1) * page_size
+        result_scalars = await self.session.scalars(
+            select(BadgeAppORM)
+            .limit(page_size)
+            .offset(offset)
+        )
+        results = result_scalars.all()
+
+        if not results:
+            return []
+
+        processed_results = []
+        for result in results:
+            try:
+                processed_results.append(result.to_model_2())
+            except Exception as e:
+                logger.critical(f"Error processing result {result}: {e}")
+
+        return processed_results

@@ -11,19 +11,18 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
 
-
 logger = logging.getLogger(__name__)
 
 
 class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     def get_query(
-        self,
-        id: str = None,
-        include_person: bool = True,
-        include_direction: bool = True,
-        limit: int = None,
-        offset: int = None,
+            self,
+            id: str = None,
+            include_person: bool = True,
+            include_direction: bool = True,
+            limit: int = None,
+            offset: int = None,
     ):
         query = select(ParticipationAppORM)
         if id:
@@ -72,9 +71,17 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
                 include_direction=include_direction,
             )
         )
-        return [
-            result.to_model(include_person=include_person, include_direction=include_direction) for result in results
-        ]
+        data = []
+        for result in results:
+            try:
+                model = result.to_model(
+                    include_person=include_person,
+                    include_direction=include_direction
+                )
+                data.append(model)
+            except Exception as e:
+                logger.critical(f"Error processing result {result}: {e}")
+        return data
 
     async def create(self, data: Participation):
         new_participation = ParticipationAppORM.to_orm(data)

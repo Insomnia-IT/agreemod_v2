@@ -4,8 +4,17 @@ import zipfile
 
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
+import logging
+from typing import Annotated
+
+from app.utils.verify_credentials import verify_credentials
 from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
-from fastapi import APIRouter, Depends
+import os
+import time
+import zipfile
+
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse
 
 from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
@@ -16,15 +25,16 @@ from app.models.badge import Badge
 from app.schemas.badge import BadgeFilterDTO
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _get_badges_filters_dto(
-    batch: int = Q("Номер партии", None),
-    color: BadgeColor | None = Q("Цвет бейджа", None),
-    direction: DirectionType | None = Q("Название службы (направления)", None),
-    role: ParticipationRole | None = Q("Роль", None),
-    occupation: str = Q("Тип участия", None),
-    infants: str | None = Q("Найти детей по notion_id бейджа родителя", None),
+        batch: int = Q("Номер партии", None),
+        color: BadgeColor | None = Q("Цвет бейджа", None),
+        direction: DirectionType | None = Q("Название службы (направления)", None),
+        role: ParticipationRole | None = Q("Роль", None),
+        occupation: str = Q("Тип участия", None),
+        infants: str | None = Q("Найти детей по notion_id бейджа родителя", None),
 ) -> BadgeFilterDTO:
     return BadgeFilterDTO(
         batch=batch,
@@ -42,14 +52,16 @@ def _get_badges_filters_dto(
     response_model=list[Badge],
 )
 async def get_badges(
-    filters: BadgeFilterDTO = Depends(_get_badges_filters_dto),
-    include_person: bool = False,
-    include_directions: bool = False,
-    include_infant: bool = False,
-    page: int = Q("page", 1, description="page"),
-    page_size: int = Q("page size", 10, description="page_size"),
-    repo: BadgeRepo = Depends(get_sqla_repo(BadgeRepo)),
+        username: Annotated[str, Depends(verify_credentials)],
+        filters: BadgeFilterDTO = Depends(_get_badges_filters_dto),
+        include_person: bool = False,
+        include_directions: bool = False,
+        include_infant: bool = False,
+        page: int = Q("page", 1, description="page"),
+        page_size: int = Q("page size", 10, description="page_size"),
+        repo: BadgeRepo = Depends(get_sqla_repo(BadgeRepo)),
 ):
+    logger.info(f"Starting task: {username}")
     return await repo.retrieve_many(
         page=page,
         page_size=page_size,
@@ -66,10 +78,12 @@ async def get_badges(
     response_model=list[Arrival],
 )
 async def get_arrivals(
-    repo: ArrivalRepo = Depends(get_sqla_repo(BadgeRepo)),
-    page: int = Q("page", 1, description="page"),
-    page_size: int = Q("page size", 10, description="page_size"),
+        username: Annotated[str, Depends(verify_credentials)],
+        repo: ArrivalRepo = Depends(get_sqla_repo(BadgeRepo)),
+        page: int = Q("page", 1, description="page"),
+        page_size: int = Q("page size", 10, description="page_size"),
 ):
+    logger.info(f"Starting task: {username}")
     return await repo.retrieve_all(page=page, page_size=page_size)
 
 
@@ -80,7 +94,6 @@ TEXT_FILE_NAME = "hello.txt"
 def create_zip_file():
     time.sleep(5)  # Имитация долгой задачи
     with zipfile.ZipFile(ARCHIVE_NAME, 'w') as zipf:
-
         # Создание временного текстового файла
         with open(TEXT_FILE_NAME, 'w') as file:
             file.write("Hello World")
@@ -93,19 +106,27 @@ def create_zip_file():
 
 
 @router.post("/start-task/")
-async def start_task(background_tasks: BackgroundTasks):
+
+async def start_task(
+        username: Annotated[str, Depends(verify_credentials)],
+        background_tasks: BackgroundTasks
+):
     """
     Создание задачи на создание .zip файла со всеми данными
     """
+    logger.info(f"Starting task: {username}")
     background_tasks.add_task(create_zip_file)
     return {"message": "Фоновая задача по созданию архива запущена"}
 
 
 @router.get("/download-archive/")
-async def download_archive():
+async def download_archive(
+        username: Annotated[str, Depends(verify_credentials)],
+):
     """
     Возвращает файл который подготовил /start-task эндпоинт
     """
+    logger.info(f"Starting task: {username}")
     if os.path.exists(ARCHIVE_NAME):
         return FileResponse(path=ARCHIVE_NAME, media_type='application/zip', filename=ARCHIVE_NAME)
     else:

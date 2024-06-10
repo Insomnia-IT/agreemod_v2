@@ -1,9 +1,11 @@
+![Workflow Status](https://github.com/Insomnia-IT/agreemod_v2/actions/workflows/deploy.yml/badge.svg)
 # agreemod_v2
 Интеграция Notion и Coda.
 Проект представляет из себя монорепозиторий с сервисами:
 - app (fastapi)
 - updater (синхронизация данных между Coda и Notion)
 - bot (бот для запуска updater в ручном режиме)
+
 
 ## Makefile команды
 
