@@ -12,10 +12,10 @@ from app.models.base import DomainModel
 class Arrival(DomainModel):
     badge: BadgeDTO | UUID
     arrival_date: date
-    arrival_transport: TransportType | None = None
+    arrival_transport: TransportType | None | str = None  # TODO: исключить попадание в БД "" -> убрать | str
     arrival_registered: time | None = None
     departure_date: date
-    departure_transport: TransportType | None = None
+    departure_transport: TransportType | None | str = None  # TODO: исключить попадание в БД "" -> убрать | str
     departure_registered: time | None = None
     extra_data: dict | None = None
     comment: str | None = None

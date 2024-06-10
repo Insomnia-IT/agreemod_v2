@@ -11,19 +11,18 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.participation import Participation
 
-
 logger = logging.getLogger(__name__)
 
 
 class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     def get_query(
-        self,
-        id: str = None,
-        include_person: bool = True,
-        include_direction: bool = True,
-        limit: int = None,
-        offset: int = None,
+            self,
+            id: str = None,
+            include_person: bool = True,
+            include_direction: bool = True,
+            limit: int = None,
+            offset: int = None,
     ):
         query = select(ParticipationAppORM)
         if id:

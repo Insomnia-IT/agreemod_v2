@@ -45,6 +45,8 @@ async def run_concurrently():
     await asyncio.gather(
         main(notion=notion, coda=coda), rmq_eat_carrots())
 
+    await asyncio.gather(
+        main(notion=notion, coda=coda))
 
 if __name__ == "__main__":
     asyncio.run(run_concurrently())

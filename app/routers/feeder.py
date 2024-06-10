@@ -1,7 +1,9 @@
 import logging
 
 from datetime import datetime
+from typing import Union, Annotated
 
+from fastapi import APIRouter, Depends
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
@@ -10,7 +12,7 @@ from app.schemas.feeder.requests import SyncResponseSchema, BackSyncIntakeSchema
 from app.services.feeder import FeederService
 
 logger = logging.getLogger(__name__)
-router_feeder = APIRouter(tags=["feeder"])
+router_feeder = APIRouter()
 
 
 @router_feeder.get(

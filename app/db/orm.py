@@ -16,6 +16,8 @@ from app.models.badge import Badge, DirectionDTO, Infant
 from app.models.direction import Direction
 from app.models.participation import Participation
 from app.models.person import Person
+from dictionaries import ParticipationRole, Gender, ParticipationStatus
+from dictionaries.dictionaries import DirectionType
 
 
 class PersonAppORM(PersonORM):
@@ -81,7 +83,7 @@ class DirectionAppORM(DirectionORM):
         return Direction(
             id=self.id,
             name=self.name,
-            type=self.type,
+            type=DirectionType[self.type].value,
             first_year=self.first_year,
             last_year=self.last_year,
             notion_id=self.notion_id,
@@ -145,10 +147,10 @@ class BadgeAppORM(BadgeORM):
     #     )
 
     def to_model(
-        self,
-        include_person: bool = False,
-        include_directions: bool = False,
-        include_infant: bool = False,
+            self,
+            include_person: bool = False,
+            include_directions: bool = False,
+            include_infant: bool = False,
     ) -> Badge:
         return Badge(
             id=self.id,
@@ -176,7 +178,6 @@ class BadgeAppORM(BadgeORM):
                 else None
             ),
             comment=self.comment,
-            occupation=self.occupation,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
         )
@@ -262,8 +263,8 @@ class ParticipationAppORM(ParticipationORM):
                 if include_direction
                 else self.direction_id
             ),
-            role=self.role_code,
-            status=self.status_code,
+            role=ParticipationRole[self.role_code].value.capitalize(),
+            status=ParticipationStatus[self.status_code].value,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
         )
