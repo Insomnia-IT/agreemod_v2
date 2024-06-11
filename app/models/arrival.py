@@ -4,10 +4,10 @@ from datetime import date, datetime, time
 from uuid import UUID
 
 from dictionaries import TransportType
+from dictionaries.dictionaries import ParticipationStatus
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
-from dictionaries.dictionaries import ParticipationStatus
 
 
 class Arrival(DomainModel):

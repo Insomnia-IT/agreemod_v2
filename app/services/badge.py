@@ -8,11 +8,11 @@ import zipfile
 import httpx
 import pandas as pd
 
-from app.db.repos.anons import AnonsRepo
 from dictionaries.badge_color import BadgeColor
 from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from app.db.repos.anons import AnonsRepo
 from app.db.repos.badge import BadgeRepo
 from app.models.badge import Badge
 from app.schemas.badge import BadgeFilterDTO
@@ -43,27 +43,27 @@ class BadgeService:
     async def get_photo(
         self, badge: dict, color: BadgeColor, client: httpx.AsyncClient
     ) -> str:
-        link = badge['photo']
-        filename = badge['notion_id']
+        link = badge["photo"]
+        filename = badge["notion_id"]
         if link.split("/")[-1] == f"{color.value}.png":
-            badge['photo'] = f"{color.value}.png"
-            return badge['photo']
+            badge["photo"] = f"{color.value}.png"
+            return badge["photo"]
         file_exists = os.path.isfile(
             path=f"{color.name}/{filename}.jpg"
         ) or os.path.isfile(path=f"{color.name}/{filename}.jpeg")
         if file_exists:
-            badge['photo'] = f"{filename}.jpg"
-            return badge['photo']
+            badge["photo"] = f"{filename}.jpg"
+            return badge["photo"]
         image_file = await client.get(link)
         filetype = image_file.headers["content-type"].split("/")[-1]
-        if filetype not in ['jpg', 'jpeg', 'png', 'heic']:
+        if filetype not in ["jpg", "jpeg", "png", "heic"]:
             logger.warning(f"image for notion_id={filename} is unavailable")
-            badge['photo'] = f"{color.value}.png"
-            return badge['photo']
+            badge["photo"] = f"{color.value}.png"
+            return badge["photo"]
         with open(f"{color.name}/{filename}.{filetype}", "wb") as f:
             f.write(image_file.content)
-        badge['photo'] = f"{filename}.{filetype}"
-        return badge['photo']
+        badge["photo"] = f"{filename}.{filetype}"
+        return badge["photo"]
 
     async def process_color(self, color: BadgeColor, badges: list[Badge]):
         try:
@@ -85,13 +85,10 @@ class BadgeService:
         ]
         async with httpx.AsyncClient() as client:
             await_photos = (
-                self.get_photo(
-                    badge, color, client
-                ) for badge in raw_badges
+                self.get_photo(badge, color, client) for badge in raw_badges
             )
             async for badge in self.get_photos(await_photos):
-                logging.info(f'got image {badge}')
-
+                logging.info(f"got image {badge}")
 
         for rb in raw_badges:
             rb["directions"] = ", ".join([x["name"] for x in rb["directions"]])
@@ -128,8 +125,8 @@ class BadgeService:
                 zf.write(c.name)
                 for f in os.listdir(c.name):
                     zf.write(f"{c.name}/{f}")
-    
-    def generate_anon_badges(title, subtitle, color, quantity):
+
+    def generate_anon_badges(self, title, subtitle, color, quantity):
         badges = []
         for i in range(1, quantity):
             badge = {
@@ -137,7 +134,7 @@ class BadgeService:
                 "badge number": "",
                 "photo": f"{color}.png",
                 "position": subtitle,
-                "qr": uuid.uuid4().hex
+                "qr": uuid.uuid4().hex,
             }
             badges.append(badge)
         return badges

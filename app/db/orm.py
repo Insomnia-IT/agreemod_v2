@@ -318,6 +318,7 @@ class LogsAppORM(LogsORM):
             new_data=self.new_data,
         )
 
+
 class AnonsAppORM(AnonsORM):
     def to_model(self):
         return Anons(

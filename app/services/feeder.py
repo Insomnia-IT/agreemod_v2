@@ -2,7 +2,6 @@ import logging
 
 from datetime import datetime
 
-from dictionaries.badge_color import BadgeColor
 from dictionaries.diet_type import DietType
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +12,6 @@ from app.db.repos.logging import LogsRepo
 from app.models.arrival import Arrival
 from app.models.badge import Badge
 from app.models.logging import Logs
-from app.schemas.badge import BadgeFilterDTO
 from app.schemas.feeder.arrival import ArrivalWithMetadata
 from app.schemas.feeder.badge import BadgeWithMetadata
 from app.schemas.feeder.requests import BackSyncIntakeSchema

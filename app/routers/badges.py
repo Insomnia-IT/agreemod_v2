@@ -1,5 +1,6 @@
 import logging
 import os
+
 from typing import Annotated
 
 from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
@@ -130,6 +131,7 @@ async def download_archive(
         )
     else:
         raise HTTPException(status_code=404, detail="Архив не найден")
+
 
 @router.get("/get-anonymous-badges")
 async def get_anons(

@@ -1,12 +1,10 @@
-import hashlib
-
 from uuid import UUID
 
 import psycopg2
 
 from dictionaries.dictionaries import BadgeColor, ParticipationRole
 from dictionaries.gender import Gender
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from updater.src.config import config
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.checkbox import Checkbox
@@ -191,6 +189,7 @@ class Badge(NotionModel):
         else:
             return 1
 
+
 class Anons(NotionModel):
     title: Title = Field(..., alias="Основная надпись")
     subtitle: RichText = Field(..., alias="Дополнительная надпись")
@@ -206,11 +205,12 @@ class Anons(NotionModel):
                 return enum_member.name
         return None
 
-    @field_validator('color', mode='after')
+    @field_validator("color", mode="after")
     @classmethod
     def convert_color(cls, value):
         if value.value:
-            return cls.get_key_from_value(value.value.replace('ё', "е").lower(), BadgeColor)
+            return cls.get_key_from_value(
+                value.value.replace("ё", "е").lower(), BadgeColor
+            )
         else:
             return None
-        

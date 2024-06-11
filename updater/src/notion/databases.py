@@ -78,6 +78,7 @@ class Arrivals(CodaDatabase):
     model: type = CodaArrival
     orm: type = ArrivalORM
 
+
 class AnonymousBadges(NotionDatabase):
     name: str = "anonymous_badges"
     model: type = Anons

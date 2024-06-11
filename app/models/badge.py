@@ -135,7 +135,7 @@ class Anons(BaseModel):
     quantity: int = 0
     to_print: bool
 
-    @field_validator("quantity", mode='before')
+    @field_validator("quantity", mode="before")
     @classmethod
     def set_quantity(cls, value) -> int:
         if not value:

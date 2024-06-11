@@ -1,7 +1,7 @@
 import logging
 
 from datetime import datetime
-from typing import Annotated, Union
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -22,7 +22,7 @@ router_feeder = APIRouter()
     response_model=SyncResponseSchema,
 )
 async def sync(
-    username: Annotated[str, Depends(verify_credentials)], 
+    username: Annotated[str, Depends(verify_credentials)],
     from_date: datetime,
     service: FeederService = Depends(get_feeder_service),
 ):

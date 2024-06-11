@@ -15,9 +15,7 @@ class AnonsRepo(BaseSqlaRepo[AnonsAppORM]):
         return query
 
     async def retrieve_batch(self, batch: str) -> list[Anons]:
-        result: list[AnonsAppORM] = await self.session.scalars(
-            self.query(batch)
-        )
+        result: list[AnonsAppORM] = await self.session.scalars(self.query(batch))
         if result is None:
             return []
         return [x.to_model() for x in result]
