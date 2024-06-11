@@ -13,7 +13,12 @@ class PersonFiltersDTO(BaseModel):
     def format_phone(self):
         if not self.phone or self.strict:
             return self
-        self.phone = self.phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        self.phone = (
+            self.phone.replace(" ", "")
+            .replace("-", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
         if self.phone[0] == "8":
             self.phone = "+7" + self.phone[1:]
         elif self.phone[0] == "9":

@@ -10,7 +10,7 @@ import asyncpg
 import venusian
 
 from database.meta import async_session
-from database.orm.badge import BadgeORM
+from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.badge_directions import BadgeDirectionsORM
 from database.repo.logs import LogsRepository
 from deepdiff import DeepDiff
@@ -44,7 +44,8 @@ def adapt_value(value: Any):
         return value.isoformat()
     else:
         return value
-    
+
+
 def adapt_to_serialize(value: Any):
     if isinstance(value, asyncpg.pgproto.pgproto.UUID):
         return str(value)
@@ -76,8 +77,12 @@ class NotionPoller(Poller):
             "get_people": UpdaterStates.set_people_updater,
             "get_directions": UpdaterStates.set_location_updater,
             "get_badges": UpdaterStates.set_badge_updater,
+            "anonymous_badges": self.set_dummy,
         }
         self.database = db
+
+    def set_dummy(self, a: bool):
+        return
 
     async def __aenter__(self):
         self.set_status[self.database.name](True)
@@ -120,15 +125,19 @@ class NotionPoller(Poller):
                             logger.error(f"{e.__class__.__name__}: {e}")
                             continue
                         if not exist:
-                            orm.id = uuid4()
+                            if not isinstance(orm, AnonsORM):
+                                orm.id = uuid4()
                             session.add(orm)
                         else:
-                            orm.id = exist.id
+                            if isinstance(orm, AnonsORM):
+                                orm.notion_id = exist.notion_id
+                            else:
+                                orm.id = exist.id
                             diff = DeepDiff(
                                 {
                                     x: adapt_value(y)
                                     for x, y in dict(exist).items()
-                                    if x not in ["last_updated", "photo"] 
+                                    if x not in ["last_updated", "photo"]
                                 },
                                 {
                                     x: adapt_value(y)

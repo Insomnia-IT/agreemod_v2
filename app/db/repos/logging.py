@@ -1,9 +1,9 @@
-
 from sqlalchemy.exc import IntegrityError
 
 from app.db.orm import LogsAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.logging import Logs
+
 
 class LogsRepo(BaseSqlaRepo[LogsAppORM]):
     async def add_log(self, data: Logs):
@@ -16,9 +16,6 @@ class LogsRepo(BaseSqlaRepo[LogsAppORM]):
         return data
 
     async def retrieve_logs(
-        self,
-        range: tuple[int, int] = None,
-        last: int = None,
-        author: str = None
+        self, range: tuple[int, int] = None, last: int = None, author: str = None
     ):
         pass

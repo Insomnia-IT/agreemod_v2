@@ -3,14 +3,14 @@ import json
 from typing import Type
 
 from database.orm.arrival import ArrivalORM
-from database.orm.badge import BadgeORM
+from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.direction import DirectionORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from pydantic import BaseModel
 from updater.src.coda.models.arrival import CodaArrival
 from updater.src.coda.models.participation import CodaParticipation
-from updater.src.notion.models.badge import Badge
+from updater.src.notion.models.badge import Anons, Badge
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.person import Person
 
@@ -77,3 +77,8 @@ class Arrivals(CodaDatabase):
     name: str = "get_arrivals"
     model: type = CodaArrival
     orm: type = ArrivalORM
+
+class AnonymousBadges(NotionDatabase):
+    name: str = "anonymous_badges"
+    model: type = Anons
+    orm: type = AnonsORM

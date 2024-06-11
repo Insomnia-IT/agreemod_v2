@@ -1,7 +1,7 @@
 from datetime import time
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -50,3 +50,15 @@ class BadgeORM(Base, BaseORM):
 
     _unique_constraint_number = UniqueConstraint(number)
     _unique_constraint_notion = UniqueConstraint(notion_id)
+
+
+class AnonsORM(Base, BaseORM):
+    __tablename__ = "anonymous_badges"
+    notion_id: Mapped[int] = Column(UUID(as_uuid=True), primary_key=True)
+    title: Mapped[str] = Column(String)
+    subtitle: Mapped[str] = Column(String)
+    batch: Mapped[str] = Column(String)
+    color: Mapped[str] = Column(String, ForeignKey("badge_color.code"))
+    quantity: Mapped[int] = Column(Integer)
+    to_print: Mapped[bool] = Column(Boolean)
+    last_updated: Mapped[time] = Column(TIMESTAMP)

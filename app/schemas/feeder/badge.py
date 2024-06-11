@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
-
 from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
+from pydantic import BaseModel, Field
 
 
 class Badge(BaseModel):
@@ -31,7 +30,7 @@ class Badge(BaseModel):
     directions: list[UUID] = Field(default_factory=list)
 
     @staticmethod
-    def from_db(badge: 'Badge') -> Badge:
+    def from_db(badge: "Badge") -> Badge:
         return Badge(
             id=str(badge.id) if badge.id else None,
             deleted=False,  # TODO: доработать этот функционал
@@ -52,7 +51,7 @@ class Badge(BaseModel):
             comment=badge.comment,
             notion_id=str(badge.notion_id) if badge.notion_id else None,
             last_updated=badge.last_updated,
-            directions=badge.directions
+            directions=badge.directions,
         )
 
 

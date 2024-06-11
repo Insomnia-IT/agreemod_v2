@@ -1,4 +1,5 @@
 import logging
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -9,18 +10,23 @@ from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.models.participation import Participation
 from app.models.person import Person
-from app.schemas.person import PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+from app.schemas.person import (
+    PersonFiltersDTO,
+    PersonResponseSchema,
+    TelebotResponseSchema,
+)
 from app.utils.verify_credentials import verify_credentials
+
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 def _get_person_filters_dto(
-        telegram: str | None = Q("Ник в Телеграм", None),
-        phone_number: str | None = Q("Номер телефона", None),
-        email: str | None = Q("Почта", None),
-        strict: bool = False,
+    telegram: str | None = Q("Ник в Телеграм", None),
+    phone_number: str | None = Q("Номер телефона", None),
+    email: str | None = Q("Почта", None),
+    strict: bool = False,
 ) -> PersonFiltersDTO:
     return PersonFiltersDTO(
         telegram=telegram,
@@ -36,10 +42,10 @@ def _get_person_filters_dto(
     response_model=list[Person],
 )
 async def get_persons(
-        username: Annotated[str, Depends(verify_credentials)],
-        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
-        page: int = Q("page", 1, description="page"),
-        page_size: int = Q("page size", 10, description="page_size"),
+    username: Annotated[str, Depends(verify_credentials)],
+    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+    page: int = Q("page", 1, description="page"),
+    page_size: int = Q("page size", 10, description="page_size"),
 ):
     return await repo.retrieve_all(page=page, page_size=page_size)
 
@@ -50,12 +56,12 @@ async def get_persons(
     response_model=list[PersonResponseSchema],
 )
 async def get_orgs_and_volunteers(
-        username: Annotated[str, Depends(verify_credentials)],
-        filters: PersonFiltersDTO = Depends(_get_person_filters_dto),
-        order_by: str = Q("Поле сортировки", "nickname"),
-        limit: int = Q("Количество записей на одной странице", 20),
-        offset: int = Q("Смещение от начала", 0),
-        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+    username: Annotated[str, Depends(verify_credentials)],
+    filters: PersonFiltersDTO = Depends(_get_person_filters_dto),
+    order_by: str = Q("Поле сортировки", "nickname"),
+    limit: int = Q("Количество записей на одной странице", 20),
+    offset: int = Q("Смещение от начала", 0),
+    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
 ):
     return await repo.retrieve_many(filters, order_by, limit, offset)
 
@@ -66,10 +72,10 @@ async def get_orgs_and_volunteers(
     response_model=TelebotResponseSchema | None,
 )
 async def get_telebot_person(
-        username: Annotated[str, Depends(verify_credentials)],
-        telegram: str,
-        repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
-        repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+    username: Annotated[str, Depends(verify_credentials)],
+    telegram: str,
+    repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
+    repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
 ):
     """
     API для работы с телеграм ботом по промокодам
@@ -100,10 +106,10 @@ async def get_telebot_person(
     response_model=list[Participation],
 )
 async def get_participation(
-        username: Annotated[str, Depends(verify_credentials)],
-        repo: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
-        page: int = Q("page", 1, description="page"),
-        page_size: int = Q("page size", 10, description="page_size"),
+    username: Annotated[str, Depends(verify_credentials)],
+    repo: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+    page: int = Q("page", 1, description="page"),
+    page_size: int = Q("page size", 10, description="page_size"),
 ):
     logger.info(f"Starting task: {username}")
     return await repo.retrieve_all(page=page, page_size=page_size)

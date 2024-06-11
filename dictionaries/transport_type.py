@@ -12,12 +12,13 @@ class TransportType(StrEnum):
     - Трансфер от фестиваля — нужно организовать (для особо важных персон)
     """
 
-    UNKNOWN = "Не определен"
-    BY_BUS = "На автобусе"
-    BY_OWN_CAR = "На своей машине"
-    BY_YOUR_OWN = "Своим ходом"
-    BY_FESTIVAL_TRANSFER = "Трансфер от фестиваля"
-
+    UNDEFINED = "Не определен"
+    SELF = "Своим ходом"
+    BUS = "На автобусе"
+    CAR = "На своей машине"
+    TRANSFER = "Трансфер от фестиваля"
+    MOVE = "Смена направления"
+    
     @classmethod
     def default(cls):
-        return cls.UNKNOWN
+        return cls.UNDEFINED

@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
-
 from dictionaries import TransportType
 from dictionaries.dictionaries import ParticipationStatus
+from pydantic import BaseModel
 
 
 class Arrival(BaseModel):
@@ -20,7 +19,7 @@ class Arrival(BaseModel):
     departure_transport: str | None = None
 
     @staticmethod
-    def from_db(arrival: 'Arrival') -> Arrival:
+    def from_db(arrival: "Arrival") -> Arrival:
         return Arrival(
             id=str(arrival.id),
             badge=str(arrival.badge),
@@ -29,7 +28,7 @@ class Arrival(BaseModel):
             departure_date=arrival.departure_date,
             departure_transport=arrival.departure_transport,
             deleted=False,  # TODO: добавить проверку на удаление
-            status=arrival.arrival_registered  # TODO: уточнить по этому параметру
+            status=arrival.arrival_registered,  # TODO: уточнить по этому параметру
         )
 
 

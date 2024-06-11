@@ -35,7 +35,9 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
                 query = query.filter_by(email=filters.email)
         elif filters:
             if filters.telegram:
-                query = query.where(PersonAppORM.telegram.ilike(f"%{filters.telegram}%"))
+                query = query.where(
+                    PersonAppORM.telegram.ilike(f"%{filters.telegram}%")
+                )
             if filters.phone:
                 query = query.where(PersonAppORM.phone.ilike(f"%{filters.phone}%"))
             if filters.email:
@@ -45,7 +47,9 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
 
     async def retrieve(self, notion_id, filters: PersonFiltersDTO) -> Person:
         filters.strict = True
-        result: PersonAppORM = await self.session.scalar(self.query(notion_id=notion_id, filters=filters))
+        result: PersonAppORM = await self.session.scalar(
+            self.query(notion_id=notion_id, filters=filters)
+        )
         if result is None:
             return None
         return result.to_model()
@@ -74,11 +78,17 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
         await self.session.flush()
 
     async def delete_by_notion_id(self, notion_id):
-        await self.session.execute(delete(PersonAppORM).where(PersonAppORM.notion_id == notion_id))
+        await self.session.execute(
+            delete(PersonAppORM).where(PersonAppORM.notion_id == notion_id)
+        )
 
     async def delete(self, id):
         await self.session.execute(delete(PersonAppORM).where(PersonAppORM.id == id))
 
-    async def retrieve_many(self, filters: PersonFiltersDTO, page: int, page_size: int) -> list[Person]:
-        result = await self.session.scalars(self.query(filters=filters, page=page, limit=page_size))
+    async def retrieve_many(
+        self, filters: PersonFiltersDTO, page: int, page_size: int
+    ) -> list[Person]:
+        result = await self.session.scalars(
+            self.query(filters=filters, page=page, limit=page_size)
+        )
         return [x.to_model() for x in result]

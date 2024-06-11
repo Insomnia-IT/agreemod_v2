@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID
 
 from dictionaries import DietType
 from dictionaries.dictionaries import BadgeColor, ParticipationRole
-from pydantic import Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from app.dto.badge import Infant
 from app.dto.direction import DirectionDTO
@@ -44,7 +44,11 @@ class Badge(DomainModel):
             case ParticipationRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE | ParticipationRole.TEAM_LEAD:
+            case (
+                ParticipationRole.VOLUNTEER
+                | ParticipationRole.VICE
+                | ParticipationRole.TEAM_LEAD
+            ):
                 return BadgeColor.GREEN
 
             case ParticipationRole.MEDIC:
@@ -91,12 +95,11 @@ class Badge(DomainModel):
             self.photo = self.get_default_file(self.color)
         return self
 
-
     @model_validator(mode="before")
     @classmethod
     def set_empty_occupation(cl, data: Any):
-        if not data.get('occupation'):
-            data['occupation'] = ParticipationRole[data['role']].value
+        if not data.get("occupation"):
+            data["occupation"] = ParticipationRole[data["role"]].value
         return data
 
     # @staticmethod
@@ -122,3 +125,19 @@ class Badge(DomainModel):
     #         last_updated=datetime.now(timezone.utc),
     #         directions=[],  # TODO: уточнить
     #     )
+
+
+class Anons(BaseModel):
+    title: str | None = None
+    subtitle: str | None = None
+    batch: str
+    color: str | None = None
+    quantity: int = 0
+    to_print: bool
+
+    @field_validator("quantity", mode='before')
+    @classmethod
+    def set_quantity(cls, value) -> int:
+        if not value:
+            return 0
+        return value

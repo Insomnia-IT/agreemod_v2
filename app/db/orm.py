@@ -1,23 +1,23 @@
 from typing import List, Self
 
-from app.models.logging import Logs
 from database.orm.arrival import ArrivalORM
-from database.orm.badge import BadgeORM
+from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.badge_directions import BadgeDirectionsORM
 from database.orm.direction import DirectionORM
 from database.orm.logging import LogsORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
+from dictionaries import ParticipationRole, ParticipationStatus
+from dictionaries.dictionaries import DirectionType
 from sqlalchemy.orm import Mapped, relationship
 
 from app.dto.badge import BadgeDTO
 from app.models.arrival import Arrival
-from app.models.badge import Badge, DirectionDTO, Infant
+from app.models.badge import Anons, Badge, DirectionDTO, Infant
 from app.models.direction import Direction
+from app.models.logging import Logs
 from app.models.participation import Participation
 from app.models.person import Person
-from dictionaries import ParticipationRole, Gender, ParticipationStatus
-from dictionaries.dictionaries import DirectionType
 
 
 class PersonAppORM(PersonORM):
@@ -65,7 +65,9 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="direction")
+    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(
+        back_populates="direction"
+    )
 
     @classmethod
     def to_orm(cls, model: Direction):
@@ -89,7 +91,9 @@ class DirectionAppORM(DirectionORM):
             notion_id=self.notion_id,
             last_updated=self.last_updated,
             badges=(
-                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges] if include_badges else None
+                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
+                if include_badges
+                else None
             ),
         )
 
@@ -97,7 +101,9 @@ class DirectionAppORM(DirectionORM):
 class BadgeAppORM(BadgeORM):
     infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
     person: Mapped[PersonAppORM] = relationship("PersonAppORM")
-    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge")
+    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(
+        back_populates="badge"
+    )
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -148,10 +154,10 @@ class BadgeAppORM(BadgeORM):
     #     )
 
     def to_model(
-            self,
-            include_person: bool = False,
-            include_directions: bool = False,
-            include_infant: bool = False,
+        self,
+        include_person: bool = False,
+        include_directions: bool = False,
+        include_infant: bool = False,
     ) -> Badge:
         return Badge(
             id=self.id,
@@ -172,9 +178,14 @@ class BadgeAppORM(BadgeORM):
             batch=self.batch,
             role=self.role_code,
             photo=self.photo,
-            person=(self.person.to_model() if self.person and include_person else None),  # self.person_id
+            person=(
+                self.person.to_model() if self.person and include_person else None
+            ),  # self.person_id
             directions=(
-                [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
+                [
+                    DirectionDTO.model_validate(x.direction, from_attributes=True)
+                    for x in self.directions
+                ]
                 if include_directions
                 else None
             ),
@@ -194,11 +205,12 @@ class ArrivalAppORM(ArrivalORM):
             id=model.id,
             badge_id=model.badge.id,
             arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport,
+            arrival_transport=model.arrival_transport.name,
             arrival_registered=model.arrival_registered,
             departure_date=model.departure_date,
-            departure_transport=model.departure_transport,
+            departure_transport=model.departure_transport.name,
             departure_registered=model.departure_registered,
+            status=model.status.name,
             extra_data=model.extra_data,
             comment=model.comment,
             last_updated=model.last_updated,
@@ -226,13 +238,18 @@ class ArrivalAppORM(ArrivalORM):
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
             id=self.id,
-            badge=(BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id),
+            badge=(
+                BadgeDTO.model_validate(self.badge, from_attributes=True)
+                if include_badge
+                else self.badge_id
+            ),
             arrival_date=self.arrival_date,
             arrival_transport=self.arrival_transport,
             arrival_registered=self.arrival_registered,
             departure_date=self.departure_date,
             departure_transport=self.departure_transport,
             departure_registered=self.departure_registered,
+            status=self.status,
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
@@ -256,7 +273,9 @@ class ParticipationAppORM(ParticipationORM):
             last_updated=model.last_updated,
         )
 
-    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
+    def to_model(
+        self, include_person: bool = False, include_direction: bool = False
+    ) -> Participation:
         return Participation(
             year=self.year,
             person=self.person.to_model() if include_person else self.person_id,
@@ -271,9 +290,11 @@ class ParticipationAppORM(ParticipationORM):
             last_updated=self.last_updated,
         )
 
+
 class BadgeDirectionsAppORM(BadgeDirectionsORM):
-    badge: Mapped[BadgeAppORM] = relationship(back_populates='directions')
-    direction: Mapped[DirectionAppORM] = relationship(back_populates='badges')
+    badge: Mapped[BadgeAppORM] = relationship(back_populates="directions")
+    direction: Mapped[DirectionAppORM] = relationship(back_populates="badges")
+
 
 class LogsAppORM(LogsORM):
     @classmethod
@@ -286,7 +307,7 @@ class LogsAppORM(LogsORM):
             timestamp=model.timestamp,
             new_data=model.new_data,
         )
-    
+
     def to_model(self):
         return Logs(
             author=self.author,
@@ -295,4 +316,15 @@ class LogsAppORM(LogsORM):
             operation=self.operation,
             timestamp=self.timestamp,
             new_data=self.new_data,
+        )
+
+class AnonsAppORM(AnonsORM):
+    def to_model(self):
+        return Anons(
+            title=self.title,
+            subtitle=self.subtitle,
+            batch=self.batch,
+            color=self.color,
+            quantity=self.quantity,
+            to_print=self.to_print,
         )

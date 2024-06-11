@@ -81,11 +81,15 @@ class Config(BaseSettings):
     API_AUTH_USER: str
     API_AUTH_PASSWORD: str
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, env_nested_delimiter="__", extra="ignore"
+    )
 
     @property
     def version(self) -> str:
-        return ".".join(map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION]))
+        return ".".join(
+            map(str, [self.MAJOR_VERSION, self.MINOR_VERSION, self.PATCH_VERSION])
+        )
 
 
 config = Config()

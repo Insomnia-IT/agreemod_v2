@@ -9,6 +9,7 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,9 +78,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
     async def retrieve_all(self, page: int, page_size: int) -> list[Arrival]:
         offset = (page - 1) * page_size
         results = await self.session.scalars(
-            select(ArrivalAppORM)
-            .limit(page_size)
-            .offset(offset)
+            select(ArrivalAppORM).limit(page_size).offset(offset)
         )
         if not results:
             return []
