@@ -11,12 +11,12 @@ class Direction(BaseModel):
     notion_id: str | None = None
 
     @staticmethod
-    def from_db(direction: 'DirectionDB') -> 'Direction':
+    def from_db(direction: "DirectionDB") -> "Direction":
         return Direction(
             id=str(direction.id) if direction.id else None,
             name=direction.name,
             first_year=direction.first_year,
             last_year=direction.last_year,
             type=direction.type.value if direction.type else None,
-            notion_id=str(direction.notion_id) if direction.notion_id else None
+            notion_id=str(direction.notion_id) if direction.notion_id else None,
         )

@@ -1,8 +1,9 @@
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class CodaParticipation(BaseModel):
@@ -35,12 +36,7 @@ class CodaParticipation(BaseModel):
             return "Свои (плюсодины)"
         return value
 
-    @field_validator("role_code", mode="after")
+    @field_serializer("role_code", "status_code")
     @classmethod
-    def format_role(cls, value: str) -> str:
-        return ParticipationRole(value).name
-
-    @field_validator("status_code", mode="after")
-    @classmethod
-    def format_status(cls, value: str) -> str:
-        return ParticipationStatus(value).name
+    def serialize_enum(self, strenum: StrEnum, _info) -> str:
+        return strenum.name

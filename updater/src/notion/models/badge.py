@@ -1,14 +1,13 @@
-import hashlib
-
 from uuid import UUID
 
 import psycopg2
 
-from dictionaries.dictionaries import ParticipationRole
+from dictionaries.dictionaries import BadgeColor, ParticipationRole
 from dictionaries.gender import Gender
 from pydantic import Field, field_validator, model_validator
 from updater.src.config import config
 from updater.src.notion.models.base import NotionModel
+from updater.src.notion.models.primitives.checkbox import Checkbox
 from updater.src.notion.models.primitives.files import Files
 from updater.src.notion.models.primitives.number import Number
 from updater.src.notion.models.primitives.relation import Relation
@@ -61,21 +60,31 @@ class Badge(NotionModel):
             badges = cur.fetchall()
         finally:
             conn.close()
-        exist = next((
-            number for name, number, notion_id
-            in badges if str(notion_id) == str(self.notion_id) or name == self.name
-        ), None)
+        exist = next(
+            (
+                number
+                for name, number, notion_id in badges
+                if str(notion_id) == str(self.notion_id)
+            ),
+            None,
+        )
         if exist:
             self.number = exist
             return self
         direction_num: int = (
             self.direction_id_.value[0].int % 1000 if self.direction_id_.value else 0
         )
-        personal_num = max([
-            int(number.split('-')[-1]) for name, number, notion_id
-            in badges
-            if int(number.split('-')[0]) == direction_num
-        ], default=0) + 1
+        personal_num = (
+            max(
+                [
+                    int(number.split("-")[-1])
+                    for name, number, notion_id in badges
+                    if int(number.split("-")[0]) == direction_num
+                ],
+                default=0,
+            )
+            + 1
+        )
         self.number = f"{direction_num:03}-{personal_num:03}"
         return self
 
@@ -137,7 +146,7 @@ class Badge(NotionModel):
             gender = cls.get_key_from_value("женский", Gender)
         elif value.select.name.lower() in ["м", "мужской", "m", "male"]:
             gender = cls.get_key_from_value("мужской", Gender)
-        elif value.select.name.lower() in ["другой","other"]:
+        elif value.select.name.lower() in ["другой", "other"]:
             gender = cls.get_key_from_value("другой", Gender)
         else:
             return None
@@ -179,3 +188,29 @@ class Badge(NotionModel):
             return int(value.value)
         else:
             return 1
+
+
+class Anons(NotionModel):
+    title: Title = Field(..., alias="Основная надпись")
+    subtitle: RichText = Field(..., alias="Дополнительная надпись")
+    batch: Select = Field(..., alias="Партия")
+    color: Select = Field(..., alias="Цвет")
+    quantity: Number = Field(..., alias="Количество")
+    to_print: Checkbox = Field(..., alias="QR")
+
+    @staticmethod
+    def get_key_from_value(value, enum_class):
+        for enum_member in enum_class:
+            if enum_member.value == value:
+                return enum_member.name
+        return None
+
+    @field_validator("color", mode="after")
+    @classmethod
+    def convert_color(cls, value):
+        if value.value:
+            return cls.get_key_from_value(
+                value.value.replace("ё", "е").lower(), BadgeColor
+            )
+        else:
+            return None

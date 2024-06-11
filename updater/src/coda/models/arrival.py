@@ -1,18 +1,26 @@
 from datetime import date, datetime, time
+from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from dictionaries.dictionaries import ParticipationStatus
+from dictionaries.transport_type import TransportType
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class CodaArrival(BaseModel):
     coda_index: int = Field(..., alias="id")
     badge_id: UUID = Field(..., alias="badge_id")
     arrival_date: date = Field(..., alias="Дата заезда")
-    arrival_transport: str = Field(..., alias="Способ заезда")
+    arrival_transport: TransportType = Field(
+        default=TransportType.UNDEFINED, alias="Способ заезда"
+    )
     arrival_registered: time | None = Field(..., alias="Отметка о заезде")
     departure_date: date = Field(..., alias="Дата отъезда")
-    departure_transport: str = Field(..., alias="Способ выезда")
+    departure_transport: TransportType = Field(
+        default=TransportType.UNDEFINED, alias="Способ выезда"
+    )
     departure_registered: time | None = Field(..., alias="Отметка об отъезде")
+    status: ParticipationStatus = Field(..., alias="Статус")
     extra_data: dict = Field(default_factory=dict)
     comment: str = Field(..., alias="Комментарии")
     last_updated: datetime = Field(default_factory=datetime.now)
@@ -26,9 +34,25 @@ class CodaArrival(BaseModel):
         assert date_dt.year == datetime.now().year
         return date_dt
 
+    @field_validator("status", mode="before")
+    @classmethod
+    def format_status(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("arrival_transport", "departure_transport", mode="before")
+    @classmethod
+    def default_transport(cls, transport: str, _info):
+        if not transport:
+            return TransportType.UNDEFINED.value
+        return transport
+
     @field_validator("arrival_registered", "departure_registered", mode="before")
     @classmethod
     def format_time(cls, value: str) -> time | None:
         if not value:
             return None
         return time.fromisoformat(value.split("T")[1].split("+")[0])
+
+    @field_serializer("arrival_transport", "departure_transport", "status")
+    def serialize_transport(self, strenum: StrEnum, _info):
+        return strenum.name

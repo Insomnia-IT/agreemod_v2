@@ -13,7 +13,7 @@ class Engagement(BaseModel):
     notion_id: str | None = None
 
     @staticmethod
-    def from_db(participation: 'Participation') -> 'Engagement':
+    def from_db(participation: "Participation") -> "Engagement":
         return Engagement(
             id=str(participation.id) if participation.id else None,
             year=participation.year,
@@ -22,5 +22,5 @@ class Engagement(BaseModel):
             position=None,  # Нет информации о position в объекте Participation
             status=participation.status.value if participation.status else None,
             direction=str(participation.direction) if participation.direction else None,
-            notion_id=str(participation.notion_id) if participation.notion_id else None
+            notion_id=str(participation.notion_id) if participation.notion_id else None,
         )

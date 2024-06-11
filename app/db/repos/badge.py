@@ -1,4 +1,3 @@
-import logging
 from typing import List
 from uuid import UUID
 
@@ -40,7 +39,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         if include_person:
             query = query.options(joinedload(BadgeAppORM.person))
         if include_directions:
-            query = query.options(joinedload(BadgeAppORM.directions)).options(joinedload(BadgeDirectionsAppORM.direction))
+            query = query.options(joinedload(BadgeAppORM.directions)).options(
+                joinedload(BadgeDirectionsAppORM.direction)
+            )
         if include_infant:
             query = query.options(joinedload(BadgeAppORM.infant))
         if filters:
@@ -79,7 +80,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             return None
         if result is None:
             return None
-        return result.to_model(include_person=True, include_directions=True, include_infant=True)
+        return result.to_model(
+            include_person=True, include_directions=True, include_infant=True
+        )
 
     async def retrieve_many(
         self,
@@ -144,4 +147,6 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
     #     await self.session.flush()
 
     async def delete(self, notion_id):
-        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))
+        await self.session.execute(
+            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
+        )

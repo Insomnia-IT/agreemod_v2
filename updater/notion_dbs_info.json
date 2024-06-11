@@ -11,6 +11,10 @@
     "name": "get_badges",
     "id": "961e56d8f00e474bb3ab468c00eab53a"
   },
+  "anonymous_badges": {
+    "name": "anonymous_badges",
+    "id": "dcb0ace1c2b04375ae68ceb33279d554"
+  },
   "get_participations": {
     "name": "Engagement",
     "id": "grid-NnDAOlOFAu"
@@ -18,6 +22,5 @@
   "get_arrivals": {
     "name": "Arrivals",
     "id": "grid--SMbvhP-1c"
-}
-
+  }
 }
