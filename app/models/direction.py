@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from dictionaries.dictionaries import DirectionType
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
@@ -18,3 +18,10 @@ class Direction(DomainModel):
     notion_id: UUID
 
     badges: list[BadgeDTO] = Field(default_factory=list)
+
+    model_config = ConfigDict(
+        json_encoders={
+            DirectionType: lambda t: t.name,
+        },
+        use_enum_values=True,
+    )

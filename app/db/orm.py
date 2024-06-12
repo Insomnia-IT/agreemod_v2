@@ -1,6 +1,5 @@
 from typing import List, Self
 
-from app.models.logging import Logs
 from database.orm.arrival import ArrivalORM
 from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.badge_directions import BadgeDirectionsORM
@@ -8,8 +7,8 @@ from database.orm.direction import DirectionORM
 from database.orm.logging import LogsORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
-from dictionaries import ParticipationRole, ParticipationStatus
-from dictionaries.dictionaries import DirectionType
+from dictionaries.dictionaries import DirectionType, ParticipationRole, ParticipationStatus
+from dictionaries.transport_type import TransportType
 from sqlalchemy.orm import Mapped, relationship
 
 from app.dto.badge import BadgeDTO
@@ -66,9 +65,7 @@ class PersonAppORM(PersonORM):
 
 
 class DirectionAppORM(DirectionORM):
-    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(
-        back_populates="direction"
-    )
+    badges: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="direction", lazy="selectin")
 
     @classmethod
     def to_orm(cls, model: Direction):
@@ -92,19 +89,15 @@ class DirectionAppORM(DirectionORM):
             notion_id=self.notion_id,
             last_updated=self.last_updated,
             badges=(
-                [BadgeDTO.model_validate(x, from_attributes=True) for x in self.badges]
-                if include_badges
-                else None
+                [BadgeDTO.model_validate(x.badge, from_attributes=True) for x in self.badges] if include_badges else []
             ),
         )
 
 
 class BadgeAppORM(BadgeORM):
-    infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM")
-    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
-    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(
-        back_populates="badge"
-    )
+    infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM", lazy="selectin")
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM", lazy="selectin")
+    directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge", lazy="selectin")
 
     @classmethod
     def to_orm(cls, model: Badge) -> Self:
@@ -129,31 +122,6 @@ class BadgeAppORM(BadgeORM):
             notion_id=model.notion_id.hex,
         )
 
-    # @classmethod
-    # def to_orm_2(cls, model: Badge) -> Self:
-    #     """
-    #     TODO:  model.infant.id ? model.role.name ? model.diet ? model.feed
-    #     """
-    #     return cls(
-    #         id=model.id,
-    #         name=model.name,
-    #         last_name=model.last_name,
-    #         first_name=model.first_name,
-    #         nickname=model.nickname,
-    #         gender=model.gender,
-    #         phone=model.phone,
-    #         infant_id=model.infant if model.infant else None,
-    #         diet=model.diet if model.diet else None,
-    #         feed=model.feed if model.feed else None,
-    #         number=model.number,
-    #         batch=model.batch,
-    #         role_code=model.role or None,
-    #         photo=model.photo,
-    #         person_id=model.person or None,
-    #         comment=model.comment,
-    #         notion_id=model.notion_id.hex,
-    #     )
-
     def to_model(
         self,
         include_person: bool = False,
@@ -171,7 +139,7 @@ class BadgeAppORM(BadgeORM):
             infant=(
                 Infant.model_validate(self.infant, from_attributes=True)
                 if self.infant and include_infant
-                else None  # self.infant_id
+                else self.infant_id
             ),
             diet=self.diet,
             feed=self.feed,
@@ -179,14 +147,9 @@ class BadgeAppORM(BadgeORM):
             batch=self.batch,
             role=self.role_code,
             photo=self.photo,
-            person=(
-                self.person.to_model() if self.person and include_person else None
-            ),  # self.person_id
+            person=(self.person.to_model() if self.person and include_person else self.person_id),
             directions=(
-                [
-                    DirectionDTO.model_validate(x.direction, from_attributes=True)
-                    for x in self.directions
-                ]
+                [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
                 else None
             ),
@@ -198,7 +161,7 @@ class BadgeAppORM(BadgeORM):
 
 
 class ArrivalAppORM(ArrivalORM):
-    badge: Mapped[BadgeAppORM] = relationship("BadgeAppORM")
+    badge: Mapped[BadgeAppORM] = relationship("BadgeAppORM", lazy="selectin")
 
     @classmethod
     def to_orm(cls, model: Arrival) -> Self:
@@ -217,40 +180,17 @@ class ArrivalAppORM(ArrivalORM):
             last_updated=model.last_updated,
         )
 
-    # @classmethod
-    # def to_orm_2(cls, model: Arrival) -> Self:
-    #     """
-    #     TODO: несостыковка в to_orm с model.badge.id
-    #     """
-    #     return cls(
-    #         id=model.id,
-    #         badge_id=model.badge,
-    #         arrival_date=model.arrival_date,
-    #         arrival_transport=model.arrival_transport,
-    #         arrival_registered=model.arrival_registered,
-    #         departure_date=model.departure_date,
-    #         departure_transport=model.departure_transport,
-    #         departure_registered=model.departure_registered,
-    #         extra_data=model.extra_data,
-    #         comment=model.comment,
-    #         last_updated=model.last_updated,
-    #     )
-
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
             id=self.id,
-            badge=(
-                BadgeDTO.model_validate(self.badge, from_attributes=True)
-                if include_badge
-                else self.badge_id
-            ),
+            badge=(BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id),
             arrival_date=self.arrival_date,
-            arrival_transport=self.arrival_transport,
+            arrival_transport=TransportType[self.arrival_transport].value,
             arrival_registered=self.arrival_registered,
             departure_date=self.departure_date,
-            departure_transport=self.departure_transport,
+            departure_transport=TransportType[self.departure_transport].value,
             departure_registered=self.departure_registered,
-            status=self.status,
+            status=ParticipationStatus[self.status].value,
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
@@ -258,8 +198,8 @@ class ArrivalAppORM(ArrivalORM):
 
 
 class ParticipationAppORM(ParticipationORM):
-    person: Mapped[PersonAppORM] = relationship("PersonAppORM")
-    direction: Mapped[DirectionAppORM] = relationship("DirectionAppORM")
+    person: Mapped[PersonAppORM] = relationship("PersonAppORM", lazy="selectin")
+    direction: Mapped[DirectionAppORM] = relationship("DirectionAppORM", lazy="selectin")
 
     @classmethod
     def to_orm(cls, model: Participation):
@@ -274,9 +214,7 @@ class ParticipationAppORM(ParticipationORM):
             last_updated=model.last_updated,
         )
 
-    def to_model(
-        self, include_person: bool = False, include_direction: bool = False
-    ) -> Participation:
+    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
         return Participation(
             year=self.year,
             person=self.person.to_model() if include_person else self.person_id,
@@ -293,8 +231,8 @@ class ParticipationAppORM(ParticipationORM):
 
 
 class BadgeDirectionsAppORM(BadgeDirectionsORM):
-    badge: Mapped[BadgeAppORM] = relationship(back_populates="directions")
-    direction: Mapped[DirectionAppORM] = relationship(back_populates="badges")
+    badge: Mapped[BadgeAppORM] = relationship(back_populates="directions", lazy="selectin")
+    direction: Mapped[DirectionAppORM] = relationship(back_populates="badges", lazy="selectin")
 
 
 class LogsAppORM(LogsORM):

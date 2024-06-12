@@ -7,7 +7,8 @@ from uuid import UUID
 
 from dictionaries import DietType
 from dictionaries.dictionaries import BadgeColor, ParticipationRole
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from dictionaries.gender import Gender
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer, field_validator, model_validator
 
 from app.dto.badge import Infant
 from app.dto.direction import DirectionDTO
@@ -20,7 +21,7 @@ class Badge(DomainModel):
     last_name: str | None = None
     first_name: str | None = None
     nickname: str | None = None
-    gender: str | None = None
+    gender: Gender | None = None
     phone: str | None = None
     infant: Infant | UUID | None = None
     diet: DietType = Field(default_factory=DietType.default)
@@ -44,11 +45,7 @@ class Badge(DomainModel):
             case ParticipationRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case (
-                ParticipationRole.VOLUNTEER
-                | ParticipationRole.VICE
-                | ParticipationRole.TEAM_LEAD
-            ):
+            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE | ParticipationRole.TEAM_LEAD:
                 return BadgeColor.GREEN
 
             case ParticipationRole.MEDIC:
@@ -66,6 +63,19 @@ class Badge(DomainModel):
             case _:
                 return BadgeColor.ORANGE
 
+    model_config = ConfigDict(
+        json_encoders={DietType: lambda t: t.name, ParticipationRole: lambda p: p.name, Gender: lambda g: g.name},
+        use_enum_values=True,
+    )
+
+    @field_serializer("infant")
+    def serialize_infant(self, value, _info):
+        return bool(value)
+
+    @field_serializer("batch")
+    def serialize_batch(self, value, _info):
+        return str(value)
+
     @staticmethod
     def get_default_file(color: BadgeColor):
         path_to_files = Path.cwd() / Path("media/image/faces_no_photo")
@@ -76,6 +86,14 @@ class Badge(DomainModel):
     def convert_role(cls, value: str):
         try:
             return ParticipationRole[value]
+        except KeyError:
+            return value
+
+    @field_validator("gender", mode="before")
+    @classmethod
+    def convert_gender(cls, value: str):
+        try:
+            return Gender[value]
         except KeyError:
             return value
 
@@ -101,30 +119,6 @@ class Badge(DomainModel):
         if not data.get("occupation"):
             data["occupation"] = ParticipationRole[data["role"]].value
         return data
-
-    # @staticmethod
-    # def from_feeder(actor_badge, data: BadgeAPI) -> 'Badge':
-    #     return Badge(
-    #         id=actor_badge,
-    #         name=data.name,
-    #         last_name=data.last_name,
-    #         first_name=data.first_name,
-    #         nickname=None,  # Assuming 'nickname' is not provided in the input data
-    #         gender=Gender(data.gender) if data.gender else None,
-    #         phone=data.phone,
-    #         infant=None,  # TODO: уточнить что делать с этим полем, feeder присылает bool (is_infant)
-    #         diet=DietType("веган") if data.vegan else DietType.default(),  # TODO: мигрировать в bool?
-    #         feed=FeedType(data.feed) if data.feed else None,
-    #         number=data.number,
-    #         batch=0,  # TODO: уточнить что за data.batch
-    #         role=ParticipationRole(data.role) if data.role else None,
-    #         photo=data.photo,
-    #         person=UUID(data.person) if isinstance(data.person, str) else data.person,
-    #         comment=data.comment,
-    #         notion_id=UUID(data.notion_id) if data.notion_id else None,
-    #         last_updated=datetime.now(timezone.utc),
-    #         directions=[],  # TODO: уточнить
-    #     )
 
 
 class Anons(BaseModel):

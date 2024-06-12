@@ -13,7 +13,7 @@ class BadgeDTO(BaseModel):
     nickname: str | None = None
     number: str
     batch: int
-    role: ParticipationRole | None
+    role: ParticipationRole | None = None
     notion_id: UUID | None = None
 
 

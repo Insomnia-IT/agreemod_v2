@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from app.dependencies.service import get_feeder_service

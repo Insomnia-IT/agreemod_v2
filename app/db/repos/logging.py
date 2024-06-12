@@ -15,7 +15,5 @@ class LogsRepo(BaseSqlaRepo[LogsAppORM]):
             raise e
         return data
 
-    async def retrieve_logs(
-        self, range: tuple[int, int] = None, last: int = None, author: str = None
-    ):
+    async def retrieve_logs(self, range: tuple[int, int] = None, last: int = None, author: str = None):
         pass

@@ -4,19 +4,19 @@ from uuid import uuid4
 
 from faker import Faker
 
-from app.schemas.feeder.arrival import Arrival
-from app.schemas.feeder.badge import Badge
-from app.schemas.feeder.directions import Direction
-from app.schemas.feeder.engagement import Engagement
-from app.schemas.feeder.person import Person
+from app.schemas.feeder.arrival import ArrivalResponse
+from app.schemas.feeder.badge import BadgeResponse
+from app.schemas.feeder.directions import DirectionResponse
+from app.schemas.feeder.engagement import EngagementResponse
+from app.schemas.feeder.person import PersonResponse
 from app.schemas.feeder.requests import SyncResponseSchema
 
 
 fake = Faker()
 
 
-def generate_random_badge() -> Badge:
-    return Badge(
+def generate_random_badge() -> BadgeResponse:
+    return BadgeResponse(
         id=str(uuid4()),  # uuid4()
         deleted=False,
         name=fake.name(),
@@ -38,8 +38,8 @@ def generate_random_badge() -> Badge:
     )
 
 
-def generate_random_arrival() -> Arrival:
-    return Arrival(
+def generate_random_arrival() -> ArrivalResponse:
+    return ArrivalResponse(
         id=str(uuid4()),
         deleted=False,
         badge=str(uuid4()),
@@ -51,8 +51,8 @@ def generate_random_arrival() -> Arrival:
     )
 
 
-def generate_random_engagement() -> Engagement:
-    return Engagement(
+def generate_random_engagement() -> EngagementResponse:
+    return EngagementResponse(
         id=str(uuid4()),
         deleted=False,
         year=fake.year(),
@@ -65,8 +65,8 @@ def generate_random_engagement() -> Engagement:
     )
 
 
-def generate_random_person() -> Person:
-    return Person(
+def generate_random_person() -> PersonResponse:
+    return PersonResponse(
         id=str(uuid4()),
         deleted=False,
         name=fake.name(),
@@ -85,8 +85,8 @@ def generate_random_person() -> Person:
     )
 
 
-def generate_random_direction() -> Direction:
-    return Direction(
+def generate_random_direction() -> DirectionResponse:
+    return DirectionResponse(
         id=str(uuid4()),
         deleted=False,
         name=fake.word(),

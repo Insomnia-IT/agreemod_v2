@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from dictionaries import TransportType
 from dictionaries.dictionaries import ParticipationStatus
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 
 class Arrival(BaseModel):
@@ -18,21 +17,27 @@ class Arrival(BaseModel):
     departure_date: datetime | None = None
     departure_transport: str | None = None
 
-    @staticmethod
-    def from_db(arrival: "Arrival") -> Arrival:
-        return Arrival(
-            id=str(arrival.id),
-            badge=str(arrival.badge),
-            arrival_date=arrival.arrival_date,
-            arrival_transport=arrival.arrival_transport,
-            departure_date=arrival.departure_date,
-            departure_transport=arrival.departure_transport,
-            deleted=False,  # TODO: добавить проверку на удаление
-            status=arrival.arrival_registered,  # TODO: уточнить по этому параметру
-        )
-
 
 class ArrivalWithMetadata(BaseModel):
     actor_badge: UUID | None = None
     date: datetime | None = None
     data: Arrival | None = None
+
+
+class ArrivalResponse(BaseModel):
+    id: UUID
+    deleted: bool = False
+    badge: UUID | None = None
+    status: ParticipationStatus
+    arrival_date: datetime | None = None
+    arrival_transport: TransportType | None = None
+    departure_date: datetime | None = None
+    departure_transport: TransportType | None = None
+
+    @field_serializer("status", "arrival_transport", "departure_transport")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        return strenum.name
+
+    @staticmethod
+    def get_strenum_name(strenum: type[StrEnum], value: str):
+        return strenum(value).name

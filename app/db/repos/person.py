@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from sqlalchemy import delete
@@ -18,6 +19,7 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
         notion_id: str = None,
         limit: int = None,
         page: int = None,
+        from_date: datetime = None,
         filters: PersonFiltersDTO = None,
     ):
         query = select(PersonAppORM)
@@ -26,6 +28,8 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
         if page and limit:
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
+        if from_date:
+            query = query.where(PersonAppORM.last_updated > from_date)
         if filters and filters.strict:
             if filters.telegram:
                 query = query.filter_by(telegram=filters.telegram)
@@ -35,9 +39,7 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
                 query = query.filter_by(email=filters.email)
         elif filters:
             if filters.telegram:
-                query = query.where(
-                    PersonAppORM.telegram.ilike(f"%{filters.telegram}%")
-                )
+                query = query.where(PersonAppORM.telegram.ilike(f"%{filters.telegram}%"))
             if filters.phone:
                 query = query.where(PersonAppORM.phone.ilike(f"%{filters.phone}%"))
             if filters.email:
@@ -47,15 +49,13 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
 
     async def retrieve(self, notion_id, filters: PersonFiltersDTO) -> Person:
         filters.strict = True
-        result: PersonAppORM = await self.session.scalar(
-            self.query(notion_id=notion_id, filters=filters)
-        )
+        result: PersonAppORM = await self.session.scalar(self.query(notion_id=notion_id, filters=filters))
         if result is None:
             return None
         return result.to_model()
 
-    async def retrieve_all(self, page: int, page_size: int) -> List[Person]:
-        results = await self.session.scalars(self.query(limit=page_size, page=page))
+    async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None) -> List[Person]:
+        results = await self.session.scalars(self.query(limit=page_size, page=page, from_date=from_date))
         if not results:
             return []
         return [result.to_model() for result in results]
@@ -78,17 +78,11 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
         await self.session.flush()
 
     async def delete_by_notion_id(self, notion_id):
-        await self.session.execute(
-            delete(PersonAppORM).where(PersonAppORM.notion_id == notion_id)
-        )
+        await self.session.execute(delete(PersonAppORM).where(PersonAppORM.notion_id == notion_id))
 
     async def delete(self, id):
         await self.session.execute(delete(PersonAppORM).where(PersonAppORM.id == id))
 
-    async def retrieve_many(
-        self, filters: PersonFiltersDTO, page: int, page_size: int
-    ) -> list[Person]:
-        result = await self.session.scalars(
-            self.query(filters=filters, page=page, limit=page_size)
-        )
+    async def retrieve_many(self, filters: PersonFiltersDTO, page: int, page_size: int) -> list[Person]:
+        result = await self.session.scalars(self.query(filters=filters, page=page, limit=page_size))
         return [x.to_model() for x in result]

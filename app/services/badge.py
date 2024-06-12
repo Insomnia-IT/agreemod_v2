@@ -37,20 +37,16 @@ class BadgeService:
             elapsed = time.perf_counter() - start
             await asyncio.sleep(max(0.0, max_sleep - elapsed))
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def get_photo(
-        self, badge: dict, color: BadgeColor, client: httpx.AsyncClient
-    ) -> str:
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    async def get_photo(self, badge: dict, color: BadgeColor, client: httpx.AsyncClient) -> str:
         link = badge["photo"]
         filename = badge["notion_id"]
         if link.split("/")[-1] == f"{color.value}.png":
             badge["photo"] = f"{color.value}.png"
             return badge["photo"]
-        file_exists = os.path.isfile(
-            path=f"{color.name}/{filename}.jpg"
-        ) or os.path.isfile(path=f"{color.name}/{filename}.jpeg")
+        file_exists = os.path.isfile(path=f"{color.name}/{filename}.jpg") or os.path.isfile(
+            path=f"{color.name}/{filename}.jpeg"
+        )
         if file_exists:
             badge["photo"] = f"{filename}.jpg"
             return badge["photo"]
@@ -84,9 +80,7 @@ class BadgeService:
             for badge in badges
         ]
         async with httpx.AsyncClient() as client:
-            await_photos = (
-                self.get_photo(badge, color, client) for badge in raw_badges
-            )
+            await_photos = (self.get_photo(badge, color, client) for badge in raw_badges)
             async for badge in self.get_photos(await_photos):
                 logging.info(f"got image {badge}")
 

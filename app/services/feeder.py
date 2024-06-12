@@ -9,12 +9,17 @@ from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
 from app.db.repos.direction import DirectionRepo
 from app.db.repos.logging import LogsRepo
+from app.db.repos.participation import ParticipationRepo
+from app.db.repos.person import PersonRepo
 from app.models.arrival import Arrival
 from app.models.badge import Badge
 from app.models.logging import Logs
-from app.schemas.feeder.arrival import ArrivalWithMetadata
-from app.schemas.feeder.badge import BadgeWithMetadata
-from app.schemas.feeder.requests import BackSyncIntakeSchema
+from app.schemas.feeder.arrival import ArrivalResponse, ArrivalWithMetadata
+from app.schemas.feeder.badge import BadgeResponse, BadgeWithMetadata
+from app.schemas.feeder.directions import DirectionResponse
+from app.schemas.feeder.engagement import EngagementResponse
+from app.schemas.feeder.person import PersonResponse
+from app.schemas.feeder.requests import BackSyncIntakeSchema, SyncResponseSchema
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +31,8 @@ class FeederService:
         self.badges = BadgeRepo(session)
         self.directions = DirectionRepo(session)
         self.arrivals = ArrivalRepo(session)
+        self.participations = ParticipationRepo(session)
+        self.persons = PersonRepo(session)
         self.logs = LogsRepo(session)
 
     async def process_badge(self, b: BadgeWithMetadata):
@@ -152,4 +159,22 @@ class FeederService:
         await self.session.commit()
 
     async def sync(self, from_date: datetime):
-        response = {}
+        get_badges = await self.badges.retrieve_many(include_infant=True, from_date=from_date)
+        badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]
+        get_arrivals = await self.arrivals.retrieve_all(from_date=from_date)
+        arrivals = [ArrivalResponse.model_validate(x.model_dump()) for x in get_arrivals]
+        get_engagements = await self.participations.retrieve_all(from_date=from_date)
+        engagements = [EngagementResponse.model_validate(x.model_dump()) for x in get_engagements]
+        get_persons = await self.persons.retrieve_all(from_date=from_date)
+        persons = [PersonResponse.model_validate(x.model_dump()) for x in get_persons]
+        get_directions = await self.directions.retrieve_all(from_date=from_date)
+        directions = [DirectionResponse.model_validate(x.model_dump()) for x in get_directions]
+
+        response = {
+            "badges": badges,
+            "arrivals": arrivals,
+            "engagements": engagements,
+            "persons": persons,
+            "directions": directions,
+        }
+        return SyncResponseSchema.model_validate(response)

@@ -1,13 +1,15 @@
 import logging
 
+from datetime import datetime
+
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
-from app.db.orm import DirectionAppORM
+from app.db.orm import BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
 
-# from app.errors import RepresentativeError
+from app.errors import RepresentativeError
 from app.models.direction import Direction
 
 
@@ -23,37 +25,19 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
             await self.session.flush([new_direction])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
-            raise e
-            # raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
+            raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
         return new_direction
-
-    # def create_sync(self, data: Direction):
-    #     """
-    #     Синхронная запись данных
-    #     """
-    #     self.session.add(DirectionAppORM.to_orm(data))
-
-    # def delete_and_create_sync(self, data: Direction):
-    #     """
-    #     Синхронная запись данных с удалением старых
-    #     """
-    #     existing_direction = self.session.query(DirectionAppORM).filter_by(notion_id=data.notion_id).first()
-
-    #     if existing_direction is not None:
-    #         self.session.delete(existing_direction)
-
-    #     self.session.add(DirectionAppORM.to_orm(data))
-    #     self.session.flush([existing_direction])
 
     async def retrieve(self, notion_id):
         result = await self.session.scalar(
-            select(DirectionAppORM)
-            .filter_by(notion_id=notion_id)
-            .options(joinedload(DirectionAppORM.type))
+            select(DirectionAppORM, BadgeDirectionsAppORM)
+            .where(DirectionAppORM.notion_id == notion_id)
+            .options(selectinload(DirectionAppORM.badges))
+            .options(selectinload(BadgeDirectionsAppORM.badge))
         )
         if result is None:
             return None
-        return result.to_model()
+        return result.to_model(include_badges=True)
 
     async def update(self, data: Direction):
         orm = DirectionAppORM.to_orm(data)
@@ -61,40 +45,11 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         await self.session.flush([orm])
 
     async def delete(self, notion_id):
-        await self.session.execute(
-            delete(DirectionAppORM).where(DirectionAppORM.notion_id == notion_id)
-        )
+        await self.session.execute(delete(DirectionAppORM).where(DirectionAppORM.notion_id == notion_id))
 
-    async def retrieve_many(self, filters: dict = None) -> list[Direction]:
-        result = await self.session.scalars(
-            select(DirectionAppORM)
-            .filter_by(**filters)
-            .options(joinedload(DirectionAppORM.type))
-        )
+    async def retrieve_all(self, from_date: datetime = None) -> list[Direction]:
+        query = select(DirectionAppORM)
+        if from_date:
+            query = query.where(DirectionAppORM.last_updated > from_date)
+        result = await self.session.scalars(query)
         return [x.to_model() for x in result]
-
-    async def retrieve_all(self) -> list[Direction]:
-        result = await self.session.scalars(
-            select(DirectionAppORM).options(joinedload(DirectionAppORM.type))
-        )
-        return [x.to_model() for x in result]
-
-    async def retrieve_all_2(self, page: int, page_size: int) -> list[Direction]:
-        offset = (page - 1) * page_size
-        result_scalars = await self.session.scalars(
-            select(DirectionAppORM).limit(page_size).offset(offset)
-        )
-        results = result_scalars.all()
-
-        if not results:
-            return []
-
-        processed_results = []
-        for result in results:
-            try:
-                data = result.to_model()
-                processed_results.append(data)
-            except Exception as e:
-                logger.critical(f"Error processing result {result}: {e}")
-
-        return processed_results

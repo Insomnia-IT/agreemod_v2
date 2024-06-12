@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
-from pydantic import BaseModel, Field
+from dictionaries.gender import Gender
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class Badge(BaseModel):
@@ -29,33 +31,53 @@ class Badge(BaseModel):
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
 
-    @staticmethod
-    def from_db(badge: "Badge") -> Badge:
-        return Badge(
-            id=str(badge.id) if badge.id else None,
-            deleted=False,  # TODO: доработать этот функционал
-            name=badge.name,
-            first_name=badge.first_name,
-            last_name=badge.last_name,
-            nickname=badge.nickname,
-            gender=badge.gender,
-            phone=badge.phone,
-            infant=badge.infant,
-            diet=badge.diet,
-            feed=badge.feed,
-            number=badge.number,
-            batch=str(badge.batch),
-            role=badge.role,
-            photo=badge.photo,
-            person=str(badge.person) if badge.person else None,
-            comment=badge.comment,
-            notion_id=str(badge.notion_id) if badge.notion_id else None,
-            last_updated=badge.last_updated,
-            directions=badge.directions,
-        )
-
 
 class BadgeWithMetadata(BaseModel):
     actor_badge: UUID | None = None
     date: datetime | None = None
     data: Badge | None = None
+
+
+class BadgeResponse(BaseModel):
+    id: UUID
+    deleted: bool = False
+    name: str
+    first_name: str
+    last_name: str
+    gender: Gender | None
+    phone: str
+    infant: bool
+    vegan: bool = Field(..., validation_alias="diet")
+    feed: FeedType = Field(FeedType.NO)
+    number: str
+    batch: str
+    role: ParticipationRole
+    position: str = Field(..., validation_alias="occupation")
+    photo: str
+    person: UUID | None
+    comment: str
+    notion_id: UUID
+
+    @staticmethod
+    def get_strenum_name(strenum: type[StrEnum], value: str):
+        return strenum(value).name
+
+    @field_serializer("role", "feed", "gender")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.name
+
+    @field_validator("vegan", mode="before")
+    @classmethod
+    def convert_vegan(cls, value: str):
+        if value == "VEGAN":
+            return True
+        return False
+
+    @field_validator("feed", mode="before")
+    @classmethod
+    def validate_feed(cls, value: str) -> str:
+        if not value:
+            return FeedType.NO
+        return value

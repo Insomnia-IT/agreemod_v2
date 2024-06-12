@@ -1,26 +1,23 @@
-from pydantic import BaseModel
+from enum import StrEnum
+from uuid import UUID
+
+from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
+from pydantic import BaseModel, Field, field_serializer
 
 
-class Engagement(BaseModel):
-    id: str | None = None
-    deleted: bool | None = None
-    year: int | None = None
-    person: str | None = None
-    role: str | None = None
-    position: str | None = None
-    status: str | None = None
-    direction: str | None = None
-    notion_id: str | None = None
+class EngagementResponse(BaseModel):
+    id: UUID
+    deleted: bool = False
+    year: int
+    person: UUID
+    role: ParticipationRole
+    position: str | None = Field(..., validation_alias="role")
+    status: ParticipationStatus
+    direction: UUID
+    notion_id: UUID | None
 
-    @staticmethod
-    def from_db(participation: "Participation") -> "Engagement":
-        return Engagement(
-            id=str(participation.id) if participation.id else None,
-            year=participation.year,
-            person=str(participation.person) if participation.person else None,
-            role=participation.role.value if participation.role else None,
-            position=None,  # Нет информации о position в объекте Participation
-            status=participation.status.value if participation.status else None,
-            direction=str(participation.direction) if participation.direction else None,
-            notion_id=str(participation.notion_id) if participation.notion_id else None,
-        )
+    @field_serializer("role", "status")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.name

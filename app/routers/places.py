@@ -25,3 +25,17 @@ async def get_directions(
 ):
     logger.info(f"Starting task: {username}")
     return await repo.retrieve_all()
+
+
+@router.get(
+    "/direction-with-badges",
+    summary="Служба с бейджами",
+    response_model=Direction,
+)
+async def get_direction_with_badges(
+    notion_id: str,
+    username: Annotated[str, Depends(verify_credentials)],
+    repo: DirectionRepo = Depends(get_sqla_repo(DirectionRepo)),
+):
+    logger.info(f"Starting task: {username}")
+    return await repo.retrieve(notion_id)

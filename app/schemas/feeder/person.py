@@ -1,39 +1,40 @@
-from dictionaries import DietType
-from pydantic import BaseModel
+from datetime import datetime
+from enum import StrEnum
+from uuid import UUID
+
+from dictionaries.gender import Gender
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
 
-class Person(BaseModel):
-    id: str | None = None
-    deleted: bool | None = None
+class PersonResponse(BaseModel):
+    id: UUID
+    deleted: bool = False
     name: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     nickname: str | None = None
     other_names: str | None = None
-    gender: str | None = None
-    birth_date: str | None = None
+    gender: Gender | None
+    birth_date: datetime | None = None
     phone: str | None = None
     telegram: str | None = None
     email: str | None = None
     city: str | None = None
     vegan: bool | None = None
-    notion_id: str | None = None
+    notion_id: UUID
 
-    @staticmethod
-    def from_db(person: "Person") -> "Person":
-        return Person(
-            id=str(person.id) if person.id else None,
-            name=person.name,
-            first_name=person.first_name,
-            last_name=person.last_name,
-            nickname=person.nickname,
-            other_names=", ".join(person.other_names) if person.other_names else None,
-            gender=person.gender,
-            birth_date=str(person.birth_date) if person.birth_date else None,
-            phone=person.phone,
-            telegram=person.telegram,
-            email=person.email,
-            city=person.city,
-            vegan=person.diet == DietType.VEGAN if person.diet else None,
-            notion_id=str(person.notion_id) if person.notion_id else None,
-        )
+    model_config = ConfigDict(
+        json_encoders={
+            Gender: lambda g: g.name,
+        }
+    )
+
+    @field_serializer("gender")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.name
+
+    @field_validator("other_names", mode="before")
+    def conver_to_str(cls, values: list[str]):
+        return ", ".join(values)

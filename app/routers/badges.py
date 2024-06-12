@@ -1,15 +1,8 @@
 import logging
-from typing import Annotated
-
-from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse
-import logging
 import os
 
 from typing import Annotated
 
-from app.utils.verify_credentials import verify_credentials
 from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -29,8 +22,9 @@ from app.utils.verify_credentials import verify_credentials
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 def _get_badges_filters_dto(
-    batch: int = Q("Номер партии", None),
+    batch: int | None = Q("Номер партии", None),
     color: BadgeColor | None = Q("Цвет бейджа", None),
     direction: DirectionType | None = Q("Название службы (направления)", None),
     role: ParticipationRole | None = Q("Роль", None),
@@ -122,9 +116,7 @@ async def start_task(
 
 
 @router.get("/download-archive/")
-async def download_archive(
-    username: Annotated[str, Depends(verify_credentials)], batch: int
-):
+async def download_archive(username: Annotated[str, Depends(verify_credentials)], batch: int):
     """
     Возвращает файл который подготовил /start-task эндпоинт
     """

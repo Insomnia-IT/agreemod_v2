@@ -1,9 +1,9 @@
+from datetime import datetime
 from typing import List
-from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
@@ -25,6 +25,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         limit: int = None,
         page: int = None,
         filters: BadgeFilterDTO = None,
+        from_date: datetime = None,
     ):
         query = select(BadgeAppORM, BadgeDirectionsAppORM)
         if notion_id:
@@ -37,13 +38,15 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
         if include_person:
-            query = query.options(joinedload(BadgeAppORM.person))
+            query = query.options(selectinload(BadgeAppORM.person))
         if include_directions:
-            query = query.options(joinedload(BadgeAppORM.directions)).options(
-                joinedload(BadgeDirectionsAppORM.direction)
+            query = query.options(selectinload(BadgeAppORM.directions)).options(
+                selectinload(BadgeDirectionsAppORM.direction)
             )
         if include_infant:
-            query = query.options(joinedload(BadgeAppORM.infant))
+            query = query.options(selectinload(BadgeAppORM.infant))
+        if from_date:
+            query = query.where(BadgeAppORM.last_updated > from_date)
         if filters:
             if filters.batch:
                 query = query.filter_by(batch=filters.batch)
@@ -80,9 +83,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             return None
         if result is None:
             return None
-        return result.to_model(
-            include_person=True, include_directions=True, include_infant=True
-        )
+        return result.to_model(include_person=True, include_directions=True, include_infant=True)
 
     async def retrieve_many(
         self,
@@ -92,6 +93,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         include_directions: bool = False,
         include_infant: bool = False,
         include_person: bool = False,
+        from_date: datetime = None,
     ) -> List[Badge]:
         results = await self.session.scalars(
             self.query(
@@ -101,6 +103,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 include_directions=include_directions,
                 include_infant=include_infant,
                 include_person=include_person,
+                from_date=from_date,
             )
         )
         if not results:
@@ -128,9 +131,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         badge = BadgeAppORM.to_orm(data)
         for d in data.directions:
             direction = self.session.scalar(
-                select(DirectionAppORM).filter_by(
-                    notion_id=d.notion_id if isinstance(d, Direction) else d
-                )
+                select(DirectionAppORM).filter_by(notion_id=d.notion_id if isinstance(d, Direction) else d)
             )
             badge_dir = BadgeDirectionsAppORM()
             badge_dir.direction = direction
@@ -138,15 +139,5 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         await self.session.merge(badge)
         await self.session.flush()
 
-    # async def update_2(self, data: Badge):
-    #     """
-    #     TODO: костыль для feeder
-    #     """
-    #     obj = BadgeAppORM.to_orm_2(data)
-    #     await self.session.merge(obj)
-    #     await self.session.flush()
-
     async def delete(self, notion_id):
-        await self.session.execute(
-            delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id)
-        )
+        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))

@@ -1,4 +1,8 @@
-from pydantic import BaseModel
+from enum import StrEnum
+from uuid import UUID
+
+from dictionaries.dictionaries import DirectionType
+from pydantic import BaseModel, field_serializer
 
 
 class Direction(BaseModel):
@@ -10,13 +14,22 @@ class Direction(BaseModel):
     type: str | None = None
     notion_id: str | None = None
 
+
+class DirectionResponse(BaseModel):
+    id: UUID
+    deleted: bool = False
+    name: str
+    first_year: int | None = None
+    last_year: int | None = None
+    type: DirectionType
+    notion_id: UUID
+
     @staticmethod
-    def from_db(direction: "DirectionDB") -> "Direction":
-        return Direction(
-            id=str(direction.id) if direction.id else None,
-            name=direction.name,
-            first_year=direction.first_year,
-            last_year=direction.last_year,
-            type=direction.type.value if direction.type else None,
-            notion_id=str(direction.notion_id) if direction.notion_id else None,
-        )
+    def get_strenum_name(strenum: type[StrEnum], value: str):  # type: ignore
+        if not strenum:
+            return None
+        return strenum(value).name
+
+    @field_serializer("type")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        return strenum.name
