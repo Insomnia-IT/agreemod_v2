@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -12,9 +12,9 @@ class Arrival(BaseModel):
     deleted: bool | None = None
     badge: UUID | None = None
     status: ParticipationStatus | None = None
-    arrival_date: datetime | None = None
+    arrival_date: date | None = None
     arrival_transport: TransportType | None = None
-    departure_date: datetime | None = None
+    departure_date: date | None = None
     departure_transport: str | None = None
 
 
@@ -29,9 +29,9 @@ class ArrivalResponse(BaseModel):
     deleted: bool = False
     badge: UUID | None = None
     status: ParticipationStatus
-    arrival_date: datetime | None = None
+    arrival_date: date | None = None
     arrival_transport: TransportType | None = None
-    departure_date: datetime | None = None
+    departure_date: date | None = None
     departure_transport: TransportType | None = None
 
     @field_serializer("status", "arrival_transport", "departure_transport")

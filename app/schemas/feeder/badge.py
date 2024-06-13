@@ -57,6 +57,7 @@ class BadgeResponse(BaseModel):
     person: UUID | None
     comment: str
     notion_id: UUID
+    directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):
@@ -81,3 +82,8 @@ class BadgeResponse(BaseModel):
         if not value:
             return FeedType.NO
         return value
+
+    @field_validator("directions", mode="before")
+    @classmethod
+    def list_directions(cls, values: list[dict]) -> list[str]:
+        return [x['notion_id'] for x in values]

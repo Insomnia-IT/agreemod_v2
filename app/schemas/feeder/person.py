@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
+from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
-from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 
 class PersonResponse(BaseModel):
@@ -15,12 +16,12 @@ class PersonResponse(BaseModel):
     nickname: str | None = None
     other_names: str | None = None
     gender: Gender | None
-    birth_date: datetime | None = None
+    birth_date: date | None = None
     phone: str | None = None
     telegram: str | None = None
     email: str | None = None
     city: str | None = None
-    vegan: bool | None = None
+    vegan: bool = Field(..., validation_alias='diet')
     notion_id: UUID
 
     model_config = ConfigDict(
@@ -36,5 +37,13 @@ class PersonResponse(BaseModel):
         return strenum.name
 
     @field_validator("other_names", mode="before")
-    def conver_to_str(cls, values: list[str]):
+    def convert_to_str(cls, values: list[str]):
         return ", ".join(values)
+
+    @field_validator("vegan", mode="before")
+    def convert_non_vegan(cls, value: bool):
+        if not value or value == DietType.STANDARD.value:
+            return False
+        else:
+            return True
+        
