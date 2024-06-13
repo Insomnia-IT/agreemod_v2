@@ -145,6 +145,12 @@ class NotionPoller(Poller):
                                     if x not in ["last_updated", "photo"]
                                 },
                             )
+                            # update photo for badges but not change last_updated if photo is the only difference
+                            if isinstance(orm, BadgeORM):
+                                photo_diff = exist.photo == orm.photo
+                                if not diff and photo_diff:
+                                    orm.last_updated = exist.last_updated
+                                    await session.merge(orm)
                             if diff:
                                 await log_repo.add_log(
                                     table_name=self.database.orm.__tablename__,
@@ -156,7 +162,7 @@ class NotionPoller(Poller):
                                     },
                                     author="Notion",
                                 )
-                            await session.merge(orm)
+                                await session.merge(orm)
                         if isinstance(orm, BadgeORM):
                             for direction in model.direction_id_.value:
                                 badge_dir_exist = await session.scalar(
@@ -264,7 +270,7 @@ class CodaPoller(Poller):
                                     },
                                     author="Coda",
                                 )
-                            await session.merge(orm)
+                                await session.merge(orm)
                     await session.commit()
             except IntegrityError as e:
                 logger.error(e)
