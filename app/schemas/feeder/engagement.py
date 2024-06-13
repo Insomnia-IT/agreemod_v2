@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_serializer
 
 
 class EngagementResponse(BaseModel):
-    id: UUID
+    id: UUID = Field(..., validation_alias='notion_id')
     deleted: bool = False
     year: int
     person: UUID

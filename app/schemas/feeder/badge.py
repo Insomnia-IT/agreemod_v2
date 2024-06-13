@@ -39,7 +39,7 @@ class BadgeWithMetadata(BaseModel):
 
 
 class BadgeResponse(BaseModel):
-    id: UUID
+    id: UUID = Field(..., validation_alias='notion_id')
     deleted: bool = False
     name: str
     first_name: str

@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_valid
 
 
 class PersonResponse(BaseModel):
-    id: UUID
+    id: UUID = Field(..., validation_alias='notion_id')
     deleted: bool = False
     name: str | None = None
     first_name: str | None = None

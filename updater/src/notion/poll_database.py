@@ -47,7 +47,7 @@ def adapt_value(value: Any):
 
 
 def adapt_to_serialize(value: Any):
-    if isinstance(value, asyncpg.pgproto.pgproto.UUID):
+    if isinstance(value, (asyncpg.pgproto.pgproto.UUID, UUID)):
         return str(value)
     elif isinstance(value, Enum):
         return value.value
@@ -145,17 +145,17 @@ class NotionPoller(Poller):
                                     if x not in ["last_updated", "photo"]
                                 },
                             )
-                            # if diff:
-                            #     await log_repo.add_log(
-                            #         table_name=self.database.orm.__tablename__,
-                            #         operation="MERGE",
-                            #         row_id=exist.id,
-                            #         new_data={
-                            #             x: adapt_to_serialize(y)
-                            #             for x, y in dict(orm).items()
-                            #         },
-                            #         author="Notion",
-                            #     )
+                            if diff:
+                                await log_repo.add_log(
+                                    table_name=self.database.orm.__tablename__,
+                                    operation="MERGE",
+                                    row_id=exist.id,
+                                    new_data={
+                                        x: adapt_to_serialize(y)
+                                        for x, y in dict(orm).items()
+                                    },
+                                    author="Notion",
+                                )
                             await session.merge(orm)
                         if isinstance(orm, BadgeORM):
                             for direction in model.direction_id_.value:
@@ -252,18 +252,18 @@ class CodaPoller(Poller):
                                     if x != "last_updated"
                                 },
                             )
-                            # if diff:
-                            #     diff = mk_diff_serializable(diff)
-                            #     await log_repo.add_log(
-                            #         table_name=self.database.orm.__tablename__,
-                            #         operation="MERGE",
-                            #         row_id=exist.id,
-                            #         new_data={
-                            #             x: adapt_to_serialize(y)
-                            #             for x, y in dict(orm).items()
-                            #         },
-                            #         author="Coda",
-                            #     )
+                            if diff:
+                                diff = mk_diff_serializable(diff)
+                                await log_repo.add_log(
+                                    table_name=self.database.orm.__tablename__,
+                                    operation="MERGE",
+                                    row_id=exist.id,
+                                    new_data={
+                                        x: adapt_to_serialize(y)
+                                        for x, y in dict(orm).items()
+                                    },
+                                    author="Coda",
+                                )
                             await session.merge(orm)
                     await session.commit()
             except IntegrityError as e:

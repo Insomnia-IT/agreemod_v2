@@ -2,7 +2,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from dictionaries.dictionaries import DirectionType
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, Field, field_serializer
 
 
 class Direction(BaseModel):
@@ -16,7 +16,7 @@ class Direction(BaseModel):
 
 
 class DirectionResponse(BaseModel):
-    id: UUID
+    id: UUID = Field(..., validation_alias='notion_id')
     deleted: bool = False
     name: str
     first_year: int | None = None
