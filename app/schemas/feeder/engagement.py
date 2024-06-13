@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_serializer
 
 
 class EngagementResponse(BaseModel):
-    id: UUID = Field(..., validation_alias='notion_id')
+    id: UUID
     deleted: bool = False
     year: int
     person: UUID
@@ -14,7 +14,6 @@ class EngagementResponse(BaseModel):
     position: str | None = Field(..., validation_alias="role")
     status: ParticipationStatus
     direction: UUID
-    notion_id: UUID | None
 
     @field_serializer("role", "status")
     def serialize_enums(self, strenum: StrEnum, _info):
