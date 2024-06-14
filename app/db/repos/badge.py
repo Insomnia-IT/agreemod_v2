@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.models.badge import Badge
+from app.schemas.feeder.badge import Badge as FeederBadge
 from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
 
@@ -130,14 +131,60 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
     async def update(self, data: Badge):
         badge = BadgeAppORM.to_orm(data)
         for d in data.directions:
-            direction = self.session.scalar(
+            direction = await self.session.scalar(
                 select(DirectionAppORM).filter_by(notion_id=d.notion_id if isinstance(d, Direction) else d)
             )
             badge_dir = BadgeDirectionsAppORM()
             badge_dir.direction = direction
             badge.directions.append(badge_dir)
         await self.session.merge(badge)
-        await self.session.flush()
+
+    
+    async def update_feeder(self, data: list[FeederBadge]) -> list[bool]:
+        existing = []
+        collected = {}
+        for badge in data:
+            if badge.id not in collected:
+                collected.update({badge.id: badge.model_dump()})
+            else:
+                collected[badge.id] = collected[badge.id] | {x: y for x, y in badge.model_dump().items() if y is not None}
+                if collected[badge.id]['notion_id'] is None:
+                    collected[badge.id]['notion_id'] = badge.id
+        for b_id, badge in collected.items():
+            exist = False
+            dirs = []
+            for dir in badge.get('directions', []):
+                dir_orm = await self.session.scalar(
+                select(DirectionAppORM).filter_by(notion_id=dir)
+            )
+                dirs.append(dir_orm)
+            badge_orm: BadgeAppORM = await self.session.scalar(self.query(
+                notion_id=b_id,
+                include_infant=True,
+            ))
+            if badge_orm:
+                exist = True
+                [
+                    badge_orm.__setattr__(x, y) for x,y
+                    in badge.items()
+                    if x not in ['id', 'directions'] and y is not None
+                ]
+                badge_orm.last_updated = datetime.now()
+            else:
+                badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
+                badge_orm.last_updated = datetime.now()
+            for d in dirs:
+                badge_dir = BadgeDirectionsAppORM()
+                badge_dir.direction = d
+                badge_orm.directions.append(badge_dir)
+            if exist:
+                await self.session.merge(badge_orm)
+                # await self.session.flush()
+            else:
+                self.session.add(badge_orm)
+                # await self.session.flush()
+            existing.append(exist)
+        return existing
 
     async def delete(self, notion_id):
         await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))

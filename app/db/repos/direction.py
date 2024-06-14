@@ -28,7 +28,7 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
             raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
         return new_direction
 
-    async def retrieve(self, notion_id):
+    async def retrieve(self, notion_id, include_badges: bool = True) -> Direction:
         result = await self.session.scalar(
             select(DirectionAppORM, BadgeDirectionsAppORM)
             .where(DirectionAppORM.notion_id == notion_id)
@@ -37,7 +37,7 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         )
         if result is None:
             return None
-        return result.to_model(include_badges=True)
+        return result.to_model(include_badges=include_badges)
 
     async def update(self, data: Direction):
         orm = DirectionAppORM.to_orm(data)

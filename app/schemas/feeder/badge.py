@@ -6,6 +6,7 @@ from uuid import UUID
 
 from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
+from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
 from pydantic import BaseModel, Field, field_serializer, field_validator
 
@@ -16,20 +17,46 @@ class Badge(BaseModel):
     name: str | None = None
     first_name: str | None = None
     last_name: str | None = None
-    gender: str | None = None
+    nickname: str = None
+    gender: Gender | None = None
     phone: str | None = None
-    infant: bool | None = None
-    vegan: bool | None = None
+    infant: None = Field(None)
+    diet: DietType | None = Field(None, validation_alias='vegan')
     feed: FeedType | None = None
     number: str | None = None
     batch: int | None = None
     role: ParticipationRole | None = None
-    position: str | None = None
+    occupation: str | None = Field(None, validation_alias='position')
     photo: str | None = None
     person: str | None = None
     comment: str | None = None
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
+
+    @field_validator('infant', mode='before')
+    @classmethod
+    def convert_infant(cls, value: str):
+        return None
+
+    @field_validator('gender', mode='before')
+    @classmethod
+    def convert_gender(cls, value: str):
+        return Gender[value].value
+
+    @field_validator('feed', mode='before')
+    @classmethod
+    def convert_feed(cls, value: str):
+        return FeedType[value].value
+
+    @field_validator('role', mode='before')
+    @classmethod
+    def convert_role(cls, value: str):
+        return ParticipationRole[value].value
+
+    @field_validator('diet', mode='before')
+    @classmethod
+    def convert_vegan(cls, value: str):
+        return DietType.VEGAN.value if value is True else DietType.STANDARD.value
 
 
 class BadgeWithMetadata(BaseModel):

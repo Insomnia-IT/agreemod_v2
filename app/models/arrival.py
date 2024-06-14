@@ -5,7 +5,7 @@ from uuid import UUID
 
 from dictionaries import TransportType
 from dictionaries.dictionaries import ParticipationStatus
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 
 from app.dto.badge import BadgeDTO
 from app.models.base import DomainModel
@@ -24,4 +24,26 @@ class Arrival(DomainModel):
     comment: str | None = None
     last_updated: datetime | None = None
 
-    model_config = ConfigDict(use_enum_values=True)
+    model_config = ConfigDict(
+        json_encoders={
+            TransportType: lambda t: t.name,
+            ParticipationStatus: lambda s: s.name,
+        },
+        use_enum_values=False
+    )
+
+    # @field_validator("status", mode="before")
+    # @classmethod
+    # def convert_status(cls, value: str) -> ParticipationStatus:
+    #     try:
+    #         return ParticipationStatus[value]
+    #     except KeyError:
+    #         return value
+        
+    # @field_validator("arrival_transport", "departure_transport", mode="before")
+    # @classmethod
+    # def convert_transport(cls, value: str) -> TransportType:
+    #     try:
+    #         return TransportType[value]
+    #     except KeyError:
+    #         return value

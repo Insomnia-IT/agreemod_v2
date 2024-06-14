@@ -74,7 +74,7 @@ async def get_badges(
 )
 async def get_arrivals(
     username: Annotated[str, Depends(verify_credentials)],
-    repo: ArrivalRepo = Depends(get_sqla_repo(BadgeRepo)),
+    repo: ArrivalRepo = Depends(get_sqla_repo(ArrivalRepo)),
     page: int = Q("page", 1, description="page"),
     page_size: int = Q("page size", 10, description="page_size"),
 ):
