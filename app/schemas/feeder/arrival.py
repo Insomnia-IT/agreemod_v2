@@ -4,7 +4,7 @@ from uuid import UUID
 
 from dictionaries import TransportType
 from dictionaries.dictionaries import ParticipationStatus
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, field_serializer, field_validator
 
 
 class Arrival(BaseModel):
@@ -15,7 +15,18 @@ class Arrival(BaseModel):
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
     departure_date: date | None = None
-    departure_transport: str | None = None
+    departure_transport: TransportType | None = None
+
+    @field_validator('status', mode='before')
+    @classmethod
+    def convert_status(cls, value: str):
+        return ParticipationStatus[value].value
+
+    @field_validator('arrival_transport', 'departure_transport', mode='before')
+    @classmethod
+    def convert_transport(cls, value: str):
+        return TransportType[value].value
+
 
 
 class ArrivalWithMetadata(BaseModel):

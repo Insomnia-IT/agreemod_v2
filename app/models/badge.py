@@ -26,8 +26,8 @@ class Badge(DomainModel):
     infant: Infant | UUID | None = None
     diet: DietType = Field(default_factory=DietType.default)
     feed: str | None = None
-    number: str
-    batch: int
+    number: str | None = None
+    batch: int | None = None
     role: ParticipationRole
     photo: str | None = None
     person: Person | UUID | None = None
@@ -64,8 +64,12 @@ class Badge(DomainModel):
                 return BadgeColor.ORANGE
 
     model_config = ConfigDict(
-        json_encoders={DietType: lambda t: t.name, ParticipationRole: lambda p: p.name, Gender: lambda g: g.name},
-        use_enum_values=True,
+        json_encoders={
+            DietType: lambda t: t.name,
+            ParticipationRole: lambda p: p.name,
+            Gender: lambda g: g.name,
+        },
+        use_enum_values=False,
     )
 
     @field_serializer("infant")
@@ -105,7 +109,7 @@ class Badge(DomainModel):
         try:
             return DietType[value.lower()]
         except KeyError:
-            return value.lower()
+            return DietType.default()
 
     @model_validator(mode="after")
     def set_default_photo(self) -> str:
@@ -117,7 +121,10 @@ class Badge(DomainModel):
     @classmethod
     def set_empty_occupation(cl, data: Any):
         if not data.get("occupation"):
-            data["occupation"] = ParticipationRole[data["role"]].value
+            try:
+                data["occupation"] = ParticipationRole[data["role"]].value
+            except KeyError:
+                data["occupation"] = ParticipationRole[data["role"].name].value
         return data
 
 

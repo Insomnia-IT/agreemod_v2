@@ -10,6 +10,7 @@ from app.db.orm import ArrivalAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
+from app.schemas.feeder.arrival import Arrival as FeederArrival
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,39 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         orm = ArrivalAppORM.to_orm(data)
         await self.session.merge(orm)
         await self.session.flush([orm])
+
+    async def update_feeder(self, data: list[FeederArrival]) -> list[bool]:
+        existing = []
+        collected = {}
+        for arrival in data:
+            if arrival.id not in collected:
+                collected.update({arrival.id: arrival.model_dump()})
+            else:
+                collected[arrival.id] = collected[arrival.id] | {x: y for x, y in arrival.model_dump().items() if y is not None}
+        for a_id, arrival in collected.items():
+            exist = False
+            arrival_orm: ArrivalAppORM = await self.session.scalar(
+                select(ArrivalAppORM).filter_by(id=a_id)
+            )
+            if arrival_orm:
+                exist = True
+                [
+                    arrival_orm.__setattr__(x, y) for x,y
+                    in arrival.items()
+                    if x not in ['id'] and y is not None
+                ]
+                arrival_orm.last_updated = datetime.now()
+            else:
+                arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
+                arrival_orm.last_updated = datetime.now()
+            if exist:
+                await self.session.merge(arrival_orm)
+            else:
+                self.session.add(arrival_orm)
+                # await self.session.flush()
+            existing.append(exist)
+        return existing
+
 
     async def delete(self, id):
         await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.id == id))

@@ -27,7 +27,7 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    coda_index: Mapped[int] = Column(Integer, nullable=False)
+    coda_index: Mapped[int] = Column(Integer)
     badge_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True), ForeignKey("badge.notion_id"), nullable=False
     )

@@ -22,7 +22,7 @@ class LogsORM(Base, BaseORM):
     id: Mapped[int] = Column(Integer, primary_key=True, autoincrement=True)
     author: Mapped[str] = Column(String, nullable=True)
     table_name: Mapped[str] = Column(String, nullable=False)
-    row_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), nullable=False)
+    row_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
     operation: Mapped[str] = Column(String, nullable=False)
     timestamp: Mapped[datetime] = Column(TIMESTAMP, nullable=False)
     new_data: Mapped[dict] = Column(JSON)

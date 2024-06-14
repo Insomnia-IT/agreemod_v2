@@ -8,6 +8,7 @@ from database.orm.logging import LogsORM
 from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from dictionaries.dictionaries import DirectionType, ParticipationRole, ParticipationStatus
+from dictionaries.diet_type import DietType
 from dictionaries.transport_type import TransportType
 from sqlalchemy.orm import Mapped, relationship
 
@@ -110,16 +111,16 @@ class BadgeAppORM(BadgeORM):
             gender=model.gender,
             phone=model.phone,
             infant_id=model.infant.id if model.infant else None,
-            diet=model.diet.name if model.diet else None,
+            diet=model.diet.name if isinstance(model.diet, DietType) else DietType.default(),
             feed=model.feed if model.feed else None,
             number=model.number,
             batch=model.batch,
-            role=model.role.name if model.role else None,
+            role_code=model.role.name if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
             photo=model.photo,
             occupation=model.occupation,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
-            notion_id=model.notion_id.hex,
+            notion_id=model.notion_id.hex if model.notion_id else None,
         )
 
     def to_model(
@@ -167,14 +168,14 @@ class ArrivalAppORM(ArrivalORM):
     def to_orm(cls, model: Arrival) -> Self:
         return cls(
             id=model.id,
-            badge_id=model.badge.id,
+            badge_id=model.badge.id if isinstance(model.badge, Badge) else model.badge,
             arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport.name,
+            arrival_transport=model.arrival_transport.name if isinstance(model.arrival_transport, TransportType) else model.arrival_transport,
             arrival_registered=model.arrival_registered,
             departure_date=model.departure_date,
-            departure_transport=model.departure_transport.name,
+            departure_transport=model.departure_transport.name if isinstance(model.departure_transport, TransportType) else model.departure_transport,
             departure_registered=model.departure_registered,
-            status=model.status.name,
+            status=model.status.name if isinstance(model.status, ParticipationStatus) else model.status,
             extra_data=model.extra_data,
             comment=model.comment,
             last_updated=model.last_updated,
