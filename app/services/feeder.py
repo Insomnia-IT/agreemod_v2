@@ -74,7 +74,7 @@ class FeederService:
                     Logs(
                         author=actor.name if actor else 'ANON',
                         table_name="badge",
-                        row_id=b.id if e else None,
+                        row_id=b.data.id if e else None,
                         operation="MERGE" if e else "INSERT",
                         timestamp=dt,
                         new_data=serialize(b.data.model_dump()),
@@ -89,7 +89,7 @@ class FeederService:
                     Logs(
                         author=actor.name if actor else 'ANON',
                         table_name="arrival",
-                        row_id=a.id if e else None,
+                        row_id=a.data.id if e else None,
                         operation="MERGE" if e else "INSERT",
                         timestamp=dt,
                         new_data=serialize(a.data.model_dump()),
