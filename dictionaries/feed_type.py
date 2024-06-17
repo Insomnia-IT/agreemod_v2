@@ -7,7 +7,7 @@ class FeedType(StrEnum):
     """
 
     FREE = "Бесплатно"
-    PAYMENT = "Платно"
+    PAID = "Платно"
     NO = "Без питания"
 
     @property
