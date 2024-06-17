@@ -115,7 +115,7 @@ class BadgeResponse(BaseModel):
         try:
             return FeedType(value)
         except ValueError:
-            return FeedType
+            return FeedType[value]
 
     @field_validator("directions", mode="before")
     @classmethod
