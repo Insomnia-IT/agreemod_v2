@@ -41,11 +41,15 @@ class Badge(BaseModel):
     @field_validator('gender', mode='before')
     @classmethod
     def convert_gender(cls, value: str):
+        if not value:
+            return None
         return Gender[value].value
 
     @field_validator('feed', mode='before')
     @classmethod
     def convert_feed(cls, value: str):
+        if not value:
+            return FeedType.NO.value
         return FeedType[value].value
 
     @field_validator('role', mode='before')
@@ -108,7 +112,10 @@ class BadgeResponse(BaseModel):
     def validate_feed(cls, value: str) -> str:
         if not value:
             return FeedType.NO
-        return FeedType[value]
+        try:
+            return FeedType(value)
+        except ValueError:
+            return FeedType
 
     @field_validator("directions", mode="before")
     @classmethod
