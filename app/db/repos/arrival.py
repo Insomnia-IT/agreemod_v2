@@ -68,7 +68,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             if arrival_orm:
                 exist = True
                 [
-                    arrival_orm.__setattr__(x, y) for x,y
+                    setattr(arrival_orm, x, y) for x,y
                     in arrival.items()
                     if x not in ['id'] and y is not None
                 ]

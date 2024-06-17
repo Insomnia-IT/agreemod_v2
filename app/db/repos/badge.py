@@ -165,7 +165,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             if badge_orm:
                 exist = True
                 [
-                    badge_orm.__setattr__(x, y) for x,y
+                    setattr(badge_orm, x, y) for x,y
                     in badge.items()
                     if x not in ['id', 'directions'] and y is not None
                 ]
