@@ -7,7 +7,6 @@ from uuid import UUID
 
 import asyncpg
 
-from dictionaries.diet_type import DietType
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repos.arrival import ArrivalRepo
@@ -16,11 +15,9 @@ from app.db.repos.direction import DirectionRepo
 from app.db.repos.logging import LogsRepo
 from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
-from app.models.arrival import Arrival
-from app.models.badge import Badge
 from app.models.logging import Logs
-from app.schemas.feeder.arrival import ArrivalResponse, ArrivalWithMetadata
-from app.schemas.feeder.badge import BadgeResponse, BadgeWithMetadata
+from app.schemas.feeder.arrival import ArrivalResponse
+from app.schemas.feeder.badge import BadgeResponse
 from app.schemas.feeder.directions import DirectionResponse
 from app.schemas.feeder.engagement import EngagementResponse
 from app.schemas.feeder.person import PersonResponse

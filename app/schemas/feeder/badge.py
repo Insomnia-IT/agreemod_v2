@@ -75,8 +75,8 @@ class BadgeResponse(BaseModel):
     phone: str
     infant: bool
     vegan: bool = Field(..., validation_alias="diet")
-    feed: FeedType = Field(FeedType.NO)
-    number: str
+    feed: str = Field(FeedType.NO.name)
+    number: str | None
     batch: str
     role: ParticipationRole
     position: str = Field(..., validation_alias="occupation")
@@ -108,7 +108,7 @@ class BadgeResponse(BaseModel):
     def validate_feed(cls, value: str) -> str:
         if not value:
             return FeedType.NO
-        return value
+        return FeedType[value]
 
     @field_validator("directions", mode="before")
     @classmethod
