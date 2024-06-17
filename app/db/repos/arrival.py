@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 
 from datetime import datetime
@@ -68,7 +69,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             if arrival_orm:
                 exist = True
                 [
-                    setattr(arrival_orm, x, y) for x,y
+                    setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y) for x,y
                     in arrival.items()
                     if x not in ['id'] and y is not None
                 ]

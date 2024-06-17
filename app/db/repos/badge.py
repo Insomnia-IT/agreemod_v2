@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List
 
 from sqlalchemy import delete, select
@@ -165,7 +166,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             if badge_orm:
                 exist = True
                 [
-                    setattr(badge_orm, x, y) for x,y
+                    setattr(badge_orm, x, y.name if isinstance(y, Enum) else y) for x,y
                     in badge.items()
                     if x not in ['id', 'directions'] and y is not None
                 ]

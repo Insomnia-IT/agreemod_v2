@@ -4,13 +4,13 @@ from uuid import UUID
 
 from dictionaries import TransportType
 from dictionaries.dictionaries import ParticipationStatus
-from pydantic import BaseModel, field_serializer, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class Arrival(BaseModel):
     id: str | None = None
     deleted: bool | None = None
-    badge: UUID | None = None
+    badge_id: UUID | None = Field(None, validation_alias='badge')
     status: ParticipationStatus | None = None
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
