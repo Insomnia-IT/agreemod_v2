@@ -79,7 +79,7 @@ class BadgeResponse(BaseModel):
     phone: str
     infant: bool
     vegan: bool = Field(..., validation_alias="diet")
-    feed: str = Field(FeedType.NO.name)
+    feed: FeedType = Field(FeedType.NO)
     number: str | None
     batch: str
     role: ParticipationRole
