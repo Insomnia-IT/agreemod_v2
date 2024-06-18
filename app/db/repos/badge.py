@@ -30,13 +30,16 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         filters: BadgeFilterDTO = None,
         from_date: datetime = None,
     ):
-        query = select(BadgeAppORM, BadgeDirectionsAppORM)
+        if include_directions:
+            query = select(BadgeAppORM, BadgeDirectionsAppORM).join(BadgeAppORM.directions)
+        else:
+            query = select(BadgeAppORM)
         if notion_id:
-            query = query.filter_by(notion_id=notion_id)
+            query = query.where(BadgeAppORM.notion_id == notion_id)
         if badge_number:
-            query = query.filter_by(badge_number=badge_number)
+            query = query.where(BadgeAppORM.number == badge_number)
         if phone:
-            query = query.filter_by(phone=phone)
+            query = query.where(BadgeAppORM.phone == phone)
         if page and limit:
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
@@ -52,17 +55,15 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = query.where(BadgeAppORM.last_updated > from_date)
         if filters:
             if filters.batch:
-                query = query.filter_by(batch=filters.batch)
-            if filters.color:
-                query = query.filter_by(color=filters.color)
+                query = query.where(BadgeAppORM.batch == filters.batch)
             # if filters.direction:
             #     query = query.where([x.name for x in BadgeAppORM.directions])
             if filters.role:
-                query = query.filter_by(role=filters.role)
+                query = query.where(BadgeAppORM.role_code == filters.role)
             if filters.occupation:
-                query = query.filter_by(occupation=filters.occupation)
+                query = query.where(BadgeAppORM.occupation == filters.occupation)
             if filters.infants:
-                query = query.filter_by(infant_id=filters.infants)
+                query = query.where(BadgeAppORM.infant_id == filters.infants)
         return query
 
     async def retrieve(
@@ -154,16 +155,14 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                     collected[badge.id]['notion_id'] = badge.id
         for b_id, badge in collected.items():
             exist = False
-            dirs = []
-            for dir in badge.get('directions', []):
-                dir_orm = await self.session.scalar(
-                select(DirectionAppORM).filter_by(notion_id=dir)
+            directions: list[DirectionAppORM] = await self.session.scalars(
+                select(DirectionAppORM).where(
+                    DirectionAppORM.notion_id.in_(badge['directions']))
             )
-                dirs.append(dir_orm)
-            badge_orm: BadgeAppORM = await self.session.scalar(self.query(
-                notion_id=b_id,
-                include_infant=True,
-            ))
+            badge_orm: BadgeAppORM = await self.session.scalar(
+                select(BadgeAppORM).where(BadgeAppORM.id == b_id)
+                .options(selectinload(BadgeAppORM.infant))
+            )
             if badge_orm:
                 exist = True
                 [
@@ -173,10 +172,6 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 ]
                 badge_orm.last_updated = datetime.now()
             else:
-                directions: list[DirectionAppORM] = await self.session.scalars(
-                    select(DirectionAppORM).where(
-                        DirectionAppORM.notion_id.in_(badge['directions']))
-                )
                 badge['directions'] = [
                     DirectionDTO(
                         id=x.id,
@@ -187,10 +182,11 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 ]
                 badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
                 badge_orm.last_updated = datetime.now()
-            for d in dirs:
+            for d in directions:
                 badge_dir = BadgeDirectionsAppORM()
                 badge_dir.direction = d
-                badge_orm.directions.append(badge_dir)
+                if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
+                    badge_orm.directions.append(badge_dir)
             if exist:
                 await self.session.merge(badge_orm)
                 # await self.session.flush()
