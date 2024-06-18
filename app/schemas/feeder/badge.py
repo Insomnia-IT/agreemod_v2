@@ -81,7 +81,7 @@ class BadgeResponse(BaseModel):
     vegan: bool = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
     number: str | None
-    batch: str
+    batch: str | None
     role: ParticipationRole
     position: str = Field(..., validation_alias="occupation")
     photo: str
