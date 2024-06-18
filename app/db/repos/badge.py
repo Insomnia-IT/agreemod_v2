@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
+from app.dto.direction import DirectionDTO
 from app.models.badge import Badge
 from app.schemas.feeder.badge import Badge as FeederBadge
 from app.models.direction import Direction
@@ -172,6 +173,18 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 ]
                 badge_orm.last_updated = datetime.now()
             else:
+                directions: list[DirectionAppORM] = await self.session.scalars(
+                    select(DirectionAppORM).where(
+                        DirectionAppORM.notion_id.in_(badge['directions']))
+                )
+                badge['directions'] = [
+                    DirectionDTO(
+                        id=x.id,
+                        name=x.name,
+                        type=x.type,
+                        notion_id=x.notion_id
+                    ) for x in directions
+                ]
                 badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
                 badge_orm.last_updated = datetime.now()
             for d in dirs:
