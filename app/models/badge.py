@@ -121,10 +121,7 @@ class Badge(DomainModel):
     @classmethod
     def set_empty_occupation(cl, data: Any):
         if not data.get("occupation"):
-            try:
-                data["occupation"] = ParticipationRole[data["role"]].value
-            except KeyError:
-                data["occupation"] = ParticipationRole[data["role"].name].value
+            data["occupation"] = data["role"]
         return data
 
 

@@ -94,6 +94,8 @@ class BadgeService:
         )
 
     async def prepare_to_print(self, batch_num: int):
+        if os.path.isfile(f"batch_{batch_num}.zip"):
+            os.remove(f"batch_{batch_num}.zip")
         filters = BadgeFilterDTO(
             batch=batch_num,
         )

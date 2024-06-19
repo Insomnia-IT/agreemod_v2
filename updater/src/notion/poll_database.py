@@ -137,6 +137,18 @@ class NotionPoller(Poller):
                                 {
                                     x: adapt_value(y)
                                     for x, y in dict(exist).items()
+                                    if x not in ["last_updated"]
+                                },
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(orm).items()
+                                    if x not in ["last_updated"]
+                                },
+                            )
+                            diff_photo = DeepDiff(
+                                {
+                                    x: adapt_value(y)
+                                    for x, y in dict(exist).items()
                                     if x not in ["last_updated", "photo"]
                                 },
                                 {
@@ -152,16 +164,19 @@ class NotionPoller(Poller):
                                     orm.last_updated = exist.last_updated
                                     await session.merge(orm)
                             if diff:
-                                await log_repo.add_log(
-                                    table_name=self.database.orm.__tablename__,
-                                    operation="MERGE",
-                                    row_id=exist.id,
-                                    new_data={
-                                        x: adapt_to_serialize(y)
-                                        for x, y in dict(orm).items()
-                                    },
-                                    author="Notion",
-                                )
+                                if not diff_photo:
+                                    orm.last_updated = exist.last_updated
+                                else:
+                                    await log_repo.add_log(
+                                        table_name=self.database.orm.__tablename__,
+                                        operation="MERGE",
+                                        row_id=exist.id,
+                                        new_data={
+                                            x: adapt_to_serialize(y)
+                                            for x, y in dict(orm).items()
+                                        },
+                                        author="Notion",
+                                    )
                                 await session.merge(orm)
                         if isinstance(orm, BadgeORM):
                             for direction in model.direction_id_.value:

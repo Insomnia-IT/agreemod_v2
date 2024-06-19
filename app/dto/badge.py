@@ -35,7 +35,4 @@ class Infant(BaseModel):
     def convert_diet(cls, value: str):
         if not value:
             return None
-        try:
-            return DietType[value.lower()]
-        except KeyError:
-            return value.lower()
+        return DietType[value]
