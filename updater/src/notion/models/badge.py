@@ -3,6 +3,8 @@ from uuid import UUID
 import psycopg2
 
 from dictionaries.dictionaries import BadgeColor, ParticipationRole
+from dictionaries.diet_type import DietType
+from dictionaries.feed_type import FeedType
 from dictionaries.gender import Gender
 from pydantic import Field, field_validator, model_validator
 from updater.src.config import config
@@ -152,6 +154,22 @@ class Badge(NotionModel):
         else:
             return None
         return gender
+
+    @field_validator("diet", mode="after")
+    @classmethod
+    def format_diet(cls, value: Select):
+        if not value.select:
+            return None
+        diet = cls.get_key_from_value(value.select.name.lower(), DietType)
+        return diet
+
+    @field_validator("feed", mode="after")
+    @classmethod
+    def format_feed(cls, value: Select):
+        if not value.select:
+            return None
+        feed = cls.get_key_from_value(value.select.name.lower(), FeedType)
+        return feed
 
     @field_validator(
         "name",

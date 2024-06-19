@@ -8,7 +8,7 @@ from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
 from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
-from pydantic import BaseModel, Field, field_serializer, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator, model_validator
 
 
 class Badge(BaseModel):
@@ -61,7 +61,13 @@ class Badge(BaseModel):
     @classmethod
     def convert_vegan(cls, value: str):
         return DietType.VEGAN.value if value is True else DietType.STANDARD.value
-
+    
+    # necessary evil
+    @model_validator
+    def fill_notion_id_if_none(self):
+        if self.notion_id is None:
+            self.notion_id = self.id
+        return self
 
 class BadgeWithMetadata(BaseModel):
     actor_badge: UUID | None = None

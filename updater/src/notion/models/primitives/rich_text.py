@@ -12,7 +12,7 @@ class RichTextBody(BaseModel):
     type: str
     text: Text | None = None
     annotations: Annotations | None = None
-    plain_text: str
+    plain_text: str | int | float
     href: str | None = None
 
 
@@ -31,7 +31,7 @@ class RichText(BaseNotionModel):
     @property
     def value(self) -> str:
         return "".join(
-            rt.plain_text for rt in self.rich_text if isinstance(rt, RichTextBody)
+            str(rt.plain_text) for rt in self.rich_text if isinstance(rt, RichTextBody)
         ).strip()
 
     @classmethod
@@ -41,7 +41,7 @@ class RichText(BaseNotionModel):
     ):
         result = []
         for value in values:
-            if isinstance(value, str):
+            if isinstance(value, (str, int, float)):
                 result.append(
                     {
                         "type": "rich_text",

@@ -30,7 +30,7 @@ class Link(BaseModel):
 
 
 class Text(BaseModel):
-    content: str
+    content: str | int | float
     link: Link | None = None
 
 

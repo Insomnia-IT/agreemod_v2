@@ -1,6 +1,7 @@
 from database.meta import async_session
 from updater.src.db.repos.participation import ParticipationRepo
 from updater.src.notion.client import NotionClient
+from updater.src.notion.models.participation import Participation
 
 
 # def convert_to_notion_object(participation):
@@ -60,9 +61,10 @@ async def write_database(client: NotionClient, database=None):
     for data in all_data:
         # converted_for_notion = convert_to_notion_object(data)
         try:
+            participation = Participation.create_model(data)
             response = await client._client.pages.create(
                 parent={"database_id": db_id_participation},
-                properties=data,
+                properties=participation.model_dump(),
             )
             print("Data updated in the Notion database successfully!")
             return response

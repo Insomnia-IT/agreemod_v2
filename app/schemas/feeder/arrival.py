@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_serializer, field_validator
 class Arrival(BaseModel):
     id: str | None = None
     deleted: bool | None = None
-    badge_id: UUID | None = Field(None, validation_alias='badge')
+    badge: UUID
     status: ParticipationStatus | None = None
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None

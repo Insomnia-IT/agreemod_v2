@@ -9,6 +9,8 @@ from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from dictionaries.dictionaries import DirectionType, ParticipationRole, ParticipationStatus
 from dictionaries.diet_type import DietType
+from dictionaries.feed_type import FeedType
+from dictionaries.gender import Gender
 from dictionaries.transport_type import TransportType
 from sqlalchemy.orm import Mapped, relationship
 
@@ -31,13 +33,13 @@ class PersonAppORM(PersonORM):
             first_name=person.first_name,
             nickname=person.nickname,
             other_names=person.other_names,
-            gender=person.gender,
+            gender=person.gender.name if person.gender else Gender.OTHER.name,
             birth_date=person.birth_date,
             city=person.city,
             telegram=person.telegram,
             phone=person.phone,
             email=person.email,
-            diet=person.diet,
+            diet=person.diet.name if person.diet else DietType.STANDARD.name,
             comment=person.comment,
             notion_id=person.notion_id.hex,
             last_updated=person.last_updated,
@@ -51,13 +53,13 @@ class PersonAppORM(PersonORM):
             first_name=self.first_name,
             nickname=self.nickname,
             other_names=self.other_names,
-            gender=self.gender,
+            gender=Gender[self.gender].value,
             birth_date=self.birth_date,
             city=self.city,
             telegram=self.telegram,
             phone=self.phone,
             email=self.email,
-            diet=self.diet,
+            diet=DietType[self.diet].value,
             comment=self.comment,
             notion_id=self.notion_id,
             last_updated=self.last_updated,
@@ -111,11 +113,11 @@ class BadgeAppORM(BadgeORM):
             gender=model.gender,
             phone=model.phone,
             infant_id=model.infant.id if model.infant else None,
-            diet=model.diet.name if isinstance(model.diet, DietType) else DietType.default(),
-            feed=model.feed if model.feed else None,
+            diet=model.diet.name if model.diet else DietType.STANDARD.name, # if isinstance(model.diet, DietType) else DietType.default(),
+            feed=model.feed if model.feed else FeedType.NO.name,
             number=model.number,
             batch=model.batch,
-            role_code=model.role.name if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
+            role_code=model.role.name, # if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
             photo=model.photo,
             occupation=model.occupation,
             person_id=model.person.id if model.person else None,
@@ -142,13 +144,13 @@ class BadgeAppORM(BadgeORM):
                 if self.infant and include_infant
                 else self.infant_id
             ),
-            diet=self.diet,
-            feed=self.feed,
+            diet=DietType[self.diet].value,
+            feed=FeedType[self.feed].value,
             number=self.number,
             batch=self.batch,
-            role=self.role_code,
+            role=ParticipationRole[self.role_code].value,
             photo=self.photo,
-            person=(self.person.to_model() if self.person and include_person else self.person_id),
+            person=self.person.to_model() if self.person and include_person else self.person_id,
             directions=(
                 [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
@@ -170,12 +172,12 @@ class ArrivalAppORM(ArrivalORM):
             id=model.id,
             badge_id=model.badge.id if isinstance(model.badge, Badge) else model.badge,
             arrival_date=model.arrival_date,
-            arrival_transport=model.arrival_transport.name if isinstance(model.arrival_transport, TransportType) else model.arrival_transport,
+            arrival_transport=model.arrival_transport.name, #if isinstance(model.arrival_transport, TransportType) else model.arrival_transport,
             arrival_registered=model.arrival_registered,
             departure_date=model.departure_date,
-            departure_transport=model.departure_transport.name if isinstance(model.departure_transport, TransportType) else model.departure_transport,
+            departure_transport=model.departure_transport.name, #if isinstance(model.departure_transport, TransportType) else model.departure_transport,
             departure_registered=model.departure_registered,
-            status=model.status.name if isinstance(model.status, ParticipationStatus) else model.status,
+            status=model.status.name, #if isinstance(model.status, ParticipationStatus) else model.status,
             extra_data=model.extra_data,
             comment=model.comment,
             last_updated=model.last_updated,
