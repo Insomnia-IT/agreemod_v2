@@ -60,9 +60,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             if arrival.id not in collected:
                 collected.update({arrival.id: arrival.model_dump()})
             else:
-                collected[arrival.id] = collected[arrival.id].update(
-                    {x: y for x, y in arrival.model_dump().items() if y is not None}
-                )
+                collected[arrival.id] = collected[arrival.id].update(arrival.model_dump(exclude_none=True))
         for a_id, arrival in collected.items():
             exist = False
             arrival_orm: ArrivalAppORM = await self.session.scalar(
