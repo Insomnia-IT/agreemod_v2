@@ -12,7 +12,7 @@ class CodaParticipation(BaseModel):
     person_id: UUID = Field(..., alias="person_id")
     direction_id: UUID = Field(..., alias="direction_id")
     role_code: ParticipationRole = Field(..., alias="Роль")
-    status_code: ParticipationStatus = Field(..., alias="Статус")
+    status_code: ParticipationStatus = Field(ParticipationStatus.PLANNED, alias="Статус")
     notion_id: UUID | None = None
     last_updated: datetime = Field(default_factory=datetime.now)
 

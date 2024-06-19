@@ -65,6 +65,9 @@ class Person(NotionModel):
             .replace("(", "")
             .replace(")", "")
         )
+        # check again as if some garbage may be cleaned to nothing
+        if not value.phone_number:
+            return value
         if value.phone_number[0] == "8":
             value.phone_number = "+7" + value.phone_number[1:]
         elif value.phone_number[0] == "9":

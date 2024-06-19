@@ -168,7 +168,7 @@ class Badge(NotionModel):
     def format_feed(cls, value: Select):
         if not value.select:
             return None
-        feed = cls.get_key_from_value(value.select.name.lower(), FeedType)
+        feed = cls.get_key_from_value(value.select.name, FeedType)
         return feed
 
     @field_validator(
