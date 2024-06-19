@@ -89,9 +89,9 @@ async def get_telebot_person(
         email=person.email,
         second_email=person.email,
         phone_number=person.phone,
-        role=next(x.role.value for x in participations if x.role),
+        role=next(x.role for x in participations),
         volunteer=["???"],  # TODO: что тут должно быть?
-        organize=[x.participation_type.value for x in participations],
+        organize=[x.role for x in participations],
     )
     return person_for_telebot
 

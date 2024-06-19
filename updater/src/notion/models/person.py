@@ -2,6 +2,7 @@ from typing import Literal
 
 from dictionaries.diet_type import DietType
 from pydantic import ConfigDict, Field, field_validator, model_validator
+from dictionaries.gender import Gender
 from updater.src.notion.models.base import NotionModel
 from updater.src.notion.models.primitives.checkbox import Checkbox
 from updater.src.notion.models.primitives.date import Date
@@ -79,9 +80,11 @@ class Person(NotionModel):
     def format_gender(cls, value: Select):
         if value.select:
             if value.select.name.lower() in ["ж", "женский", "f", "female"]:
-                value.select.name = "женский"
+                value.select.name = Gender.FEMALE
             elif value.select.name.lower() in ["м", "мужской", "m", "male"]:
-                value.select.name = "мужской"
+                value.select.name = Gender.MALE
+            else:
+                value.select.name = Gender.OTHER
         return value
 
     @field_validator("telegram")

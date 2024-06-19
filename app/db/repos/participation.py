@@ -53,7 +53,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             return None
         return result.to_model(include_person=include_person, include_direction=include_direction)
 
-    async def retrieve_personal(self, person_id: str, include_direction: bool) -> list[Participation]:
+    async def retrieve_personal(self, person_id: str, include_direction: bool = False) -> list[Participation]:
         results = await self.session.scalars(
             self.get_query(include_direction=include_direction).filter(ParticipationAppORM.person_id == person_id)
         )

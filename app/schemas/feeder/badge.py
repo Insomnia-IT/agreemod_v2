@@ -63,7 +63,7 @@ class Badge(BaseModel):
         return DietType.VEGAN.value if value is True else DietType.STANDARD.value
     
     # necessary evil
-    @model_validator
+    @model_validator(mode='after')
     def fill_notion_id_if_none(self):
         if self.notion_id is None:
             self.notion_id = self.id
