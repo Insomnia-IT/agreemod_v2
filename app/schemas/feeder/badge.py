@@ -92,7 +92,7 @@ class BadgeResponse(BaseModel):
     position: str = Field(..., validation_alias="occupation")
     photo: str
     person: UUID | None
-    comment: str
+    comment: str | None
     notion_id: UUID
     directions: list[UUID] = Field(..., default_factory=list)
 
