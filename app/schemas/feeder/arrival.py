@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class Arrival(BaseModel):
-    id: str | None = None
+    id: UUID
     deleted: bool | None = None
-    badge: UUID
+    badge: UUID | None = None
     status: ParticipationStatus | None = None
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
