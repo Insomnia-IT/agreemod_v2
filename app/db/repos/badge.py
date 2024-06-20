@@ -160,7 +160,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                     DirectionAppORM.notion_id.in_(badge['directions']))
             )
             badge_orm: BadgeAppORM = await self.session.scalar(
-                select(BadgeAppORM).where(BadgeAppORM.id == b_id)
+                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id)
                 .options(selectinload(BadgeAppORM.infant))
             )
             if badge_orm:
