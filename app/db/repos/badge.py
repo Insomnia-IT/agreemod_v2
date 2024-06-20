@@ -150,7 +150,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             if badge.id not in collected:
                 collected.update({badge.id: badge.model_dump()})
             else:
-                collected[badge.id] = collected[badge.id].update(badge.model_dump(exclude_none=True))
+                collected[badge.id].update(badge.model_dump(exclude_none=True))
                 if collected[badge.id]['notion_id'] is None:
                     collected[badge.id]['notion_id'] = badge.id
         for b_id, badge in collected.items():
