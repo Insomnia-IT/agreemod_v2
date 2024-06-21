@@ -30,7 +30,7 @@ class BadgeORM(Base, BaseORM):
     phone: Mapped[str] = Column(String)
     infant_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True),
-        ForeignKey("badge.notion_id"),
+        ForeignKey("badge.notion_id", ondelete="CASCADE"),
         nullable=True,
     )
     diet: Mapped[str] = Column(String)

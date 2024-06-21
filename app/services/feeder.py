@@ -71,9 +71,9 @@ class FeederService:
                         author=actor.name if actor else "ANON",
                         table_name="badge",
                         row_id=b.data.id if e else None,
-                        operation="MERGE" if e else "INSERT",
+                        operation="MERGE" if e else "INSERT" if e is not None else "DELETE",
                         timestamp=dt,
-                        new_data=serialize(b.data.model_dump()),
+                        new_data=serialize(b.data.model_dump() if e is not None else {}),
                     )
                 )
         if arrivals:
@@ -86,9 +86,9 @@ class FeederService:
                         author=actor.name if actor else "ANON",
                         table_name="arrival",
                         row_id=a.data.id if e else None,
-                        operation="MERGE" if e else "INSERT",
+                        operation="MERGE" if e else "INSERT" if e is not None else "DELETE",
                         timestamp=dt,
-                        new_data=serialize(a.data.model_dump()),
+                        new_data=serialize(a.data.model_dump() if e is not None else {}),
                     )
                 )
 

@@ -162,7 +162,11 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             )
             if badge_orm:
                 if badge.get("deleted", False) is True:
-                    await self.delete(badge_orm.notion_id)
+                    if badge_orm.comment is not None:
+                        badge_orm.comment += "///удалён"
+                    else:
+                        badge_orm.comment = "///удалён"
+                    exist = None
                 else:
                     exist = True
                     [
@@ -170,24 +174,27 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                         for x, y in badge.items()
                         if x not in ["id", "directions"] and y is not None
                     ]
-                    badge_orm.last_updated = datetime.now()
+                    for d in directions:
+                        badge_dir = BadgeDirectionsAppORM()
+                        badge_dir.direction = d
+                        if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
+                            badge_orm.directions.append(badge_dir)
+                            badge_orm.last_updated = datetime.now()
+                await self.session.merge(badge_orm)
             elif badge.get("deleted", False) is False:
                 badge["directions"] = [
                     DirectionDTO(id=x.id, name=x.name, type=x.type, notion_id=x.notion_id) for x in directions
                 ]
                 badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
                 badge_orm.last_updated = datetime.now()
-            for d in directions:
-                badge_dir = BadgeDirectionsAppORM()
-                badge_dir.direction = d
-                if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
-                    badge_orm.directions.append(badge_dir)
-            if exist:
-                await self.session.merge(badge_orm)
-                # await self.session.flush()
-            else:
+                for d in directions:
+                    badge_dir = BadgeDirectionsAppORM()
+                    badge_dir.direction = d
+                    if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
+                        badge_orm.directions.append(badge_dir)
                 self.session.add(badge_orm)
-                # await self.session.flush()
+            elif badge.get("deleted", False) is True:
+                exist = None
             existing.append(exist)
         return existing
 
