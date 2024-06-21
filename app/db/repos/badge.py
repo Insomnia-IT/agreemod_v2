@@ -164,14 +164,17 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 .options(selectinload(BadgeAppORM.infant))
             )
             if badge_orm:
-                exist = True
-                [
-                    setattr(badge_orm, x, y.name if isinstance(y, Enum) else y) for x,y
-                    in badge.items()
-                    if x not in ['id', 'directions'] and y is not None
-                ]
-                badge_orm.last_updated = datetime.now()
-            else:
+                if badge.get('deleted', False) is True:
+                    await self.session.delete(badge_orm)
+                else:
+                    exist = True
+                    [
+                        setattr(badge_orm, x, y.name if isinstance(y, Enum) else y) for x,y
+                        in badge.items()
+                        if x not in ['id', 'directions'] and y is not None
+                    ]
+                    badge_orm.last_updated = datetime.now()
+            elif badge.get('deleted', False) is False:
                 badge['directions'] = [
                     DirectionDTO(
                         id=x.id,

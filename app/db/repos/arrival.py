@@ -67,19 +67,21 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 select(ArrivalAppORM).filter_by(id=a_id)
             )
             if arrival_orm:
-                exist = True
-                [
-                    setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y) for x,y
-                    in arrival.items()
-                    if x not in ['id'] and y is not None
-                ]
-                arrival_orm.last_updated = datetime.now()
-            else:
+                if arrival.get('deleted', False) is True:
+                    await self.session.delete(arrival_orm)
+                else:
+                    exist = True
+                    [
+                        setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y) for x,y
+                        in arrival.items()
+                        if x not in ['id'] and y is not None
+                    ]
+                    arrival_orm.last_updated = datetime.now()
+                    await self.session.merge(arrival_orm)
+            elif arrival.get('deleted', False) is False:
+                arrival['badge'] = arrival['badge_id']
                 arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                 arrival_orm.last_updated = datetime.now()
-            if exist:
-                await self.session.merge(arrival_orm)
-            else:
                 self.session.add(arrival_orm)
                 # await self.session.flush()
             existing.append(exist)
