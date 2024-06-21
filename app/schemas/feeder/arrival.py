@@ -10,23 +10,22 @@ from pydantic import BaseModel, Field, field_serializer, field_validator
 class Arrival(BaseModel):
     id: UUID
     deleted: bool | None = None
-    badge_id: UUID | None = Field(None, validation_alias='badge')
+    badge_id: UUID | None = Field(None, validation_alias="badge")
     status: ParticipationStatus | None = None
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
     departure_date: date | None = None
     departure_transport: TransportType | None = None
 
-    @field_validator('status', mode='before')
+    @field_validator("status", mode="before")
     @classmethod
     def convert_status(cls, value: str):
         return ParticipationStatus[value].value
 
-    @field_validator('arrival_transport', 'departure_transport', mode='before')
+    @field_validator("arrival_transport", "departure_transport", mode="before")
     @classmethod
     def convert_transport(cls, value: str):
         return TransportType[value].value
-
 
 
 class ArrivalWithMetadata(BaseModel):

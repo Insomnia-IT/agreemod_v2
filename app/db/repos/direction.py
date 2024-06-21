@@ -8,7 +8,6 @@ from sqlalchemy.orm import selectinload
 
 from app.db.orm import BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
-
 from app.errors import RepresentativeError
 from app.models.direction import Direction
 

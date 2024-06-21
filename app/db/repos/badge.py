@@ -10,9 +10,9 @@ from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.dto.direction import DirectionDTO
 from app.models.badge import Badge
-from app.schemas.feeder.badge import Badge as FeederBadge
 from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
+from app.schemas.feeder.badge import Badge as FeederBadge
 
 
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
@@ -142,7 +142,6 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             badge.directions.append(badge_dir)
         await self.session.merge(badge)
 
-    
     async def update_feeder(self, data: list[FeederBadge]) -> list[bool]:
         existing = []
         collected = {}
@@ -151,37 +150,30 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 collected.update({badge.id: badge.model_dump()})
             else:
                 collected[badge.id].update(badge.model_dump(exclude_none=True))
-                if collected[badge.id]['notion_id'] is None:
-                    collected[badge.id]['notion_id'] = badge.id
+                if collected[badge.id]["notion_id"] is None:
+                    collected[badge.id]["notion_id"] = badge.id
         for b_id, badge in collected.items():
             exist = False
             directions: list[DirectionAppORM] = await self.session.scalars(
-                select(DirectionAppORM).where(
-                    DirectionAppORM.notion_id.in_(badge['directions']))
+                select(DirectionAppORM).where(DirectionAppORM.notion_id.in_(badge["directions"]))
             )
             badge_orm: BadgeAppORM = await self.session.scalar(
-                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id)
-                .options(selectinload(BadgeAppORM.infant))
+                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id).options(selectinload(BadgeAppORM.infant))
             )
             if badge_orm:
-                if badge.get('deleted', False) is True:
+                if badge.get("deleted", False) is True:
                     await self.session.delete(badge_orm)
                 else:
                     exist = True
                     [
-                        setattr(badge_orm, x, y.name if isinstance(y, Enum) else y) for x,y
-                        in badge.items()
-                        if x not in ['id', 'directions'] and y is not None
+                        setattr(badge_orm, x, y.name if isinstance(y, Enum) else y)
+                        for x, y in badge.items()
+                        if x not in ["id", "directions"] and y is not None
                     ]
                     badge_orm.last_updated = datetime.now()
-            elif badge.get('deleted', False) is False:
-                badge['directions'] = [
-                    DirectionDTO(
-                        id=x.id,
-                        name=x.name,
-                        type=x.type,
-                        notion_id=x.notion_id
-                    ) for x in directions
+            elif badge.get("deleted", False) is False:
+                badge["directions"] = [
+                    DirectionDTO(id=x.id, name=x.name, type=x.type, notion_id=x.notion_id) for x in directions
                 ]
                 badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
                 badge_orm.last_updated = datetime.now()

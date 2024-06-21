@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_valid
 
 
 class PersonResponse(BaseModel):
-    id: UUID = Field(..., validation_alias='notion_id')
+    id: UUID = Field(..., validation_alias="notion_id")
     deleted: bool = False
     name: str | None = None
     first_name: str | None = None
@@ -21,7 +21,7 @@ class PersonResponse(BaseModel):
     telegram: str | None = None
     email: str | None = None
     city: str | None = None
-    vegan: bool = Field(..., validation_alias='diet')
+    vegan: bool = Field(..., validation_alias="diet")
     notion_id: UUID
 
     model_config = ConfigDict(
@@ -46,4 +46,3 @@ class PersonResponse(BaseModel):
             return False
         else:
             return True
-        

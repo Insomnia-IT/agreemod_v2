@@ -16,7 +16,7 @@ class Direction(BaseModel):
 
 
 class DirectionResponse(BaseModel):
-    id: UUID = Field(..., validation_alias='notion_id')
+    id: UUID = Field(..., validation_alias="notion_id")
     deleted: bool = False
     name: str
     first_year: int | None = None

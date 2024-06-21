@@ -1,7 +1,7 @@
-from enum import Enum
 import logging
 
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
@@ -63,30 +63,27 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 collected[arrival.id].update(arrival.model_dump(exclude_none=True))
         for a_id, arrival in collected.items():
             exist = False
-            arrival_orm: ArrivalAppORM = await self.session.scalar(
-                select(ArrivalAppORM).filter_by(id=a_id)
-            )
+            arrival_orm: ArrivalAppORM = await self.session.scalar(select(ArrivalAppORM).filter_by(id=a_id))
             if arrival_orm:
-                if arrival.get('deleted', False) is True:
+                if arrival.get("deleted", False) is True:
                     await self.session.delete(arrival_orm)
                 else:
                     exist = True
                     [
-                        setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y) for x,y
-                        in arrival.items()
-                        if x not in ['id'] and y is not None
+                        setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y)
+                        for x, y in arrival.items()
+                        if x not in ["id"] and y is not None
                     ]
                     arrival_orm.last_updated = datetime.now()
                     await self.session.merge(arrival_orm)
-            elif arrival.get('deleted', False) is False:
-                arrival['badge'] = arrival['badge_id']
+            elif arrival.get("deleted", False) is False:
+                arrival["badge"] = arrival["badge_id"]
                 arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                 arrival_orm.last_updated = datetime.now()
                 self.session.add(arrival_orm)
                 # await self.session.flush()
             existing.append(exist)
         return existing
-
 
     async def delete(self, id):
         await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.id == id))

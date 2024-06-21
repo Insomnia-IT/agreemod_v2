@@ -1,7 +1,7 @@
-from enum import Enum
 import logging
 
 from datetime import date, datetime, time
+from enum import Enum
 from typing import Any
 from uuid import UUID
 
@@ -26,8 +26,6 @@ from app.schemas.feeder.requests import BackSyncIntakeSchema, SyncResponseSchema
 
 logger = logging.getLogger(__name__)
 
-    
-
 
 def serialize(data: dict) -> dict:
     def adapt_to_serialize(value: Any):
@@ -49,6 +47,7 @@ def serialize(data: dict) -> dict:
 
     return {x: adapt_to_serialize(y) for x, y in data.items()}
 
+
 class FeederService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -69,7 +68,7 @@ class FeederService:
                 dt = b.date.replace(tzinfo=None)
                 await self.logs.add_log(
                     Logs(
-                        author=actor.name if actor else 'ANON',
+                        author=actor.name if actor else "ANON",
                         table_name="badge",
                         row_id=b.data.id if e else None,
                         operation="MERGE" if e else "INSERT",
@@ -79,12 +78,12 @@ class FeederService:
                 )
         if arrivals:
             existing = await self.arrivals.update_feeder([x.data for x in arrivals])
-            for e, a in zip (existing, arrivals):
+            for e, a in zip(existing, arrivals):
                 actor = await self.badges.retrieve(a.actor_badge)
                 dt = a.date.replace(tzinfo=None)
                 await self.logs.add_log(
                     Logs(
-                        author=actor.name if actor else 'ANON',
+                        author=actor.name if actor else "ANON",
                         table_name="arrival",
                         row_id=a.data.id if e else None,
                         operation="MERGE" if e else "INSERT",
