@@ -79,11 +79,11 @@ class BadgeWithMetadata(BaseModel):
 class BadgeResponse(BaseModel):
     id: UUID = Field(..., validation_alias="notion_id")
     deleted: bool = False
-    name: str
-    first_name: str
-    last_name: str
+    name: str  = ''
+    first_name: str = ''
+    last_name: str = ''
     gender: Gender | None
-    phone: str
+    phone: str = ''
     infant: bool
     vegan: bool = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
@@ -128,3 +128,10 @@ class BadgeResponse(BaseModel):
     @classmethod
     def list_directions(cls, values: list[dict]) -> list[str]:
         return [x["notion_id"] for x in values]
+
+    @field_validator('name', 'first_name', 'last_name', 'phone', mode='before')
+    @classmethod
+    def format_str(cls, value):
+        if value:
+            return value
+        return ''
