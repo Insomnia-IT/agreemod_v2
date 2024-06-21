@@ -66,7 +66,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             arrival_orm: ArrivalAppORM = await self.session.scalar(select(ArrivalAppORM).filter_by(id=a_id))
             if arrival_orm:
                 if arrival.get("deleted", False) is True:
-                    await self.session.delete(arrival_orm)
+                    await self.delete(arrival_orm.id)
+                    exist = None
                 else:
                     exist = True
                     [
@@ -81,6 +82,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                 arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                 arrival_orm.last_updated = datetime.now()
                 self.session.add(arrival_orm)
+            elif arrival.get("deleted", False) is True:
+                exist = None
                 # await self.session.flush()
             existing.append(exist)
         return existing

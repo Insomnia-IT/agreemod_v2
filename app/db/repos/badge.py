@@ -162,7 +162,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             )
             if badge_orm:
                 if badge.get("deleted", False) is True:
-                    await self.session.delete(badge_orm)
+                    await self.delete(badge_orm.notion_id)
                 else:
                     exist = True
                     [
