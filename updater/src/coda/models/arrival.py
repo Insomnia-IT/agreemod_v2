@@ -8,18 +8,18 @@ from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class CodaArrival(BaseModel):
-    coda_index: int = Field(..., alias="id")
+    coda_index: str = Field(..., alias="id")
     badge_id: UUID = Field(..., alias="badge_id")
     arrival_date: date = Field(..., alias="Дата заезда")
     arrival_transport: TransportType = Field(
         default=TransportType.UNDEFINED, alias="Способ заезда"
     )
-    arrival_registered: time | None = Field(..., alias="Отметка о заезде")
+    arrival_registered: str | None = None
     departure_date: date = Field(..., alias="Дата отъезда")
     departure_transport: TransportType = Field(
         default=TransportType.UNDEFINED, alias="Способ выезда"
     )
-    departure_registered: time | None = Field(..., alias="Отметка об отъезде")
+    departure_registered: str | None = None
     status: ParticipationStatus = Field(..., alias="Статус")
     extra_data: dict = Field(default_factory=dict)
     comment: str = Field(..., alias="Комментарии")

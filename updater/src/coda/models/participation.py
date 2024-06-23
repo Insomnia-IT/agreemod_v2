@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class CodaParticipation(BaseModel):
-    coda_index: int = Field(..., alias="id")
+    coda_index: str = Field(..., alias="id")
     year: int = Field(..., alias="Год")
     person_id: UUID = Field(..., alias="person_id")
     direction_id: UUID = Field(..., alias="direction_id")

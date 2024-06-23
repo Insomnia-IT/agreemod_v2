@@ -12,7 +12,7 @@ class CodaClient:
     def get_table(self, table_id: str, object: bool = False):
         def row_to_dict(row: Row):
             row_dict = row.to_dict()
-            row_dict.update({"id": row.index})
+            row_dict.update({"id": row.id})
             return row_dict
 
         table = self.doc.get_table(table_id)

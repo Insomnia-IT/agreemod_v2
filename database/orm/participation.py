@@ -24,7 +24,7 @@ class ParticipationORM(Base, BaseORM):
     __tablename__ = "participation"
 
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    coda_index: Mapped[int] = Column(Integer, nullable=False)
+    coda_index: Mapped[str] = Column(String, nullable=False)
     year: Mapped[int] = Column(Integer, nullable=False)  # req
     person_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True), ForeignKey("person.notion_id"), nullable=False

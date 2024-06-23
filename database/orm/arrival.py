@@ -27,16 +27,16 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    coda_index: Mapped[int] = Column(Integer)
+    coda_index: Mapped[str] = Column(String)
     badge_id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True), ForeignKey("badge.notion_id", ondelete="CASCADE"), nullable=False
     )
     arrival_date: Mapped[date] = Column(Date, nullable=False)
     arrival_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
-    arrival_registered: Mapped[time] = Column(TIMESTAMP)
+    arrival_registered: Mapped[time] = Column(String)
     departure_date: Mapped[date] = Column(Date, nullable=False)
     departure_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
-    departure_registered: Mapped[time] = Column(TIMESTAMP)
+    departure_registered: Mapped[time] = Column(String)
     status: Mapped[str] = Column(String, ForeignKey("participation_status.code"))
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)

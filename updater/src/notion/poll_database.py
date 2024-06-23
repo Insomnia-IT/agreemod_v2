@@ -223,7 +223,7 @@ class CodaPoller(Poller):
         venusian.Scanner().scan(__import__("database"))
         data = coda.get_table(self.database.id)
         logger.info(f"Received {self.database.name} table data")
-        chunk = 50
+        chunk = 5
         for items in [data[x : x + chunk] for x in range(0, len(data), chunk)]:
             try:
                 async with async_session() as session:
