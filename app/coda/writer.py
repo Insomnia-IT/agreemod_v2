@@ -39,6 +39,7 @@ class CodaWriter:
             ]
 
             result = self.arrivals.update_row(row_id, new_row)
+            coda_index = result.get('id')
         else:
             new_row = [
                 Cell(column=self.ArrivalMapping.badge, value_storage=data.badge),
@@ -49,4 +50,5 @@ class CodaWriter:
                 Cell(column=self.ArrivalMapping.departure_transport, value_storage=data.departure_transport.value),
             ]
             result = self.arrivals.upsert_row(new_row)
-        return result
+            coda_index = result.get('addedRowIds')[0]
+        return coda_index

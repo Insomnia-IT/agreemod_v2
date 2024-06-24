@@ -30,7 +30,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             raise RepresentativeError(title=f"arrival with {data.id=} already exists")
         return new_arrival
 
-    async def retrieve(self, id, include_badge: bool) -> Arrival | None:
+    async def retrieve(self, id, include_badge: bool = False) -> Arrival | None:
         query = select(ArrivalAppORM).filter_by(id=id)
         if include_badge:
             query = query.options(selectinload(ArrivalAppORM.badge))
@@ -39,7 +39,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             return None
         return result.to_model(include_badge=include_badge)
 
-    async def retrieve_by_badge(self, badge_id, include_badge: bool):
+    async def retrieve_by_badge(self, badge_id, include_badge: bool = False):
         query = select(ArrivalAppORM).filter_by(badge_id=badge_id)
         if include_badge:
             query = query.options(selectinload(ArrivalAppORM.badge))
