@@ -9,6 +9,8 @@ import asyncpg
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.coda.writer import CodaWriter
+from app.config import config
 from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
 from app.db.repos.direction import DirectionRepo
@@ -57,6 +59,7 @@ class FeederService:
         self.participations = ParticipationRepo(session)
         self.persons = PersonRepo(session)
         self.logs = LogsRepo(session)
+        self.coda_writer = CodaWriter(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     async def back_sync(self, intake: BackSyncIntakeSchema):
         arrivals = intake.arrivals
@@ -91,6 +94,7 @@ class FeederService:
                         new_data=serialize(a.data.model_dump() if e is not None else {}),
                     )
                 )
+                await self.coda_writer.update_arrival(self.arrivals, a)
 
         await self.session.commit()
 
