@@ -10,6 +10,13 @@ from traceback_with_variables import ColorSchemes, Format
 load_dotenv()
 
 
+class CodaConfig(BaseSettings):
+    api_key: str
+    doc_id: str
+
+    model_config = SettingsConfigDict(extra="ignore")
+
+
 class NotionConfig(BaseModel):
     token: str = Field(alias="token")
     write_token: str = Field(alias="write_token")
@@ -63,6 +70,7 @@ class Config(BaseSettings):
     SMTP_LOG_PASSWORD: str = ""
     SMTP_LOG_TIMEOUT: str = ""
 
+    coda: CodaConfig
     notion: NotionConfig
     postgres: PostgresConfig
     rabbitmq: RabbitMQ

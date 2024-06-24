@@ -183,6 +183,7 @@ class ArrivalAppORM(ArrivalORM):
             extra_data=model.extra_data,
             comment=model.comment,
             last_updated=model.last_updated,
+            coda_index=model.coda_index,
         )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
@@ -199,6 +200,7 @@ class ArrivalAppORM(ArrivalORM):
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
+            coda_index=self.coda_index,
         )
 
 

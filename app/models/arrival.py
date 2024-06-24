@@ -23,6 +23,7 @@ class Arrival(DomainModel):
     extra_data: dict | None = None
     comment: str | None = None
     last_updated: datetime | None = None
+    coda_index: str
 
     model_config = ConfigDict(
         json_encoders={
