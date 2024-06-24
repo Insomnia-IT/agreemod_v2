@@ -96,10 +96,13 @@ class FeederService:
                     )
                 )
                 if e:
-                    coda_index = await self.coda_writer.update_arrival(self.arrivals, a.data)
-                    e.coda_index = coda_index
-                    await self.session.merge(e)
-
+                    try:
+                        coda_index = await self.coda_writer.update_arrival(self.arrivals, a.data)
+                        e.coda_index = coda_index
+                        await self.session.merge(e)
+                    except Exception:
+                        pass
+                    
         await self.session.commit()
 
     async def sync(self, from_date: datetime):
