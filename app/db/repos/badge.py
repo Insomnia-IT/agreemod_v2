@@ -31,7 +31,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         from_date: datetime = None,
     ):
         if include_directions:
-            query = select(BadgeAppORM, BadgeDirectionsAppORM).join(BadgeAppORM.directions)
+            query = select(BadgeAppORM, BadgeDirectionsAppORM).join(BadgeAppORM.directions, isouter=True)
         else:
             query = select(BadgeAppORM)
         if notion_id:
@@ -47,12 +47,12 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = query.options(selectinload(BadgeAppORM.person))
         if include_directions:
             query = query.options(selectinload(BadgeAppORM.directions)).options(
-                selectinload(BadgeDirectionsAppORM.direction)
+                selectinload(BadgeDirectionsAppORM.direction, )
             )
         if include_infant:
             query = query.options(selectinload(BadgeAppORM.infant))
         if from_date:
-            query = query.where(BadgeAppORM.last_updated > from_date)
+            query = query.filter(BadgeAppORM.last_updated > from_date)
         if filters:
             if filters.batch:
                 query = query.where(BadgeAppORM.batch == filters.batch)
