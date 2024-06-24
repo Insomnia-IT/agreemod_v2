@@ -94,7 +94,7 @@ class FeederService:
                         new_data=serialize(a.data.model_dump() if e is not None else {}),
                     )
                 )
-                await self.coda_writer.update_arrival(self.arrivals, a)
+                await self.coda_writer.update_arrival(self.arrivals, a.data)
 
         await self.session.commit()
 
