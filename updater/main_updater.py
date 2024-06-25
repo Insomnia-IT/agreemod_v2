@@ -86,7 +86,7 @@ async def run_concurrently():
 
     await asyncio.gather(
         main(notion=notion, coda=coda),
-        notion_writer(),
+        # notion_writer(),
         # rmq_eat_carrots())
     )
 
