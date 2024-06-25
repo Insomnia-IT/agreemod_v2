@@ -30,7 +30,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             raise RepresentativeError(title=f"arrival with {data.id=} already exists")
         return new_arrival
 
-    async def retrieve(self, id, include_badge: bool) -> Arrival | None:
+    async def retrieve(self, id, include_badge: bool = False) -> Arrival | None:
         query = select(ArrivalAppORM).filter_by(id=id)
         if include_badge:
             query = query.options(selectinload(ArrivalAppORM.badge))
@@ -39,7 +39,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             return None
         return result.to_model(include_badge=include_badge)
 
-    async def retrieve_by_badge(self, badge_id, include_badge: bool):
+    async def retrieve_by_badge(self, badge_id, include_badge: bool = False):
         query = select(ArrivalAppORM).filter_by(badge_id=badge_id)
         if include_badge:
             query = query.options(selectinload(ArrivalAppORM.badge))
@@ -53,7 +53,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         await self.session.merge(orm)
         await self.session.flush([orm])
 
-    async def update_feeder(self, data: list[FeederArrival]) -> list[bool]:
+    async def update_feeder(self, data: list[FeederArrival]) -> list[ArrivalAppORM]:
         existing = []
         collected = {}
         for arrival in data:
@@ -67,7 +67,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             if arrival_orm:
                 if arrival.get("deleted", False) is True:
                     await self.delete(arrival_orm.id)
-                    exist = None
+                    existing.append(None)
                 else:
                     exist = True
                     [
@@ -77,15 +77,17 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     ]
                     arrival_orm.last_updated = datetime.now()
                     await self.session.merge(arrival_orm)
+                    existing.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
                 arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                 arrival_orm.last_updated = datetime.now()
                 self.session.add(arrival_orm)
+                await self.session.flush([arrival_orm])
+                existing.append(arrival_orm)
             elif arrival.get("deleted", False) is True:
-                exist = None
+                existing.append(None)
                 # await self.session.flush()
-            existing.append(exist)
         return existing
 
     async def delete(self, id):

@@ -7,6 +7,7 @@ from uuid import UUID
 
 import asyncpg
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.coda.writer import CodaWriter
@@ -80,21 +81,24 @@ class FeederService:
                     )
                 )
         if arrivals:
-            existing = await self.arrivals.update_feeder([x.data for x in arrivals])
-            for e, a in zip(existing, arrivals):
+            created = await self.arrivals.update_feeder([x.data for x in arrivals])
+            for e, a in zip(created, arrivals):
                 actor = await self.badges.retrieve(a.actor_badge)
                 dt = a.date.replace(tzinfo=None)
                 await self.logs.add_log(
                     Logs(
                         author=actor.name if actor else "ANON",
                         table_name="arrival",
-                        row_id=a.data.id if e else None,
-                        operation="MERGE" if e else "INSERT" if e is not None else "DELETE",
+                        row_id=a.data.id if e and e.coda_index is not None else None,
+                        operation="MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE",
                         timestamp=dt,
                         new_data=serialize(a.data.model_dump() if e is not None else {}),
                     )
                 )
-                await self.coda_writer.update_arrival(self.arrivals, a)
+                if e:
+                    coda_index = await self.coda_writer.update_arrival(self.arrivals, a.data)
+                    e.coda_index = coda_index
+                    await self.session.merge(e)
 
         await self.session.commit()
 
