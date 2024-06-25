@@ -1,25 +1,29 @@
-from typing import Dict
+from typing import Dict, Optional
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
 
 
 def construct_participation_data(
-        person_id: str,
-        year: str,
-        services_and_locations_id: str,
-        role: str,
-        type_: str,  # Используем type_ вместо type, чтобы избежать конфликта с ключевым словом Python
-        status: str
+        person_id: Optional[str] = None,
+        year: Optional[str] = None,
+        services_and_locations_id: Optional[str] = None,
+        role: Optional[str] = None,
+        type_: Optional[str] = None,  # Используем type_ вместо type, чтобы избежать конфликта с ключевым словом Python
+        status: Optional[str] = None
 ) -> Dict[str, Dict]:
-    return {
-        "Человек": {
+    data = {}
+
+    if person_id:
+        data["Человек"] = {
             "relation": [
                 {
                     "id": person_id
                 }
             ]
-        },
-        "Год": {
+        }
+
+    if year:
+        data["Год"] = {
             "rich_text": [
                 {
                     "text": {
@@ -27,30 +31,39 @@ def construct_participation_data(
                     }
                 }
             ]
-        },
-        "Службы и локации": {
+        }
+
+    if services_and_locations_id:
+        data["Службы и локации"] = {
             "relation": [
                 {
                     "id": services_and_locations_id
                 }
             ]
-        },
-        "Роль": {
+        }
+
+    if role:
+        data["Роль"] = {
             "select": {
                 "name": role
             }
-        },
-        "Тип": {
+        }
+
+    if type_:
+        data["Тип"] = {
             "select": {
                 "name": type_
             }
-        },
-        "Статус": {
+        }
+
+    if status:
+        data["Статус"] = {
             "select": {
                 "name": status
             }
         }
-    }
+
+    return data
 
 
 if __name__ == '__main__':

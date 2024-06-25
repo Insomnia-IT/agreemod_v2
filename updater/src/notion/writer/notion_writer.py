@@ -31,7 +31,7 @@ class NotionWriter:
 
     async def add_or_update_page(self, database_id, page_data, unique_id):
         try:
-            page = self.retrieve_page(unique_id)
+            page = await self.retrieve_page(unique_id)
             if page and unique_id:
                 # Если запись существует, обновляем её
                 await self.update_page(unique_id, page_data)
@@ -75,9 +75,6 @@ async def main():
 
     # Добавление или обновление страницы
     await notion_writer.add_or_update_page(database_id, page_data, unique_id)
-
-    # Задержка, чтобы дать время для обновления
-    await asyncio.sleep(2)
 
 
 if __name__ == '__main__':

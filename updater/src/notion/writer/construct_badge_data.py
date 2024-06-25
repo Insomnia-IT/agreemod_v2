@@ -1,26 +1,49 @@
-from typing import Dict
+from typing import Dict, Optional
+
+# from dictionaries.dictionaries import ParticipationRole
+
+badge_data = {  # TODO: читать это из базы?! Или из ParticipationRole?
+    "VOLUNTEER": "0459773f44c748cab93a3e34d6734af5",
+    "ANIMATOR": "057f0f300918445baa160f1c1c54e216",
+    "MEDIC": "35d3f8383b6d47aa8fe89f42c7e5cf5d",
+    "PRESS": "45dd1e261b0e45dfb451472a240a2bb0",
+    "LECTOR": "48d62cd1097a4770b36fe6d77165675b",
+    "FELLOW": "5899450b338d4f6aa1f91fa9fa7fc151",
+    "VIP": "7f6da8d79b214e5dac0ad545fff1a195",
+    "ARTIST": "949fb54de39b40e4a4522b5bb8874989",
+    "CONTRACTOR": "98d86463eb8e4a648662f609f69878be",
+    "MASTER": "a381b28fad2a4656b4344ad1bf9f6229",
+    "CAMP_LEAD": "aed0b2370f3d49749c73e7d6a95a47dd",
+    "CAMP_GUY": "ee79040c808047e08f5a1e4c423994a5",
+    "ART_FELLOW": "ffbe65c103f640b4878bc706fbb3aabf",
+    "TEAM_LEAD": "9f8714fa106d4c6784c75ea22b0b60b7",
+    "ORGANIZER": "31361deff99f4189a34786ecb75476f9",
+    "VICE": "48414ef4776b44eaaf5ead19c4fd1e42"
+}
 
 
 def construct_badge_data(
-        title: str,
-        services_and_locations_id: str,
-        role_id: str,
-        position: str,
-        last_name: str,
-        first_name: str,
-        gender: str,
-        is_child: bool,
-        phone: str,
-        dietary_restrictions: str,
-        meal_type: str,
-        photo_url: str,
-        photo_name: str,
-        party: str,
-        color: str,
-        comment: str
+        title: Optional[str] = None,
+        services_and_locations_id: Optional[str] = None,
+        role_id: Optional[str] = None,
+        position: Optional[str] = None,
+        last_name: Optional[str] = None,
+        first_name: Optional[str] = None,
+        gender: Optional[str] = None,
+        is_child: Optional[bool] = None,
+        phone: Optional[str] = None,
+        dietary_restrictions: Optional[str] = None,
+        meal_type: Optional[str] = None,
+        photo_url: Optional[str] = None,
+        photo_name: Optional[str] = None,
+        party: Optional[str] = None,
+        color: Optional[str] = None,
+        comment: Optional[str] = None
 ) -> Dict[str, Dict]:
-    return {
-        "Надпись": {
+    data = {}
+
+    if title:
+        data["Надпись"] = {
             "title": [
                 {
                     "text": {
@@ -28,22 +51,29 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Службы и локации": {
+        }
+
+    if services_and_locations_id:
+        data["Службы и локации"] = {
             "relation": [
                 {
                     "id": services_and_locations_id
                 }
             ]
-        },
-        "Роль": {
+        }
+
+    if role_id:
+        data["Роль"] = {
             "relation": [
                 {
-                    "id": role_id
+                    # "id": ParticipationRole[role_id].value
+                    "id": badge_data[role_id]
                 }
             ]
-        },
-        "Должность": {
+        }
+
+    if position:
+        data["Должность"] = {
             "rich_text": [
                 {
                     "text": {
@@ -51,8 +81,10 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Фамилия": {
+        }
+
+    if last_name:
+        data["Фамилия"] = {
             "rich_text": [
                 {
                     "text": {
@@ -60,8 +92,10 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Имя": {
+        }
+
+    if first_name:
+        data["Имя"] = {
             "rich_text": [
                 {
                     "text": {
@@ -69,16 +103,22 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Пол": {
+        }
+
+    if gender:
+        data["Пол"] = {
             "select": {
                 "name": gender
             }
-        },
-        "Ребенок": {
+        }
+
+    if is_child is not None:
+        data["Ребенок"] = {
             "checkbox": is_child
-        },
-        "Телефон": {
+        }
+
+    if phone:
+        data["Телефон"] = {
             "rich_text": [
                 {
                     "text": {
@@ -86,18 +126,24 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Особенности питания": {
+        }
+
+    if dietary_restrictions:
+        data["Особенности питания"] = {
             "select": {
                 "name": dietary_restrictions
             }
-        },
-        "Тип питания": {
+        }
+
+    if meal_type:
+        data["Тип питания"] = {
             "select": {
                 "name": meal_type
             }
-        },
-        "Фото": {
+        }
+
+    if photo_url and photo_name:
+        data["Фото"] = {
             "files": [
                 {
                     "name": photo_name,
@@ -106,18 +152,24 @@ def construct_badge_data(
                     }
                 }
             ]
-        },
-        "Партия": {
+        }
+
+    if party:
+        data["Партия"] = {
             "select": {
                 "name": party
             }
-        },
-        "Цвет": {
+        }
+
+    if color:
+        data["Цвет"] = {
             "select": {
                 "name": color
             }
-        },
-        "Комментарий": {
+        }
+
+    if comment:
+        data["Комментарий"] = {
             "rich_text": [
                 {
                     "text": {
@@ -126,7 +178,8 @@ def construct_badge_data(
                 }
             ]
         }
-    }
+
+    return data
 
 
 if __name__ == '__main__':

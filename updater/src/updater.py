@@ -7,7 +7,6 @@ from updater.src.notion.databases import (
     NotionDatabase,
 )  # Directions,; Participations,; Persons,
 from updater.src.notion.poll_database import CodaPoller, NotionPoller, Poller
-from updater.src.notion.write_database import write_database
 from updater.src.states import UpdaterStates
 
 
@@ -59,11 +58,11 @@ class Updater:
     #     if user_id and bot:
     #         await bot.send_message(user_id, "Обновление таблицы Участия завершено")
 
-    async def run_participation_db_to_notion(self, user_id=None, bot=None):
-        """DB to Notion"""
-        self.states.start_participation_updater()
-        # get db data
-        await write_database(self.notion, "Participations")
-        self.states.stop_participation_updater()
-        if user_id and bot:
-            await bot.send_message(user_id, "Обновление таблицы Участия завершено")
+    # async def run_participation_db_to_notion(self, user_id=None, bot=None):
+    #     """DB to Notion"""
+    #     self.states.start_participation_updater()
+    #     # get db data
+    #     await write_database(self.notion, "Participations")
+    #     self.states.stop_participation_updater()
+    #     if user_id and bot:
+    #         await bot.send_message(user_id, "Обновление таблицы Участия завершено")
