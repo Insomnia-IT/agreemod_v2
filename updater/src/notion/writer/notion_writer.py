@@ -53,11 +53,22 @@ async def main():
 
     # Данные для записи или обновления
     page_data = {
+
+        "Надпись": {
+            "title": [
+                {
+                    "text": {
+                        "content": "Рюкзак TEST!!!"
+                    }
+                }
+            ]
+        },
+
         "Имя": {
             "rich_text": [
                 {
                     "text": {
-                        "content": "Новое имя 88"
+                        "content": "Новое имя 99"
                     }
                 }
             ]
@@ -66,7 +77,7 @@ async def main():
             "rich_text": [
                 {
                     "text": {
-                        "content": "Новая фамилия 88"
+                        "content": "Новая фамилия 99"
                     }
                 }
             ]
