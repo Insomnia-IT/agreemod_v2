@@ -51,6 +51,7 @@ async def main():
     database_id = "56b5571508e046e8b0db41b3e448d557"  # Замените на ваш идентификатор базы данных
     unique_id = "08fe99b5c9344932a6c05a685d35c1c1"  # Уникальный идентификатор для записи
 
+    page_to_update = await notion_writer.retrieve_page(unique_id)
     # Данные для записи или обновления
     page_data = {
 
@@ -58,7 +59,7 @@ async def main():
             "title": [
                 {
                     "text": {
-                        "content": "Рюкзак TEST!!!"
+                        "content": "Рюкзак"
                     }
                 }
             ]
@@ -68,7 +69,7 @@ async def main():
             "rich_text": [
                 {
                     "text": {
-                        "content": "Новое имя 99"
+                        "content": "Егор"
                     }
                 }
             ]
@@ -77,7 +78,7 @@ async def main():
             "rich_text": [
                 {
                     "text": {
-                        "content": "Новая фамилия 99"
+                        "content": ""
                     }
                 }
             ]
