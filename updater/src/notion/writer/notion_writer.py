@@ -43,6 +43,8 @@ class NotionWriter:
             logger.error(f"Произошла ошибка: {e}")
 
 
+
+
 async def main():
     """
     Эта функция исключительно для разработки
