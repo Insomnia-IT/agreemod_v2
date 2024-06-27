@@ -5,7 +5,7 @@ from database.repo.badges import BadgeRepo
 from updater.src.coda.client import CodaClient
 from updater.src.config import config, logger
 from updater.src.notion.client import NotionClient
-from updater.src.notion.databases import CODA_DB_REGISTRY, NOTION_DB_REGISTRY
+from updater.src.notion.databases import CODA_DB_REGISTRY, NOTION_DB_REGISTRY, dbs
 from updater.src.notion.poll_database import CodaPoller, NotionPoller
 from updater.src.notion.writer.construct_badge_data import construct_badge_data
 from updater.src.notion.writer.notion_writer import NotionWriter
@@ -43,7 +43,7 @@ async def main(notion: NotionClient, coda: CodaClient):
 
 async def notion_writer():
     notion_w = NotionWriter()
-    database_id = "56b5571508e046e8b0db41b3e448d557"
+    database_id = dbs["get_badges"]["id"]
 
     async with (async_session() as session):
         logger.info("start sync badges...")
@@ -58,14 +58,14 @@ async def notion_writer():
                 position=badge['occupation'],
                 last_name=badge['last_name'],
                 first_name=badge['first_name'],
-                gender=badge['gender'],
+                gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
                 is_child=badge['infant_id'] is not None,
                 phone=badge['phone'],
                 dietary_restrictions=badge['diet'],
                 meal_type=badge['feed'],
-                photo_url=badge['photo'],
+                # photo_url=badge['photo'],
                 photo_name=badge['nickname'],
-                party=badge['number'],
+                party=badge.get("batch"),
                 color=None,  # Заменить на подходящее значение, если оно есть
                 comment=badge['comment']
             )
@@ -80,13 +80,12 @@ async def notion_writer():
 
 
 async def run_concurrently():
-    # notion = NotionClient(token=config.notion.token_write)
     notion = NotionClient(token=config.notion.token)
     coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     await asyncio.gather(
-        main(notion=notion, coda=coda),
-        # notion_writer(),
+        # main(notion=notion, coda=coda),
+        notion_writer(),
         # rmq_eat_carrots())
     )
 

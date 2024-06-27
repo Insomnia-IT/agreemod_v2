@@ -48,7 +48,7 @@ async def notion_writer():
 
     updated = []
     failed = []
-    for badge in badges:
+    for badge in badges[-1317:-1017]:
         cur_badge_id = badge.get("id")
         cur_badge_id_collapsed = str(cur_badge_id).replace("-", '')
         coda_doc = df_coda_badge.loc[df_coda_badge['page_id'] == cur_badge_id]
@@ -82,14 +82,14 @@ async def notion_writer():
             try:
                 print("Время попадает в заданный промежуток по Москве.")
                 page_data = construct_badge_data(
-                    title=coda_doc.get('Надпись'),
+                    # title=coda_doc.get('Надпись'),
                     services_and_locations_id=coda_doc.get('directions'),
-                    role_id=coda_doc.get('Role'),
-                    position=coda_doc.get('Должность'),
-                    last_name=coda_doc.get('Фамилия'),
-                    first_name=coda_doc.get('Имя'),
+                    # role_id=coda_doc.get('Role'),
+                    # position=coda_doc.get('Должность'),
+                    # last_name=coda_doc.get('Фамилия'),
+                    # first_name=coda_doc.get('Имя'),
                     gender=coda_doc.get('Пол'),
-                    is_child=coda_doc.get('Ребенок'),
+                    # is_child=coda_doc.get('Ребенок'),
                     dietary_restrictions=coda_doc.get('Особенности питания'),
                     meal_type=coda_doc.get('Тип питания'),
                     party=str(coda_doc.get('Партия')) if coda_doc.get('Партия') is not None else None
