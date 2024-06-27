@@ -38,9 +38,9 @@ class NotionWriter:
     def __init__(self):
         self.client: Client = Client(auth=config.notion.write_token)
 
-    async def retrieve_page(self, page_id):
+    def retrieve_page(self, page_id):
         try:
-            page = await self.client.pages.retrieve(page_id=page_id)
+            page = self.client.pages.retrieve(page_id=page_id)
             return page
         except Exception as e:
             logger.error(f"Произошла ошибка при чтении страницы: {e}")
@@ -55,7 +55,7 @@ class NotionWriter:
 
     async def add_or_update_page(self, database_id, page_data, unique_id):
         try:
-            page = await self.retrieve_page(unique_id)
+            page = self.retrieve_page(unique_id)
             if page and unique_id:
                 # Если запись существует, обновляем её
                 await self.update_page(unique_id, page_data)
