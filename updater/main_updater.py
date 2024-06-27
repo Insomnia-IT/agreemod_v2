@@ -84,8 +84,8 @@ async def run_concurrently():
     coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     await asyncio.gather(
-        # main(notion=notion, coda=coda),
-        notion_writer(),
+        main(notion=notion, coda=coda),
+        # notion_writer(),
         # rmq_eat_carrots())
     )
 
