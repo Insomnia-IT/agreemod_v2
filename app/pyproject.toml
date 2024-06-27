@@ -26,6 +26,7 @@ pandas = "^2.2.2"
 openpyxl = "^3.1.3"
 tenacity = "^8.3.0"
 codaio = "^0.6.12"
+pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.1"
