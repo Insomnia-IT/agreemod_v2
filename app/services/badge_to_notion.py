@@ -235,6 +235,9 @@ async def notion_writer():
         badges = await repo.get_all_badges()
         for badge in badges:
             badge = dict(badge)
+
+            diet = "Без особенностей" if badge['diet'] == 'STANDARD' else "Веган" if badge['diet'] == 'VEGAN' else "Unknown"
+            feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge['diet'] == 'PAID' else "Без питания>"
             page_data = construct_badge_data(
                 title=badge['name'],
                 services_and_locations_id=str(badge['notion_id']),
@@ -245,8 +248,8 @@ async def notion_writer():
                 gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
                 is_child=badge['infant_id'] is not None,
                 phone=badge['phone'],
-                dietary_restrictions=badge['diet'],
-                meal_type=badge['feed'],
+                dietary_restrictions=diet,
+                meal_type=feed,
                 # photo_url=badge['photo'],
                 photo_name=badge['nickname'],
                 party=badge.get("batch"),
