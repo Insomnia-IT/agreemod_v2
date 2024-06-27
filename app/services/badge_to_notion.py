@@ -234,33 +234,38 @@ async def notion_writer():
         repo = BadgeRepo(session)
         badges = await repo.get_all_badges()
         for badge in badges:
-            badge = dict(badge)
+            try:
+                badge = dict(badge)
 
-            diet = "Без особенностей" if badge['diet'] == 'STANDARD' else "Веган" if badge['diet'] == 'VEGAN' else "Unknown"
-            feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge['diet'] == 'PAID' else "Без питания"
-            page_data = construct_badge_data(
-                title=badge['name'],
-                services_and_locations_id=str(badge['notion_id']),
-                role_id=badge['role_code'],
-                position=badge['occupation'],
-                last_name=badge['last_name'],
-                first_name=badge['first_name'],
-                gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
-                is_child=badge['infant_id'] is not None,
-                phone=badge['phone'],
-                dietary_restrictions=diet,
-                meal_type=feed,
-                # photo_url=badge['photo'],
-                photo_name=badge['nickname'],
-                party=badge.get("batch"),
-                color=None,  # Заменить на подходящее значение, если оно есть
-                comment=badge['comment']
-            )
+                diet = "Без особенностей" if badge['diet'] == 'STANDARD' else "Веган" if badge[
+                                                                                             'diet'] == 'VEGAN' else "Unknown"
+                feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge[
+                                                                                   'diet'] == 'PAID' else "Без питания"
+                page_data = construct_badge_data(
+                    title=badge['name'],
+                    services_and_locations_id=str(badge['notion_id']),
+                    role_id=badge['role_code'],
+                    position=badge['occupation'],
+                    last_name=badge['last_name'],
+                    first_name=badge['first_name'],
+                    gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
+                    is_child=badge['infant_id'] is not None,
+                    phone=badge['phone'],
+                    dietary_restrictions=diet,
+                    meal_type=feed,
+                    # photo_url=badge['photo'],
+                    photo_name=badge['nickname'],
+                    party=badge.get("batch"),
+                    color=None,  # Заменить на подходящее значение, если оно есть
+                    comment=badge['comment']
+                )
 
-            unique_id = badge.get('notion_id')
-            if unique_id:
-                unique_id = str(unique_id).replace("-", '')
-                # Добавление или обновление страницы
-                await notion_w.add_or_update_page(database_id, page_data, unique_id)
+                unique_id = badge.get('notion_id')
+                if unique_id:
+                    unique_id = str(unique_id).replace("-", '')
+                    # Добавление или обновление страницы
+                    await notion_w.add_or_update_page(database_id, page_data, unique_id)
+            except Exception as e:
+                logger.error(e)
 
     logger.info("finished sync badges... sleep...")
