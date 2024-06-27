@@ -61,7 +61,7 @@ class NotionWriter:
                 await self.update_page(unique_id, page_data)
             else:
                 # Если запись не существует, создаём новую
-                response = await self.client.pages.create(parent={"database_id": database_id}, properties=page_data)
+                response = self.client.pages.create(parent={"database_id": database_id}, properties=page_data)
                 logger.info(f"Новая запись создана: {response}")
         except Exception as e:
             logger.error(f"Произошла ошибка: {e}")
@@ -237,7 +237,7 @@ async def notion_writer():
             badge = dict(badge)
 
             diet = "Без особенностей" if badge['diet'] == 'STANDARD' else "Веган" if badge['diet'] == 'VEGAN' else "Unknown"
-            feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge['diet'] == 'PAID' else "Без питания>"
+            feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge['diet'] == 'PAID' else "Без питания"
             page_data = construct_badge_data(
                 title=badge['name'],
                 services_and_locations_id=str(badge['notion_id']),
