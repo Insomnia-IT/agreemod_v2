@@ -54,7 +54,8 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         await self.session.flush([orm])
 
     async def update_feeder(self, data: list[FeederArrival]) -> list[ArrivalAppORM]:
-        existing = []
+        created = []
+        deleted = []
         collected = {}
         for arrival in data:
             if arrival.id not in collected:
@@ -62,14 +63,13 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
             else:
                 collected[arrival.id].update(arrival.model_dump(exclude_none=True))
         for a_id, arrival in collected.items():
-            exist = False
             arrival_orm: ArrivalAppORM = await self.session.scalar(select(ArrivalAppORM).filter_by(id=a_id))
             if arrival_orm:
                 if arrival.get("deleted", False) is True:
+                    deleted.append(arrival_orm.coda_index)
                     await self.delete(arrival_orm.id)
-                    existing.append(None)
+                    created.append(None)
                 else:
-                    exist = True
                     [
                         setattr(arrival_orm, x, y.name if isinstance(y, Enum) else y)
                         for x, y in arrival.items()
@@ -77,18 +77,18 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     ]
                     arrival_orm.last_updated = datetime.now()
                     await self.session.merge(arrival_orm)
-                    existing.append(arrival_orm)
+                    created.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
                 arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                 arrival_orm.last_updated = datetime.now()
                 self.session.add(arrival_orm)
                 await self.session.flush([arrival_orm])
-                existing.append(arrival_orm)
+                created.append(arrival_orm)
             elif arrival.get("deleted", False) is True:
-                existing.append(None)
+                created.append(None)
                 # await self.session.flush()
-        return existing
+        return created, deleted
 
     async def delete(self, id):
         await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.id == id))

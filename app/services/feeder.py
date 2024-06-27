@@ -81,7 +81,7 @@ class FeederService:
                     )
                 )
         if arrivals:
-            created = await self.arrivals.update_feeder([x.data for x in arrivals])
+            created, deleted = await self.arrivals.update_feeder([x.data for x in arrivals])
             for e, a in zip(created, arrivals):
                 actor = await self.badges.retrieve(a.actor_badge)
                 dt = a.date.replace(tzinfo=None)
@@ -99,6 +99,8 @@ class FeederService:
                     coda_index = await self.coda_writer.update_arrival(self.arrivals, a.data)
                     e.coda_index = coda_index
                     await self.session.merge(e)
+            for d in deleted:
+                self.coda_writer.delete_arrival(d)
 
         await self.session.commit()
 

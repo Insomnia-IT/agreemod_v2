@@ -52,3 +52,6 @@ class CodaWriter:
             result = self.arrivals.upsert_row(new_row)
             coda_index = result.get('addedRowIds')[0]
         return coda_index
+
+    async def delete_arrival(self, coda_index):
+        self.arrivals.delete_row_by_id(coda_index)
