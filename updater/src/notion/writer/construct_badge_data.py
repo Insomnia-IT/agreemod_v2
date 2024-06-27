@@ -1,24 +1,28 @@
+"""
+Эти функции нужны для восстановления данных в Notion в автоматическом режиме из дампа
+"""
+
 from typing import Dict, Optional
 
 # from dictionaries.dictionaries import ParticipationRole
 
 badge_data = {  # TODO: читать это из базы?! Или из ParticipationRole?
-    "VOLUNTEER": "0459773f44c748cab93a3e34d6734af5",
-    "ANIMATOR": "057f0f300918445baa160f1c1c54e216",
-    "MEDIC": "35d3f8383b6d47aa8fe89f42c7e5cf5d",
-    "PRESS": "45dd1e261b0e45dfb451472a240a2bb0",
-    "LECTOR": "48d62cd1097a4770b36fe6d77165675b",
-    "FELLOW": "5899450b338d4f6aa1f91fa9fa7fc151",
-    "VIP": "7f6da8d79b214e5dac0ad545fff1a195",
-    "ARTIST": "949fb54de39b40e4a4522b5bb8874989",
-    "CONTRACTOR": "98d86463eb8e4a648662f609f69878be",
-    "MASTER": "a381b28fad2a4656b4344ad1bf9f6229",
-    "CAMP_LEAD": "aed0b2370f3d49749c73e7d6a95a47dd",
-    "CAMP_GUY": "ee79040c808047e08f5a1e4c423994a5",
-    "ART_FELLOW": "ffbe65c103f640b4878bc706fbb3aabf",
-    "TEAM_LEAD": "9f8714fa106d4c6784c75ea22b0b60b7",
-    "ORGANIZER": "31361deff99f4189a34786ecb75476f9",
-    "VICE": "48414ef4776b44eaaf5ead19c4fd1e42"
+    "Волонтёр": "0459773f-44c7-48ca-b93a-3e34d6734af5",
+    "Аниматор": "057f0f30-0918-445b-aa16-0f1c1c54e216",
+    "Медик": "35d3f838-3b6d-47aa-8fe8-9f42c7e5cf5d",
+    "Пресса": "45dd1e26-1b0e-45df-b451-472a240a2bb0",
+    "Лектор": "48d62cd1-097a-4770-b36f-e6d77165675b",
+    "Свои (плюсодины)": "5899450b-338d-4f6a-a1f9-1fa9fa7fc151",
+    "VIP": "7f6da8d7-9b21-4e5d-ac0a-d545fff1a195",
+    "Артист": "949fb54d-e39b-40e4-a452-2b5bb8874989",
+    "Подрядчик": "98d86463-eb8e-4a64-8662-f609f69878be",
+    "Мастер": "a381b28f-ad2a-4656-b434-4ad1bf9f6229",
+    "Лидер нефедеральной локации": "aed0b237-0f3d-4974-9c73-e7d6a95a47dd",
+    "Волонтёр нефедеральной локации": "ee79040c-8080-47e0-8f5a-1e4c423994a5",
+    "Сопровождающие (участников)": "ffbe65c1-03f6-40b4-878b-c706fbb3aabf",
+    "Бригадир": "9f8714fa-106d-4c67-84c7-5ea22b0b60b7",
+    "Организатор": "31361def-f99f-4189-a347-86ecb75476f9",
+    "Зам. руководителя": "48414ef4-776b-44ea-af5e-ad19c4fd1e42"
 }
 
 
@@ -55,24 +59,22 @@ def construct_badge_data(
 
     if services_and_locations_id:
         data["Службы и локации"] = {
-            "relation": [
-                {
-                    "id": services_and_locations_id
-                }
-            ]
+            "relation": [{"id": i} for i in services_and_locations_id.split(",")]
         }
 
     if role_id:
-        data["Роль"] = {
-            "relation": [
-                {
-                    # "id": ParticipationRole[role_id].value
-                    "id": badge_data[role_id]
-                }
-            ]
-        }
+        role_name = badge_data.get(role_id)
+        if role_name:
+            data["Роль"] = {
+                "relation": [
+                    {
+                        # "id": ParticipationRole[role_id].value
+                        "id": role_name  # TODO: читать из enum
+                    }
+                ]
+            }
 
-    if position:
+    if position and str(position) != 'nan':
         data["Должность"] = {
             "rich_text": [
                 {
@@ -83,7 +85,7 @@ def construct_badge_data(
             ]
         }
 
-    if last_name:
+    if last_name and str(last_name) != 'nan':
         data["Фамилия"] = {
             "rich_text": [
                 {
@@ -94,7 +96,7 @@ def construct_badge_data(
             ]
         }
 
-    if first_name:
+    if first_name and str(first_name) != 'nan':
         data["Имя"] = {
             "rich_text": [
                 {
@@ -105,19 +107,19 @@ def construct_badge_data(
             ]
         }
 
-    if gender:
+    if gender and str(gender) != 'nan':
         data["Пол"] = {
             "select": {
                 "name": gender
             }
         }
 
-    if is_child is not None:
+    if bool(is_child):
         data["Ребенок"] = {
-            "checkbox": is_child
+            "checkbox": bool(is_child)
         }
 
-    if phone:
+    if phone and str(phone) != 'nan':
         data["Телефон"] = {
             "rich_text": [
                 {
@@ -128,14 +130,14 @@ def construct_badge_data(
             ]
         }
 
-    if dietary_restrictions:
+    if dietary_restrictions and str(dietary_restrictions) != 'nan':
         data["Особенности питания"] = {
             "select": {
                 "name": dietary_restrictions
             }
         }
 
-    if meal_type:
+    if meal_type and str(meal_type) != 'nan':
         data["Тип питания"] = {
             "select": {
                 "name": meal_type
@@ -154,21 +156,21 @@ def construct_badge_data(
             ]
         }
 
-    if party:
+    if party and str(party) != 'nan':
         data["Партия"] = {
             "select": {
-                "name": party
+                "name": str(int(float(party)))
             }
         }
 
-    if color:
+    if color and str(color) != 'nan':
         data["Цвет"] = {
             "select": {
                 "name": color
             }
         }
 
-    if comment:
+    if comment and str(comment) != 'nan':
         data["Комментарий"] = {
             "rich_text": [
                 {
@@ -180,6 +182,55 @@ def construct_badge_data(
         }
 
     return data
+
+
+def extract_and_construct_badge_data_from_notion(data):
+    title = data.get('Надпись', {}).get('title', [{}])[0].get('plain_text')
+    services_and_locations_id = data.get('Службы и локации', {}).get('relation', [{}])[0].get('id')
+    role_id = data.get('Роль', {}).get('relation', [{}])[0].get('id')
+    position = data.get('Должность', {}).get('rich_text', [{}])[0].get('plain_text')
+    last_name = data.get('Фамилия', {}).get('rich_text', [{}])[0].get('plain_text')
+    first_name = data.get('Имя', {}).get('rich_text', [{}])[0].get('plain_text')
+    gender = data.get('Пол', {}).get('select', {}).get('name')
+    is_child = data.get('Ребенок', {}).get('checkbox')
+
+    phone_info = data.get('Телефон', {}).get('rich_text', [])
+    if phone_info and isinstance(phone_info, list) and len(phone_info) > 0:
+        phone = phone_info[0].get('plain_text')
+    else:
+        phone = None
+
+    dietary_restrictions = data.get('Особенности питания', {}).get('select', {}).get('name')
+    meal_type = data.get('Тип питания', {}).get('select', {}).get('name')
+    photo_url = data.get('Фото', {}).get('files', [{}])[0].get('file', {}).get('url')
+    photo_name = data.get('Фото', {}).get('files', [{}])[0].get('name')
+    party = data.get('Партия', {}).get('select', {}).get('name')
+    color = data.get('color', {}).get('formula', {}).get('string')
+
+    comment = data.get('Комментарий', {}).get('rich_text', [])
+    if comment:
+        comment = comment[0].get('plain_text')
+    else:
+        comment = None
+
+    return construct_badge_data(
+        title=title,
+        services_and_locations_id=services_and_locations_id,
+        role_id=role_id,
+        position=position,
+        last_name=last_name,
+        first_name=first_name,
+        gender=gender,
+        is_child=is_child,
+        phone=phone,
+        dietary_restrictions=dietary_restrictions,
+        meal_type=meal_type,
+        photo_url=photo_url,
+        photo_name=photo_name,
+        party=party,
+        color=color,
+        comment=comment
+    )
 
 
 if __name__ == '__main__':

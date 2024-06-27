@@ -60,29 +60,29 @@ async def notion_writer():
                 print("Время не попадает в заданный промежуток по Москве.")
 
             page_data = None
-            # page_data = construct_badge_data(
-            #     title=badge['name'],
-            #     services_and_locations_id=str(badge['notion_id']),
-            #     role_id=badge['role_code'],
-            #     position=badge['occupation'],
-            #     last_name=badge['last_name'],
-            #     first_name=badge['first_name'],
-            #     gender=badge['gender'],
-            #     is_child=badge['infant_id'] is not None,
-            #     phone=badge['phone'],
-            #     dietary_restrictions=badge['diet'],
-            #     meal_type=badge['feed'],
-            #     photo_url=badge['photo'],
-            #     photo_name=badge['nickname'],
-            #     party=badge['number'],
-            #     color=None,  # Заменить на подходящее значение, если оно есть
-            #     comment=badge['comment']
-            # )
+            page_data = construct_badge_data(
+                title=badge['name'],
+                services_and_locations_id=str(badge['notion_id']),
+                role_id=badge['role_code'],
+                position=badge['occupation'],
+                last_name=badge['last_name'],
+                first_name=badge['first_name'],
+                gender=badge['gender'],
+                is_child=badge['infant_id'] is not None,
+                phone=badge['phone'],
+                dietary_restrictions=badge['diet'],
+                meal_type=badge['feed'],
+                photo_url=badge['photo'],
+                photo_name=badge['nickname'],
+                party=badge['number'],
+                color=None,  # Заменить на подходящее значение, если оно есть
+                comment=badge['comment']
+            )
 
-            # if unique_id:
-            #     unique_id = str(unique_id).replace("-", '')
-            #     # Добавление или обновление страницы
-            #     await notion_w.add_or_update_page(database_id, page_data, unique_id)
+            if unique_id:
+                unique_id = str(unique_id).replace("-", '')
+                # Добавление или обновление страницы
+                await notion_w.add_or_update_page(database_id, page_data, unique_id)
     print(total)
     await asyncio.sleep(120)
 
