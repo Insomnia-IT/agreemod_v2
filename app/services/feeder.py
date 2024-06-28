@@ -25,7 +25,7 @@ from app.schemas.feeder.directions import DirectionResponse
 from app.schemas.feeder.engagement import EngagementResponse
 from app.schemas.feeder.person import PersonResponse
 from app.schemas.feeder.requests import BackSyncIntakeSchema, SyncResponseSchema
-
+from app.services.badge_to_notion import notion_writer_v2
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,9 @@ class FeederService:
                         new_data=serialize(b.data.model_dump() if e is not None else {}),
                     )
                 )
+            badges_uuid = [i.actor_badge for i in badges]
+            await notion_writer_v2(badges_uuid)
+
         if arrivals:
             created, deleted = await self.arrivals.update_feeder([x.data for x in arrivals])
             for e, a in zip(created, arrivals):
