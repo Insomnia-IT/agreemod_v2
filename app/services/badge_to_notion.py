@@ -299,12 +299,17 @@ if __name__ == '__main__':
                 uuid.UUID("0e49b2d7-b3f6-44d3-a193-93d607bfdd81"),
             ]
 
+            # check 1
+
             # Вызов метода get_badges_by_notion_ids
             badges = await repo.get_badges_by_notion_ids(notion_ids)
 
             # Вывод результатов
             for badge in badges:
                 print(badge)
+
+            # check 2
+            await notion_writer_v2(notion_ids)
 
 
     asyncio.run(main())
