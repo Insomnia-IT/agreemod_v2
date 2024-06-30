@@ -25,7 +25,8 @@ class Badge(NotionModel):
     nickname: Title = Field(..., alias="Надпись")
     gender: Select = Field(..., alias="Пол")
     phone: RichText = Field(..., alias="Телефон")
-    infant_id: Relation = Field(..., alias="Чей")
+    parent_id: Relation = Field(..., alias="Чей")
+    child: Checkbox = Field(..., alias="Ребенок")
     diet: Select = Field(..., alias="Особенности питания")
     feed: Select = Field(..., alias="Тип питания")
     number: RichText = Field(..., alias="Номер")
@@ -185,7 +186,7 @@ class Badge(NotionModel):
         return result
 
     @field_validator(
-        "infant_id",
+        "parent_id",
         "person_id",
         mode="after",
     )
