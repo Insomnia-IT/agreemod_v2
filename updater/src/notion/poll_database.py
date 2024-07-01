@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time
 from enum import Enum
-from typing import Any
+from typing import Any, Union
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -20,9 +20,8 @@ from sqlalchemy.exc import IntegrityError
 from updater.src.coda.client import CodaClient
 from updater.src.config import config
 from updater.src.notion.client import NotionClient
-from updater.src.notion.databases import CodaDatabase, NotionDatabase
+from updater.src.notion.databases import CodaDatabase, NotionDatabase, Badges
 from updater.src.states import UpdaterStates
-
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ class NotionPoller(Poller):
             "get_badges": UpdaterStates.set_badge_updater,
             "anonymous_badges": self.set_dummy,
         }
-        self.database = db
+        self.database: Union[Badges] = db  # TODO: сделать базовый класс с интерфейсом для Badges и ему подобных
 
     def set_dummy(self, a: bool):
         return
@@ -202,6 +201,7 @@ class NotionPoller(Poller):
             logger.info(
                 f"{self.database.name} table {len(items)} rows were stored to db"
             )
+        logger.debug("End of iterating.")
 
 
 class CodaPoller(Poller):
