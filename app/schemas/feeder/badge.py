@@ -20,7 +20,7 @@ class Badge(BaseModel):
     nickname: str = None
     gender: Gender | None = None
     phone: str | None = None
-    infant: None = Field(None)
+    child: bool | None = Field(False, validation_alias="infant")
     diet: DietType | None = Field(None, validation_alias="vegan")
     feed: FeedType | None = None
     number: str | None = None
@@ -32,11 +32,6 @@ class Badge(BaseModel):
     comment: str | None = None
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
-
-    @field_validator("infant", mode="before")
-    @classmethod
-    def convert_infant(cls, value: str):
-        return None
 
     @field_validator("gender", mode="before")
     @classmethod
@@ -84,7 +79,7 @@ class BadgeResponse(BaseModel):
     last_name: str = ""
     gender: Gender | None
     phone: str = ""
-    infant: bool
+    infant: bool = Field(..., validation_alias="child")
     vegan: bool = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
     number: str | None

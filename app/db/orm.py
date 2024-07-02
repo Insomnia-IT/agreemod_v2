@@ -14,9 +14,9 @@ from dictionaries.gender import Gender
 from dictionaries.transport_type import TransportType
 from sqlalchemy.orm import Mapped, relationship
 
-from app.dto.badge import BadgeDTO
+from app.dto.badge import BadgeDTO, Parent
 from app.models.arrival import Arrival
-from app.models.badge import Anons, Badge, DirectionDTO, Infant
+from app.models.badge import Anons, Badge, DirectionDTO
 from app.models.direction import Direction
 from app.models.logging import Logs
 from app.models.participation import Participation
@@ -98,7 +98,7 @@ class DirectionAppORM(DirectionORM):
 
 
 class BadgeAppORM(BadgeORM):
-    infant: Mapped["BadgeAppORM"] = relationship("BadgeAppORM", lazy="selectin")
+    parent: Mapped["BadgeAppORM"] = relationship("BadgeAppORM", lazy="selectin")
     person: Mapped[PersonAppORM] = relationship("PersonAppORM", lazy="selectin")
     directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge", lazy="selectin")
 
@@ -112,7 +112,8 @@ class BadgeAppORM(BadgeORM):
             nickname=model.nickname,
             gender=model.gender,
             phone=model.phone,
-            infant_id=model.infant.id if model.infant else None,
+            parent_id=model.parent.id if model.parent else None,
+            child=model.child,
             diet=(
                 model.diet.name if model.diet else DietType.STANDARD.name
             ),  # if isinstance(model.diet, DietType) else DietType.default(),
@@ -131,7 +132,7 @@ class BadgeAppORM(BadgeORM):
         self,
         include_person: bool = False,
         include_directions: bool = False,
-        include_infant: bool = False,
+        include_parent: bool = False,
     ) -> Badge:
         return Badge(
             id=self.id,
@@ -141,11 +142,12 @@ class BadgeAppORM(BadgeORM):
             nickname=self.nickname,
             gender=self.gender,
             phone=self.phone,
-            infant=(
-                Infant.model_validate(self.infant, from_attributes=True)
-                if self.infant and include_infant
-                else self.infant_id
+            parent=(
+                Parent.model_validate(self.parent, from_attributes=True)
+                if self.parent and include_parent
+                else self.parent_id
             ),
+            child=self.child,
             diet=DietType[self.diet].value if self.diet else None,
             feed=FeedType[self.feed].value if self.feed else None,
             number=self.number,

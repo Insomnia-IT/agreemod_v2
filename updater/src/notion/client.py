@@ -89,7 +89,7 @@ class NotionClient:
 
     @staticmethod
     def load_mocked(db_name: str):
-        if db_name not in ["get_people", "get_participation"]:
+        if db_name not in ["get_people", "get_participation", "get_badges"]:
             logger.warning(f"{db_name} not added to pickle loader")
             return None
 

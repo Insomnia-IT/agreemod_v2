@@ -10,7 +10,7 @@ from dictionaries.dictionaries import BadgeColor, ParticipationRole
 from dictionaries.gender import Gender
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer, field_validator, model_validator
 
-from app.dto.badge import Infant
+from app.dto.badge import Parent
 from app.dto.direction import DirectionDTO
 from app.models.base import DomainModel
 from app.models.person import Person
@@ -23,7 +23,8 @@ class Badge(DomainModel):
     nickname: str | None = None
     gender: Gender | None = None
     phone: str | None = None
-    infant: Infant | UUID | None = None
+    parent: Parent | UUID | None = None
+    child: bool = False
     diet: DietType = Field(default_factory=DietType.default)
     feed: str | None = None
     number: str | None = None
@@ -71,10 +72,6 @@ class Badge(DomainModel):
         },
         use_enum_values=False,
     )
-
-    @field_serializer("infant")
-    def serialize_infant(self, value, _info):
-        return bool(value)
 
     @field_serializer("batch")
     def serialize_batch(self, value, _info):
