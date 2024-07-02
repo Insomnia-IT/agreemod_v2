@@ -83,7 +83,7 @@ class Badge(NotionModel):
                     int(number.split("-")[-1])
                     for name, number, notion_id in badges
                     if number
-                    and int(number.split("-")[0]) == direction_num
+                    and int(number.replace('(', '').replace(')', '').replace('+', '').split("-")[0]) == direction_num
                 ],
                 default=0,
             )

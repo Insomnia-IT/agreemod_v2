@@ -17,7 +17,7 @@ class BadgeDTO(BaseModel):
     notion_id: UUID | None = None
 
 
-class Infant(BaseModel):
+class Parent(BaseModel):
     id: UUID
     name: str
     last_name: str | None = None
