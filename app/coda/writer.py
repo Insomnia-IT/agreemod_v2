@@ -1,10 +1,14 @@
 from codaio import Cell, Coda, Document
 
+from app.config import config
 from app.db.repos.arrival import ArrivalRepo
 from app.schemas.feeder.arrival import Arrival, ArrivalResponse
 
 
-ARRIVALS = "grid--SMbvhP-1c"
+if not config.TESTING:
+    ARRIVALS = "grid--SMbvhP-1c"
+else:
+    ARRIVALS = "grid--SMbvhP-1c"
 
 
 class CodaWriter:
