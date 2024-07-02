@@ -15,14 +15,17 @@ from updater.src.coda.models.participation import CodaParticipation
 from updater.src.notion.models.badge import Anons, Badge
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.person import Person
+from updater.src.config import config
 
 NOTION_DB_REGISTRY: dict[str, Type["NotionDatabase"]] = {}
 CODA_DB_REGISTRY: dict[str, Type["CodaDatabase"]] = {}
 
-# TODO: replace updater/notion_dbs_info.json with notion_dbs_info.ini
-# with open("updater/notion_dbs_info.json", "r") as f:
-#     dbs = json.load(f)
-with open("updater/notion_db.yml", 'r', encoding='utf-8') as file:
+if config.TESTING:
+    DBS_FILE = 'updater/notion_db_dev.yml'
+else:
+    DBS_FILE = 'updater/notion_db_prod.yml'
+
+with open(DBS_FILE, 'r', encoding='utf-8') as file:
     dbs = yaml.safe_load(file)
 
 

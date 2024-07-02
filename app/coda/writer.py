@@ -8,7 +8,7 @@ from app.schemas.feeder.arrival import Arrival, ArrivalResponse
 if not config.TESTING:
     ARRIVALS = "grid--SMbvhP-1c"
 else:
-    ARRIVALS = "grid--SMbvhP-1c"
+    ARRIVALS = "_dqvssosHV4b"
 
 
 class CodaWriter:

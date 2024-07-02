@@ -16,8 +16,8 @@ anonymous_badges:
 
 get_participations:
   name: Engagement
-  id: grid-NnDAOlOFAu
+  id: Engagement
 
 get_arrivals:
   name: Arrivals
-  id: grid--SMbvhP-1c
+  id: Arrivals

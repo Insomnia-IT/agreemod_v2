@@ -76,12 +76,15 @@ async def notion_writer():
                 # Добавление или обновление страницы
                 await notion_w.add_or_update_page(database_id, page_data, unique_id)
     logger.info("finished sync badges... sleep...")
-    await asyncio.sleep(120)
+    await asyncio.sleep(config.REFRESH_PERIOD)
 
 
 async def run_concurrently():
     notion = NotionClient(token=config.notion.token)
-    coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
+    if config.TESTING:
+        coda = CodaClient(api_key=config.coda.api_key, doc_id='_dqvssosHV4b')
+    else:
+        coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     await asyncio.gather(
         main(notion=notion, coda=coda),

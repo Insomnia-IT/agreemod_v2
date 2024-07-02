@@ -46,6 +46,7 @@ class RabbitMQ(BaseSettings):
 class Config(BaseSettings):
     NOTION_DBS_INFO: str = "notion_dbs_info.json"
     DEBUG: bool = False
+    TESTING: bool = False
     REFRESH_PERIOD: int = 360  # seconds
 
     notion: NotionConfig
