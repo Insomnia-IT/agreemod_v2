@@ -24,7 +24,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         phone: str = None,
         include_person: bool = False,
         include_directions: bool = False,
-        include_infant: bool = False,
+        include_parent: bool = False,
         limit: int = None,
         page: int = None,
         filters: BadgeFilterDTO = None,
@@ -49,8 +49,8 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = query.options(selectinload(BadgeAppORM.directions)).options(
                 selectinload(BadgeDirectionsAppORM.direction, )
             )
-        if include_infant:
-            query = query.options(selectinload(BadgeAppORM.infant))
+        if include_parent:
+            query = query.options(selectinload(BadgeAppORM.parent))
         if from_date:
             query = query.filter(BadgeAppORM.last_updated > from_date)
         if filters:
@@ -63,7 +63,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             if filters.occupation:
                 query = query.where(BadgeAppORM.occupation == filters.occupation)
             if filters.infants:
-                query = query.where(BadgeAppORM.infant_id == filters.infants)
+                query = query.where(BadgeAppORM.parent_id == filters.infants)
         return query
 
     async def retrieve(
@@ -79,7 +79,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                     badge_number=badge_number,
                     phone=phone,
                     include_directions=True,
-                    include_infant=True,
+                    include_parent=True,
                     include_person=True,
                 )
             )
@@ -87,7 +87,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             return None
         if result is None:
             return None
-        return result.to_model(include_person=True, include_directions=True, include_infant=True)
+        return result.to_model(include_person=True, include_directions=True, include_parent=True)
 
     async def retrieve_many(
         self,
@@ -95,7 +95,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         page_size: int = None,
         filters: BadgeFilterDTO = None,
         include_directions: bool = False,
-        include_infant: bool = False,
+        include_parent: bool = False,
         include_person: bool = False,
         from_date: datetime = None,
     ) -> List[Badge]:
@@ -105,7 +105,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 limit=page_size,
                 filters=filters,
                 include_directions=include_directions,
-                include_infant=include_infant,
+                include_parent=include_parent,
                 include_person=include_person,
                 from_date=from_date,
             )
@@ -117,7 +117,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             result.to_model(
                 include_person=include_person,
                 include_directions=include_directions,
-                include_infant=include_infant,
+                include_parent=include_parent,
             )
             for result in unique_results
         ]
@@ -158,7 +158,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                 select(DirectionAppORM).where(DirectionAppORM.notion_id.in_(badge["directions"]))
             )
             badge_orm: BadgeAppORM = await self.session.scalar(
-                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id).options(selectinload(BadgeAppORM.infant))
+                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id).options(selectinload(BadgeAppORM.parent))
             )
             if badge_orm:
                 if badge.get("deleted", False) is True:

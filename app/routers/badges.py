@@ -102,7 +102,7 @@ TEXT_FILE_NAME = "hello.txt"
 
 
 @router.post("/prepare-badges/")
-async def start_task(
+async def prepare_badges(
     username: Annotated[str, Depends(verify_credentials)],
     background_tasks: BackgroundTasks,
     batch: int,
@@ -157,7 +157,7 @@ def start_async_task():
 
 
 @router.post("/start-sync-db-to-notion/")
-async def start_task(
+async def start_sync_db_to_notion(
         username: Annotated[str, Depends(verify_credentials)],
         background_tasks: BackgroundTasks,
 ):
