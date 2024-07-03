@@ -81,10 +81,7 @@ async def notion_writer():
 
 async def run_concurrently():
     notion = NotionClient(token=config.notion.token)
-    if config.TESTING:
-        coda = CodaClient(api_key=config.coda.api_key, doc_id='qvssosHV4b')
-    else:
-        coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
+    coda = CodaClient(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     await asyncio.gather(
         main(notion=notion, coda=coda),
