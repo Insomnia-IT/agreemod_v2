@@ -133,6 +133,8 @@ class Badge(NotionModel):
             .replace("(", "")
             .replace(")", "")
         )
+        if not format_value:
+            return format_value 
         if format_value[0] == "8":
             format_value = "+7" + format_value[1:]
         elif format_value[0] == "9":
