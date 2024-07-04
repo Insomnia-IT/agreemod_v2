@@ -105,7 +105,7 @@ class NotionPoller(Poller):
                     for item in items:
                         try:
                             model = self.database.model(
-                                notion_id=item.id, **item.properties
+                                notion_id=item.id, id=item.id, **item.properties
                             )
                         except ValidationError as e:
                             logger.error(

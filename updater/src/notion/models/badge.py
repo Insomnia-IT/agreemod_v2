@@ -19,6 +19,7 @@ from updater.src.notion.models.primitives.title import Title
 
 
 class Badge(NotionModel):
+    id: UUID
     name: Title = Field(..., alias="Надпись")
     last_name: RichText = Field(..., alias="Фамилия")
     first_name: RichText = Field(..., alias="Имя")
@@ -211,6 +212,7 @@ class Badge(NotionModel):
 
 
 class Anons(NotionModel):
+    id: UUID
     title: Title = Field(..., alias="Основная надпись")
     subtitle: RichText = Field(..., alias="Дополнительная надпись")
     batch: Select = Field(..., alias="Партия")
