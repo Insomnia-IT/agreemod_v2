@@ -19,6 +19,7 @@ from updater.src.notion.models.primitives.title import Title
 
 
 class Badge(NotionModel):
+    id: UUID = Field(..., alias='notion_id')
     name: Title = Field(..., alias="Надпись")
     last_name: RichText = Field(..., alias="Фамилия")
     first_name: RichText = Field(..., alias="Имя")

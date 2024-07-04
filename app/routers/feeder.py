@@ -33,7 +33,10 @@ async def sync(
 async def back_sync(
     username: Annotated[str, Depends(verify_credentials)],
     intake: BackSyncIntakeSchema,
-    service: FeederService = Depends(get_feeder_service),
+    badges_service: FeederService = Depends(get_feeder_service),
+    arrivals_service: FeederService = Depends(get_feeder_service),
+
 ):
-    await service.back_sync(intake)
+    await badges_service.back_sync_badges(intake)
+    await arrivals_service.back_sync_arrivals(intake)
     return JSONResponse(status_code=200, content={"message": "OK"})

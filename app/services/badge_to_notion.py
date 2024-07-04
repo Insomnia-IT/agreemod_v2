@@ -8,6 +8,7 @@ import yaml
 from notion_client import Client
 
 from app.config import config
+from app.schemas.feeder.badge import Badge
 from database.meta import async_session
 from database.repo.badges import BadgeRepo
 
@@ -56,10 +57,12 @@ class NotionWriter:
         except Exception as e:
             logger.error(f"Произошла ошибка при обновлении страницы: {e}")
 
-    async def add_or_update_page(self, database_id, page_data, unique_id):
+    async def add_or_update_page(self, database_id, page_data, unique_id: str = None):
         try:
-            page = self.retrieve_page(unique_id)
-            if page and unique_id:
+            page = None
+            if unique_id:
+                page = self.retrieve_page(unique_id)
+            if page:
                 # Если запись существует, обновляем её
                 await self.update_page(unique_id, page_data)
             else:
@@ -68,6 +71,9 @@ class NotionWriter:
                 logger.info(f"Новая запись создана: {response}")
         except Exception as e:
             logger.error(f"Произошла ошибка: {e}")
+
+    async def write_badge(badge_dict: dict):
+        badge = Badge.cre
 
 
 def construct_badge_data(
