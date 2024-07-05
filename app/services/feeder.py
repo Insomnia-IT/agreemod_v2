@@ -64,6 +64,7 @@ class FeederService:
 
     async def back_sync_badges(self, intake: BackSyncIntakeSchema):
         badges = intake.badges
+        badges_to_upd = []
         if badges:
             existing = await self.badges.update_feeder([x.data for x in badges])
             for e, b in zip(existing, badges):
@@ -79,8 +80,9 @@ class FeederService:
                         new_data=serialize(b.data.model_dump() if e is not None else {}),
                     )
                 )
-            badges_uuid = [i.actor_badge for i in badges]
-            await notion_writer_v2(badges_uuid)
+                if e is not None:
+                    badges_to_upd.append(b.data.id)
+            await notion_writer_v2(badges_to_upd)
         await self.session.commit()
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):

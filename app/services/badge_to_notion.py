@@ -52,7 +52,7 @@ class NotionWriter:
 
     async def update_page(self, page_id, properties):
         try:
-            await self.client.pages.update(page_id=page_id, properties=properties)
+            self.client.pages.update(page_id=page_id, properties=properties)
             logger.info(f"Страница обновлена: {page_id}")
         except Exception as e:
             logger.error(f"Произошла ошибка при обновлении страницы: {e}")
@@ -274,7 +274,7 @@ async def update_badges(badges):
                 last_name=badge['last_name'],
                 first_name=badge['first_name'],
                 gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
-                is_child=badge['infant_id'] is not None,
+                is_child=badge['child'],
                 phone=badge['phone'],
                 dietary_restrictions=diet,
                 meal_type=feed,
