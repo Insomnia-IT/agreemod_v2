@@ -105,7 +105,7 @@ class NotionPoller(Poller):
                     for item in items:
                         try:
                             model = self.database.model(
-                                notion_id=item.id, id=item.id, **item.properties
+                                notion_id=item.id, id=item.id, **{x: y for x, y  in item.properties.items() if x != 'id'}
                             )
                         except ValidationError as e:
                             logger.error(
@@ -162,7 +162,7 @@ class NotionPoller(Poller):
                                 if not diff and photo_diff:
                                     orm.last_updated = exist.last_updated
                                     await session.merge(orm)
-                            if diff:
+                            if diff and not isinstance(exist, AnonsORM):
                                 if not diff_photo:
                                     orm.last_updated = exist.last_updated
                                 else:

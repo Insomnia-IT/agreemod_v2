@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from dictionaries.diet_type import DietType
 from pydantic import ConfigDict, Field, field_validator, model_validator
@@ -33,6 +34,7 @@ all_keys = [
 class Person(NotionModel):
     model_config = ConfigDict(extra="ignore")
 
+    id: UUID
     name: Title = Field(..., alias="Как звать")
     last_name: RichText | None = Field(..., alias="Фамилия")
     first_name: RichText | None = Field(..., alias="Имя")

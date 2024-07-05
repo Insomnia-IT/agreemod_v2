@@ -9,6 +9,7 @@ from uuid import UUID
 from notion_client import AsyncClient
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from updater.src.notion.databases import NotionDatabase
+from updater.src.notion.models.badge import Anons
 from updater.src.notion.models.base import BaseNotionResponse, BaseNotionResponseItem
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.person import Person
@@ -82,7 +83,7 @@ class NotionClient:
             return value
 
         orm = target(
-            **{key: calculate_value(val) for key, val in notion if key[-1] != "_"},
+            **{key: calculate_value(val) for key, val in notion if key[-1] != "_" and not (key == 'id' and isinstance(notion, Anons))},
             last_updated=datetime.now(),
         )
         return orm

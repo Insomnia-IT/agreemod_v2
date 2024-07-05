@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 
 from dictionaries.dictionaries import DirectionType
 from pydantic import Field, model_validator
@@ -9,6 +10,7 @@ from updater.src.notion.models.primitives.title import Title
 
 
 class Direction(NotionModel):
+    id: UUID
     name: Title = Field(..., alias="Name")
     type: str | None = None
     first_year: Number = Field(..., alias="Год появления")

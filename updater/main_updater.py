@@ -18,6 +18,7 @@ async def main(notion: NotionClient, coda: CodaClient):
         notion_updater = Updater(notion, NotionPoller, NOTION_DB_REGISTRY)
         coda_updater = Updater(coda, CodaPoller, CODA_DB_REGISTRY)
         try:
+        # for i in 'a':
             if not any(
                     [
                         notion_updater.states.people_updating,
@@ -28,6 +29,7 @@ async def main(notion: NotionClient, coda: CodaClient):
         except Exception as e:
             logger.error(f"{e.__class__.__name__}: {e}")
         try:
+
             if not any(
                     [
                         coda_updater.states.participation_updating,

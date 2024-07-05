@@ -1,3 +1,4 @@
+from uuid import UUID
 from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
 from pydantic import BaseModel, Field, field_validator
 from updater.src.notion.models.primitives.relation import Relation
@@ -7,6 +8,7 @@ from updater.src.notion.models.primitives.title import Title
 
 
 class Participation(BaseModel):
+    id: UUID
     # name: Title = Field(..., alias="Name") # имя в notion есть но его нет в orm
     person_id: Relation = Field(..., alias="Человек")
     year: RichText = Field(..., alias="Год")
