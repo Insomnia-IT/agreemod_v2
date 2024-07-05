@@ -12,6 +12,7 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 from app.schemas.feeder.arrival import Arrival as FeederArrival
+from database.orm.badge import BadgeORM
 
 
 logger = logging.getLogger(__name__)
@@ -80,11 +81,13 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     created.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
-                arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
-                arrival_orm.last_updated = datetime.now()
-                self.session.add(arrival_orm)
-                await self.session.flush([arrival_orm])
-                created.append(arrival_orm)
+                badge = self.session(select(BadgeORM).where(BadgeORM.notion_id == arrival['badge']))
+                if badge:
+                    arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
+                    arrival_orm.last_updated = datetime.now()
+                    self.session.add(arrival_orm)
+                    await self.session.flush([arrival_orm])
+                    created.append(arrival_orm)
             elif arrival.get("deleted", False) is True:
                 created.append(None)
                 # await self.session.flush()
