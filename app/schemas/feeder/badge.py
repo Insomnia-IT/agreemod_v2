@@ -57,12 +57,12 @@ class Badge(BaseModel):
     def convert_vegan(cls, value: str):
         return DietType.VEGAN.value if value is True else DietType.STANDARD.value
 
-    # necessary evil
-    @model_validator(mode="after")
-    def fill_notion_id_if_none(self):
-        if self.notion_id is None:
-            self.notion_id = self.id
-        return self
+    # # necessary evil
+    # @model_validator(mode="after")
+    # def fill_notion_id_if_none(self):
+    #     if self.notion_id is None:
+    #         self.notion_id = self.id
+    #     return self
 
 
 class BadgeWithMetadata(BaseModel):
@@ -72,7 +72,7 @@ class BadgeWithMetadata(BaseModel):
 
 
 class BadgeResponse(BaseModel):
-    id: UUID = Field(..., validation_alias="notion_id")
+    id: UUID
     deleted: bool = False
     name: str = ""
     first_name: str = ""
