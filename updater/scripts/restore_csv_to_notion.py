@@ -13,7 +13,7 @@ import pytz
 from database.meta import async_session
 from database.repo.badges import BadgeRepo
 from updater.src.notion.writer.construct_badge_data import construct_badge_data
-from updater.src.notion.writer.notion_writer import NotionWriter
+from app.notion.notion_writer import NotionWriter
 
 logger = logging.getLogger(__name__)
 

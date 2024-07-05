@@ -102,7 +102,7 @@ class BadgeService:
         batch = await self.badges.retrieve_many(
             filters=filters,
             include_directions=True,
-            include_infant=True,
+            include_parent=True,
             include_person=True,
         )
         await self.session.commit()

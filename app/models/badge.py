@@ -24,7 +24,7 @@ class Badge(DomainModel):
     gender: Gender | None = None
     phone: str | None = None
     parent: Parent | UUID | None = None
-    child: bool = False
+    child: bool | None = False
     diet: DietType = Field(default_factory=DietType.default)
     feed: str | None = None
     number: str | None = None
