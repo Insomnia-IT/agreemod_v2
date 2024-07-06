@@ -77,7 +77,7 @@ class NotionWriter:
 
     async def write_badge(badge_dict: dict):
         badge = Badge.cre
-
+ 
 
 def construct_badge_data(
     title: Optional[str] = None,
