@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
-from updater.src.notion.models.primitives.checkbox import Checkbox
-from updater.src.notion.models.primitives.files import Files
-from updater.src.notion.models.primitives.title import Title
 
+from app.schemas.notion.primitives.checkbox import Checkbox
+from app.schemas.notion.primitives.files import Files
 from app.schemas.notion.primitives.relation import Relation
 from app.schemas.notion.primitives.rich_text import RichText
 from app.schemas.notion.primitives.select import Select
+from app.schemas.notion.primitives.title import Title
 
 
 class Badge(BaseModel):

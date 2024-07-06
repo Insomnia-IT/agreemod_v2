@@ -1,5 +1,6 @@
 from pydantic import BaseModel, computed_field
-from updater.src.notion.models.primitives.base import BaseNotionModel
+
+from app.schemas.notion.primitives.base import BaseNotionModel
 
 
 class MultiselectBody(BaseModel):

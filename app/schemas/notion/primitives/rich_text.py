@@ -1,5 +1,5 @@
 from pydantic import BaseModel, computed_field
-from updater.src.notion.models.primitives.base import Annotations, BaseNotionModel, MentionPage, MentionUser, Text
+from app.schemas.notion.primitives.base import Annotations, BaseNotionModel, MentionPage, MentionUser, Text
 
 
 class RichTextBody(BaseModel):
