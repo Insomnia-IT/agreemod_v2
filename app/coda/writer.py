@@ -44,20 +44,32 @@ class CodaWriter:
             ]
             try:
                 result = self.arrivals.update_row(row_id, new_row)
-                coda_index = result.get('id')
+                coda_index = result.get("id")
             except NotFound:
                 coda_index = None
         else:
             new_row = [
                 Cell(column=self.ArrivalMapping.badge, value_storage=data.badge_id.hex if data.badge_id else None),
                 Cell(column=self.ArrivalMapping.status, value_storage=data.status.value if data.status else None),
-                Cell(column=self.ArrivalMapping.arrival_date, value_storage=data.arrival_date.isoformat() if data.arrival_date else None),
-                Cell(column=self.ArrivalMapping.arrival_transport, value_storage=data.arrival_transport.value if data.arrival_transport else None),
-                Cell(column=self.ArrivalMapping.departure_date, value_storage=data.departure_date.isoformat() if data.departure_date else None),
-                Cell(column=self.ArrivalMapping.departure_transport, value_storage=data.departure_transport.value if data.departure_transport else None),
+                Cell(
+                    column=self.ArrivalMapping.arrival_date,
+                    value_storage=data.arrival_date.isoformat() if data.arrival_date else None,
+                ),
+                Cell(
+                    column=self.ArrivalMapping.arrival_transport,
+                    value_storage=data.arrival_transport.value if data.arrival_transport else None,
+                ),
+                Cell(
+                    column=self.ArrivalMapping.departure_date,
+                    value_storage=data.departure_date.isoformat() if data.departure_date else None,
+                ),
+                Cell(
+                    column=self.ArrivalMapping.departure_transport,
+                    value_storage=data.departure_transport.value if data.departure_transport else None,
+                ),
             ]
             result = self.arrivals.upsert_row(new_row)
-            coda_index = result.get('addedRowIds')[0]
+            coda_index = result.get("addedRowIds")[0]
         return coda_index
 
     async def delete_arrival(self, coda_index):

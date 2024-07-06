@@ -8,7 +8,7 @@ from dictionaries import FeedType
 from dictionaries.dictionaries import ParticipationRole
 from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
-from pydantic import BaseModel, Field, field_serializer, field_validator, model_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
 class Badge(BaseModel):

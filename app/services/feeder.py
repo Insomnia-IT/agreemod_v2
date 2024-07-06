@@ -2,15 +2,13 @@ import logging
 
 from datetime import date, datetime, time
 from enum import Enum
-import os
 from typing import Any
 from uuid import UUID
 
 import asyncpg
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.coda.writer import CodaWriter
 from app.config import config
@@ -29,6 +27,7 @@ from app.schemas.feeder.person import PersonResponse
 from app.schemas.feeder.requests import BackSyncIntakeSchema, SyncResponseSchema
 from app.services.badge_to_notion import notion_writer_v2
 from app.utils.background_tasks import BackgroungInterlock
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +52,10 @@ def serialize(data: dict) -> dict:
 
     return {x: adapt_to_serialize(y) for x, y in data.items()}
 
+
 class WaitForItError(Exception):
     pass
+
 
 class FeederService:
     def __init__(self, session: AsyncSession) -> None:
@@ -91,10 +92,10 @@ class FeederService:
         return badges_to_upd
 
     @retry(
-            stop=stop_after_attempt(5),
-            wait=wait_exponential(multiplier=1, min=4, max=10),
-            retry_if_exception_type=WaitForItError
-        )
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry_if_exception_type=WaitForItError,
+    )
     async def update_notion_badges(self, badges):
         notion_writer_v2(badges)
 
@@ -112,7 +113,9 @@ class FeederService:
                         author=actor.name if actor else "ANON",
                         table_name="arrival",
                         row_id=a.data.id if e and e.coda_index is not None else None,
-                        operation="MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE",
+                        operation=(
+                            "MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE"
+                        ),
                         timestamp=dt,
                         new_data=serialize(a.data.model_dump() if e is not None else {}),
                     )
@@ -130,21 +133,20 @@ class FeederService:
         return update_arrivals, delete_arrivals
 
     @retry(
-            stop=stop_after_attempt(5),
-            wait=wait_exponential(multiplier=1, min=4, max=10),
-        )
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+    )
     async def update_coda_arrivals(self, update_arrivals, delete_arrivals):
         for e, ua in update_arrivals:
             coda_index = await self.coda_writer.update_arrival(self.arrivals, ua)
             e.coda_index = coda_index
             await self.session.merge(e)
-        
+
         for d in delete_arrivals:
             self.coda_writer.delete_arrival(d)
 
-
     async def back_sync(self, intake: BackSyncIntakeSchema):
-        async with BackgroungInterlock('back_sync'):
+        async with BackgroungInterlock("back_sync"):
             arrivals = intake.arrivals
             badges = intake.badges
             if badges:
@@ -175,7 +177,9 @@ class FeederService:
                             author=actor.name if actor else "ANON",
                             table_name="arrival",
                             row_id=a.data.id if e and e.coda_index is not None else None,
-                            operation="MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE",
+                            operation=(
+                                "MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE"
+                            ),
                             timestamp=dt,
                             new_data=serialize(a.data.model_dump() if e is not None else {}),
                         )
@@ -190,10 +194,10 @@ class FeederService:
             await self.session.commit()
 
     @retry(
-            stop=stop_after_attempt(5),
-            wait=wait_exponential(multiplier=1, min=4, max=10),
-            retry_if_exception_type=WaitForItError
-        )
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry_if_exception_type=WaitForItError,
+    )
     async def sync(self, from_date: datetime):
         get_badges = await self.badges.retrieve_many(include_infant=True, include_directions=True, from_date=from_date)
         badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]

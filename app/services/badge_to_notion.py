@@ -1,20 +1,23 @@
 import asyncio
 import logging
 import uuid
-from typing import Optional, Dict
+
+from typing import Dict, Optional
 from uuid import UUID
 
 import yaml
+
+from database.meta import async_session
+from database.repo.badges import BadgeRepo
 from notion_client import Client
 
 from app.config import config
 from app.schemas.feeder.badge import Badge
-from database.meta import async_session
-from database.repo.badges import BadgeRepo
+
 
 logger = logging.getLogger(__name__)
 
-with open("app/notion_db.yml", 'r', encoding='utf-8') as file:
+with open("app/notion_db.yml", "r", encoding="utf-8") as file:
     dbs = yaml.safe_load(file)
 
 badge_data = {  # TODO: читать это из базы?! Или из ParticipationRole?
@@ -33,7 +36,7 @@ badge_data = {  # TODO: читать это из базы?! Или из Particip
     "Сопровождающие (участников)": "ffbe65c1-03f6-40b4-878b-c706fbb3aabf",
     "Бригадир": "9f8714fa-106d-4c67-84c7-5ea22b0b60b7",
     "Организатор": "31361def-f99f-4189-a347-86ecb75476f9",
-    "Зам. руководителя": "48414ef4-776b-44ea-af5e-ad19c4fd1e42"
+    "Зам. руководителя": "48414ef4-776b-44ea-af5e-ad19c4fd1e42",
 }
 
 
@@ -77,40 +80,30 @@ class NotionWriter:
 
 
 def construct_badge_data(
-        title: Optional[str] = None,
-        services_and_locations_id: Optional[str] = None,
-        role_id: Optional[str] = None,
-        position: Optional[str] = None,
-        last_name: Optional[str] = None,
-        first_name: Optional[str] = None,
-        gender: Optional[str] = None,
-        is_child: Optional[bool] = None,
-        phone: Optional[str] = None,
-        dietary_restrictions: Optional[str] = None,
-        meal_type: Optional[str] = None,
-        photo_url: Optional[str] = None,
-        photo_name: Optional[str] = None,
-        party: Optional[str] = None,
-        color: Optional[str] = None,
-        comment: Optional[str] = None
+    title: Optional[str] = None,
+    services_and_locations_id: Optional[str] = None,
+    role_id: Optional[str] = None,
+    position: Optional[str] = None,
+    last_name: Optional[str] = None,
+    first_name: Optional[str] = None,
+    gender: Optional[str] = None,
+    is_child: Optional[bool] = None,
+    phone: Optional[str] = None,
+    dietary_restrictions: Optional[str] = None,
+    meal_type: Optional[str] = None,
+    photo_url: Optional[str] = None,
+    photo_name: Optional[str] = None,
+    party: Optional[str] = None,
+    color: Optional[str] = None,
+    comment: Optional[str] = None,
 ) -> Dict[str, Dict]:
     data = {}
 
     if title:
-        data["Надпись"] = {
-            "title": [
-                {
-                    "text": {
-                        "content": title
-                    }
-                }
-            ]
-        }
+        data["Надпись"] = {"title": [{"text": {"content": title}}]}
 
     if services_and_locations_id:
-        data["Службы и локации"] = {
-            "relation": [{"id": i} for i in services_and_locations_id.split(",")]
-        }
+        data["Службы и локации"] = {"relation": [{"id": i} for i in services_and_locations_id.split(",")]}
 
     if role_id:
         role_name = badge_data.get(role_id)
@@ -124,118 +117,47 @@ def construct_badge_data(
                 ]
             }
 
-    if position and str(position) != 'nan':
-        data["Должность"] = {
-            "rich_text": [
-                {
-                    "text": {
-                        "content": position
-                    }
-                }
-            ]
-        }
+    if position and str(position) != "nan":
+        data["Должность"] = {"rich_text": [{"text": {"content": position}}]}
 
-    if last_name and str(last_name) != 'nan':
-        data["Фамилия"] = {
-            "rich_text": [
-                {
-                    "text": {
-                        "content": last_name
-                    }
-                }
-            ]
-        }
+    if last_name and str(last_name) != "nan":
+        data["Фамилия"] = {"rich_text": [{"text": {"content": last_name}}]}
 
-    if first_name and str(first_name) != 'nan':
-        data["Имя"] = {
-            "rich_text": [
-                {
-                    "text": {
-                        "content": first_name
-                    }
-                }
-            ]
-        }
+    if first_name and str(first_name) != "nan":
+        data["Имя"] = {"rich_text": [{"text": {"content": first_name}}]}
 
-    if gender and str(gender) != 'nan':
-        data["Пол"] = {
-            "select": {
-                "name": gender
-            }
-        }
+    if gender and str(gender) != "nan":
+        data["Пол"] = {"select": {"name": gender}}
 
     if bool(is_child):
-        data["Ребенок"] = {
-            "checkbox": bool(is_child)
-        }
+        data["Ребенок"] = {"checkbox": bool(is_child)}
 
-    if phone and str(phone) != 'nan':
-        data["Телефон"] = {
-            "rich_text": [
-                {
-                    "text": {
-                        "content": phone
-                    }
-                }
-            ]
-        }
+    if phone and str(phone) != "nan":
+        data["Телефон"] = {"rich_text": [{"text": {"content": phone}}]}
 
-    if dietary_restrictions and str(dietary_restrictions) != 'nan':
-        data["Особенности питания"] = {
-            "select": {
-                "name": dietary_restrictions
-            }
-        }
+    if dietary_restrictions and str(dietary_restrictions) != "nan":
+        data["Особенности питания"] = {"select": {"name": dietary_restrictions}}
 
-    if meal_type and str(meal_type) != 'nan':
-        data["Тип питания"] = {
-            "select": {
-                "name": meal_type
-            }
-        }
+    if meal_type and str(meal_type) != "nan":
+        data["Тип питания"] = {"select": {"name": meal_type}}
 
     if photo_url and photo_name:
-        data["Фото"] = {
-            "files": [
-                {
-                    "name": photo_name,
-                    "file": {
-                        "url": photo_url
-                    }
-                }
-            ]
-        }
+        data["Фото"] = {"files": [{"name": photo_name, "file": {"url": photo_url}}]}
 
-    if party and str(party) != 'nan':
-        data["Партия"] = {
-            "select": {
-                "name": str(int(float(party)))
-            }
-        }
+    if party and str(party) != "nan":
+        data["Партия"] = {"select": {"name": str(int(float(party)))}}
 
-    if color and str(color) != 'nan':
-        data["Цвет"] = {
-            "select": {
-                "name": color
-            }
-        }
+    if color and str(color) != "nan":
+        data["Цвет"] = {"select": {"name": color}}
 
-    if comment and str(comment) != 'nan':
-        data["Комментарий"] = {
-            "rich_text": [
-                {
-                    "text": {
-                        "content": comment
-                    }
-                }
-            ]
-        }
+    if comment and str(comment) != "nan":
+        data["Комментарий"] = {"rich_text": [{"text": {"content": comment}}]}
 
     return data
 
 
 async def notion_writer():
-    async with (async_session() as session):
+    async with async_session() as session:
         logger.info("start sync badges...")
         repo = BadgeRepo(session)
         badges = await repo.get_all_badges()
@@ -246,7 +168,7 @@ async def notion_writer():
 
 async def notion_writer_v2(badges: list[UUID]):
     try:
-        async with (async_session() as session):
+        async with async_session() as session:
             repo = BadgeRepo(session)
             badges = await repo.get_badges_by_notion_ids(badges)
             await update_badges(badges)
@@ -262,39 +184,42 @@ async def update_badges(badges):
         try:
             badge = dict(badge)
 
-            diet = "Без особенностей" if badge['diet'] == 'STANDARD' else "Веган" if badge[
-                                                                                         'diet'] == 'VEGAN' else "Unknown"
-            feed = "Бесплатно" if badge['feed'] == 'FREE' else "Платно" if badge[
-                                                                               'diet'] == 'PAID' else "Без питания"
+            diet = (
+                "Без особенностей"
+                if badge["diet"] == "STANDARD"
+                else "Веган" if badge["diet"] == "VEGAN" else "Unknown"
+            )
+            feed = "Бесплатно" if badge["feed"] == "FREE" else "Платно" if badge["diet"] == "PAID" else "Без питания"
             page_data = construct_badge_data(
-                title=badge['name'],
-                services_and_locations_id=str(badge['notion_id']),
-                role_id=badge['role_code'],
-                position=badge['occupation'],
-                last_name=badge['last_name'],
-                first_name=badge['first_name'],
-                gender="Ж" if badge['gender'] == 'FEMALE' else "M" if badge['gender'] == 'MALE' else "Unknown",
-                is_child=badge['child'],
-                phone=badge['phone'],
+                title=badge["name"],
+                services_and_locations_id=str(badge["notion_id"]),
+                role_id=badge["role_code"],
+                position=badge["occupation"],
+                last_name=badge["last_name"],
+                first_name=badge["first_name"],
+                gender="Ж" if badge["gender"] == "FEMALE" else "M" if badge["gender"] == "MALE" else "Unknown",
+                is_child=badge["child"],
+                phone=badge["phone"],
                 dietary_restrictions=diet,
                 meal_type=feed,
                 # photo_url=badge['photo'],
-                photo_name=badge['nickname'],
+                photo_name=badge["nickname"],
                 party=badge.get("batch"),
                 color=None,  # Заменить на подходящее значение, если оно есть
-                comment=badge['comment']
+                comment=badge["comment"],
             )
 
-            unique_id = badge.get('notion_id')
+            unique_id = badge.get("notion_id")
             if unique_id:
-                unique_id = str(unique_id).replace("-", '')
+                unique_id = str(unique_id).replace("-", "")
                 # Добавление или обновление страницы
                 await notion_w.add_or_update_page(database_id, page_data, unique_id)
         except Exception as e:
             logger.critical(f"back sync badge problem: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     async def main():
         async with async_session() as session:
             repo = BadgeRepo(session)
@@ -316,6 +241,5 @@ if __name__ == '__main__':
 
             # check 2
             await notion_writer_v2(notion_ids)
-
 
     asyncio.run(main())

@@ -14,6 +14,7 @@ from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
 from app.schemas.feeder.badge import Badge as FeederBadge
 
+
 # TODO: перенести в модуль database!?
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
@@ -47,7 +48,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = query.options(selectinload(BadgeAppORM.person))
         if include_directions:
             query = query.options(selectinload(BadgeAppORM.directions)).options(
-                selectinload(BadgeDirectionsAppORM.direction, )
+                selectinload(
+                    BadgeDirectionsAppORM.direction,
+                )
             )
         if include_parent:
             query = query.options(selectinload(BadgeAppORM.parent))

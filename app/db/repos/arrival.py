@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from enum import Enum
 
+from database.orm.badge import BadgeORM
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
@@ -12,7 +13,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 from app.schemas.feeder.arrival import Arrival as FeederArrival
-from database.orm.badge import BadgeORM
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     created.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
-                badge = await self.session.scalar(select(BadgeORM).where(BadgeORM.notion_id == arrival['badge']))
+                badge = await self.session.scalar(select(BadgeORM).where(BadgeORM.notion_id == arrival["badge"]))
                 if badge:
                     arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                     arrival_orm.last_updated = datetime.now()
