@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-from notion_client import Client
-from updater.src.config import config
-from updater.src.notion.client import NotionClient
+from notion_client import AsyncClient
+
+from app.config import config
 
 
 logger = logging.getLogger(__name__)
@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 class NotionWriter:
 
     def __init__(self):
-        self.notion = NotionClient(token=config.notion.token_write)  # наш композитный объект с клиентом
-        self.client: Client = self.notion._client  # оригинальный клиент
+        self.client = AsyncClient(auth=config.notion.write_token)
 
     async def retrieve_page(self, page_id):
         try:
