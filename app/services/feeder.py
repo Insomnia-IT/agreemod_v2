@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.coda.writer import CodaWriter
-from app.config import config
+from app.config import config 
 from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
 from app.db.repos.direction import DirectionRepo
