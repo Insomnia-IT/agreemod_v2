@@ -93,8 +93,7 @@ class FeederService:
 
     @retry(
         stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry_if_exception_type=WaitForItError,
+        wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     async def update_notion_badges(self, badges):
         notion_writer_v2(badges)
