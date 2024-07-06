@@ -1,0 +1,41 @@
+from pydantic import BaseModel, Field
+from updater.src.notion.models.primitives.checkbox import Checkbox
+from updater.src.notion.models.primitives.files import Files
+from updater.src.notion.models.primitives.title import Title
+
+from app.schemas.notion.primitives.relation import Relation
+from app.schemas.notion.primitives.rich_text import RichText
+from app.schemas.notion.primitives.select import Select
+
+
+class Badge(BaseModel):
+    name: Title = Field(..., alias="Надпись")
+    last_name: RichText = Field(..., alias="Фамилия")
+    first_name: RichText = Field(..., alias="Имя")
+    gender: Select = Field(..., alias="Пол")
+    phone: RichText = Field(..., alias="Телефон")
+    child: Checkbox = Field(..., alias="Ребенок")
+    diet: Select = Field(..., alias="Особенности питания")
+    feed: Select = Field(..., alias="Тип питания")
+    occupation: RichText = Field(..., alias="Должность")
+    role: Select = Field(..., alias="Роль")
+    photo: Files = Field(..., alias="Фото")
+    person_id: Relation = Field(..., alias="Человек")
+    comment: RichText = Field(..., alias="Комментарий")
+    direction: Relation = Field(..., alias="Службы и локации")
+    color: Select = Field(..., alias="Цвет")
+
+    @classmethod
+    def create_model(cls, values: dict):
+        model_dict = {}
+        for x, y in values.items():
+            print(x, y)
+            if cls.model_fields.get(x):
+                field = cls.model_fields[x]
+                if cls.model_fields[x].annotation in [Relation, RichText]:
+                    model_dict[field.alias if field.alias else x] = field.annotation.create_model([y])
+                elif field.annotation in [Select]:
+                    model_dict[field.alias if field.alias else x] = field.annotation.create_model(y)
+                else:
+                    model_dict[field.alias if field.alias else x] = y
+        return cls.model_validate(model_dict)
