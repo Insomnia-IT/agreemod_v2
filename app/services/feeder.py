@@ -195,7 +195,6 @@ class FeederService:
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry_if_exception_type=WaitForItError,
     )
     async def sync(self, from_date: datetime):
         get_badges = await self.badges.retrieve_many(include_infant=True, include_directions=True, from_date=from_date)
