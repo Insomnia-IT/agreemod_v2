@@ -124,8 +124,6 @@ class NotionPoller(Poller):
                             logger.error(f"{e.__class__.__name__}: {e}")
                             continue
                         if not exist:
-                            if not isinstance(orm, AnonsORM):
-                                orm.id = uuid4()
                             session.add(orm)
                         else:
                             if isinstance(orm, AnonsORM):

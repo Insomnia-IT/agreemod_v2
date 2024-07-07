@@ -104,8 +104,8 @@ class Badge(DomainModel):
         if not value:
             return DietType.default()
         try:
-            return DietType[value.lower()]
-        except KeyError:
+            return DietType(value.lower())
+        except ValueError:
             return DietType.default()
 
     @model_validator(mode="after")

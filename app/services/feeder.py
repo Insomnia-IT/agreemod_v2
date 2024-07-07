@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.coda.writer import CodaWriter
-from app.config import config 
+from app.config import config
 from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
 from app.db.repos.direction import DirectionRepo
@@ -96,7 +96,7 @@ class FeederService:
         wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     async def update_notion_badges(self, badges):
-        notion_writer_v2(badges)
+        await notion_writer_v2(badges)
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
         update_arrivals = []
