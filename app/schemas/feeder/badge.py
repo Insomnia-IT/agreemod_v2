@@ -95,7 +95,7 @@ class BadgeResponse(BaseModel):
     photo: str
     person: UUID | None
     comment: str | None
-    notion_id: UUID
+    notion_id: UUID | None = None
     directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
