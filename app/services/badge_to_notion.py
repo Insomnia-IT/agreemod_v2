@@ -7,13 +7,15 @@ from uuid import UUID
 
 import yaml
 
+from app.db.repos.badge import BadgeRepo
+from app.models.badge import Badge as BadgeModel
 from database.meta import async_session
-from database.repo.badges import BadgeRepo
+# from database.repo.badges import BadgeRepo
 from notion_client import Client
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import config
-from app.schemas.feeder.badge import Badge
-
+from schemas.notion.badge import Badge
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +77,19 @@ class NotionWriter:
         except Exception as e:
             logger.error(f"Произошла ошибка: {e}")
 
-    async def write_badge(badge_dict: dict):
-        badge = Badge.cre
+    async def write_badge(self, database: str, badge_dict: dict, repo: BadgeRepo):
+        badge = Badge.create_model(badge_dict)
+        existing = badge_dict.get('notion_id')
+        notion_id = self.add_or_update_page(
+            database,
+            badge.model_dump(by_alias=True),
+            existing
+        )
+        if notion_id:
+            badge_dict['notion_id'] = notion_id
+            model = BadgeModel(**badge_dict)
+            await repo.update(model)
+
  
 
 def construct_badge_data(
@@ -167,14 +180,23 @@ async def notion_writer():
 
 
 async def notion_writer_v2(badges: list[UUID]):
+    notion = NotionWriter()
+    database_id = dbs["get_badges"]["id"]
     try:
         async with async_session() as session:
             repo = BadgeRepo(session)
-            badges = await repo.get_badges_by_notion_ids(badges)
-            await update_badges(badges)
-            logger.info("finished sync badges...")
+            badges = await repo.retrieve_many_by_ids(badges)
+            for badge_model in badges:
+                badge = badge_model.model_dump()
+                badge['directions'] = [
+                    x['notion_id'] for x
+                    in badge.get('directions', [])
+                    if x.get('notion_id')
+                ]
+                await notion.write_badge(database_id, badge, session)
+                logger.info("finished sync badges...")
     except Exception as e:
-        logger.critical(f"back sync badge problem: {e}")
+        logger.error(f"back sync badge problem: {e}")
 
 
 async def update_badges(badges):

@@ -31,6 +31,8 @@ class NotionWriter:
 
     async def add_or_update_page(self, database_id, page_data, unique_id: str = None):
         try:
+            page = None
+            response = {}
             if unique_id:
                 page = await self.retrieve_page(unique_id)
                 if page:
@@ -42,6 +44,7 @@ class NotionWriter:
                 logger.info(f"Новая запись создана: {response}")
         except Exception as e:
             logger.error(f"Произошла ошибка: {e}")
+        return response.get('id')
 
 
 async def main():
