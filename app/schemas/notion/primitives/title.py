@@ -4,20 +4,13 @@ from app.schemas.notion.primitives.base import Annotations, BaseNotionModel, Tex
 
 
 class TitleBody(BaseModel):
-    annotations: Annotations | None = None
-    type: str | None = None
+    type: str | None = "text"
     text: Text
-    plain_text: str
-    href: str | None
+    href: str | None = None
 
 
 class Title(BaseNotionModel):
     title: list[TitleBody]
-
-    @computed_field
-    @property
-    def value(self) -> str:
-        return ", ".join(title.plain_text for title in self.title)
 
     def __str__(self):
         return self.value.replace(",", "")
@@ -30,9 +23,9 @@ class Title(BaseNotionModel):
         result = []
         for value in values:
             if isinstance(value, str):
-                result.append({"text": {"content": value}, "plain_text": value})
+                result.append({"text": {"content": value}})
             elif isinstance(value, dict):
                 result.append(value)
             else:
                 raise ValueError(f"{type(value)=}, {value=} is a wrong type")
-        return cls.model_validate(title=[TitleBody.model_validate(x) for x in result], from_attributes=True)
+        return cls.model_validate({"title": result})

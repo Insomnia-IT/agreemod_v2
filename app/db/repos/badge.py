@@ -93,15 +93,26 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         return result.to_model(include_person=True, include_directions=True, include_parent=True)
 
     async def retrieve_many_by_ids(self, ids: list[str]):
-        result = await self.session.scalars(
+        results = await self.session.scalars(
             select(BadgeAppORM, BadgeDirectionsAppORM)
             .join(BadgeAppORM.directions, isouter=True)
             .where(BadgeAppORM.id.in_(ids))
+            .options(selectinload(BadgeAppORM.parent))
             .options(selectinload(BadgeAppORM.person))
             .options(selectinload(BadgeAppORM.directions))
             .options(selectinload(BadgeDirectionsAppORM.direction))
         )
-        return [x.to_model() for x in result]
+        if not results:
+            return []
+        unique_results = results.unique()
+        return [
+            result.to_model(
+                include_person=True,
+                include_directions=True,
+                include_parent=True,
+            )
+            for result in unique_results
+        ]
 
     async def retrieve_many(
         self,

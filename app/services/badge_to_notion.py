@@ -12,10 +12,9 @@ from app.models.badge import Badge as BadgeModel
 from database.meta import async_session
 # from database.repo.badges import BadgeRepo
 from notion_client import Client
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import config
-from schemas.notion.badge import Badge
+from app.schemas.notion.badge import Badge
 
 logger = logging.getLogger(__name__)
 
@@ -78,11 +77,20 @@ class NotionWriter:
             logger.error(f"Произошла ошибка: {e}")
 
     async def write_badge(self, database: str, badge_dict: dict, repo: BadgeRepo):
+        badge_dict['role'] = badge_data.get(badge_dict['role'].value)
+        badge_dict['gender'] = (
+            'M' if badge_dict['gender'] in ['мужской', 'MALE']
+            else "Ж" if badge_dict['gender'] in ['женский', 'FEMALE']
+            else "др."
+        )
         badge = Badge.create_model(badge_dict)
         existing = badge_dict.get('notion_id')
-        notion_id = self.add_or_update_page(
+        notion_payload = badge.model_dump(by_alias=True, exclude_none=True)
+        if badge_dict['person'] is None:
+            notion_payload.pop('Человек')
+        notion_id = await self.add_or_update_page(
             database,
-            badge.model_dump(by_alias=True),
+            notion_payload,
             existing
         )
         if notion_id:
@@ -255,7 +263,7 @@ if __name__ == "__main__":
             # check 1
 
             # Вызов метода get_badges_by_notion_ids
-            badges = await repo.get_badges_by_notion_ids(notion_ids)
+            badges = await repo.retrieve_many_by_ids(notion_ids)
 
             # Вывод результатов
             for badge in badges:

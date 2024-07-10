@@ -4,23 +4,19 @@ from app.schemas.notion.primitives.base import BaseNotionModel
 
 
 class SelectBody(BaseModel):
-    id: str | None = None
     name: str
-    color: str | None = None
 
+    @computed_field
+    @property
+    def color(self) -> str:
+        return (
+            "red" if self.name == 'Ж'
+            else "blue" if self.name == 'М'
+            else "gray"
+        )
 
 class Select(BaseNotionModel):
     select: SelectBody | None
-
-    @computed_field
-    @property
-    def value(self) -> str:
-        return self.select.name if self.select else None
-
-    @computed_field
-    @property
-    def title(self) -> str:
-        return self.select.name if self.select else ""
 
     @classmethod
     def create_model(cls, value: str | dict):
@@ -30,20 +26,7 @@ class Select(BaseNotionModel):
 
 
 class SelectNone(Select):
-
-    @computed_field
-    @property
-    def value(self) -> str:
-        return super().value or None
-
-    @computed_field
-    @property
-    def title(self) -> str:
-        return self.value
-
+    pass
 
 class SelectColor(Select):
-    @computed_field
-    @property
-    def value(self) -> str | None:
-        return self.select.color if self.select else None
+    pass

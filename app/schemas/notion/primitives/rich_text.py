@@ -5,7 +5,6 @@ from app.schemas.notion.primitives.base import Annotations, BaseNotionModel, Men
 class RichTextBody(BaseModel):
     type: str
     text: Text | None = None
-    annotations: Annotations | None = None
     plain_text: str | int | float
     href: str | None = None
 
@@ -19,12 +18,7 @@ class RichMentionBody(BaseModel):
 
 
 class RichText(BaseNotionModel):
-    rich_text: list[RichTextBody | RichMentionBody]
-
-    @computed_field
-    @property
-    def value(self) -> str:
-        return "".join(str(rt.plain_text) for rt in self.rich_text if isinstance(rt, RichTextBody)).strip()
+    rich_text: list[RichTextBody]
 
     @classmethod
     def create_model(
@@ -36,7 +30,7 @@ class RichText(BaseNotionModel):
             if isinstance(value, (str, int, float)):
                 result.append(
                     {
-                        "type": "rich_text",
+                        "type": "text",
                         "text": {"content": value},
                         "plain_text": value,
                     }

@@ -13,8 +13,3 @@ class DateBody(BaseModel):
 
 class Date(BaseNotionModel):
     date: DateBody | None
-
-    @computed_field
-    @property
-    def value(self) -> str | None:
-        return date.fromisoformat(self.date.start.split("T")[0]) if self.date else None

@@ -8,13 +8,7 @@ from pydantic import BaseModel as BaseModel
 
 
 class BaseNotionModel(BaseModel, ABC):
-    id: str | None = None
-    type: str | None = None
-
-    @property
-    @abstractmethod
-    def value(self) -> Any: ...
-
+    pass
 
 class Annotations(BaseModel):
     bold: bool
@@ -35,8 +29,7 @@ class Text(BaseModel):
 
 
 class File(BaseModel):
-    url: AnyUrl
-    expiry_time: datetime | None
+    url: AnyUrl | str
 
 
 class ExternalFile(BaseModel):

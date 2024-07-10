@@ -18,11 +18,11 @@ class Badge(BaseModel):
     diet: Select = Field(..., alias="Особенности питания")
     feed: Select = Field(..., alias="Тип питания")
     occupation: RichText = Field(..., alias="Должность")
-    role: Select = Field(..., alias="Роль")
+    role: Relation = Field(..., alias="Роль")
     photo: Files = Field(..., alias="Фото")
-    person_id: Relation = Field(..., alias="Человек")
+    person: Relation = Field(..., alias="Человек")
     comment: RichText = Field(..., alias="Комментарий")
-    direction: Relation = Field(..., alias="Службы и локации")
+    directions: Relation = Field(..., alias="Службы и локации")
     color: Select = Field(..., alias="Цвет")
 
     @classmethod
@@ -32,10 +32,10 @@ class Badge(BaseModel):
             print(x, y)
             if cls.model_fields.get(x):
                 field = cls.model_fields[x]
-                if cls.model_fields[x].annotation in [Relation, RichText]:
-                    model_dict[field.alias if field.alias else x] = field.annotation.create_model([y])
-                elif field.annotation in [Select]:
+                if cls.model_fields[x].annotation in [Relation, RichText, Title]:
+                    model_dict[field.alias if field.alias else x] = field.annotation.create_model([y] if not isinstance(y, list) else y)
+                elif field.annotation in [Select, Checkbox, Files]:
                     model_dict[field.alias if field.alias else x] = field.annotation.create_model(y)
                 else:
                     model_dict[field.alias if field.alias else x] = y
-        return cls.model_validate(model_dict)
+        return cls.model_validate(model_dict, from_attributes=True)

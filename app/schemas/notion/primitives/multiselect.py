@@ -11,13 +11,3 @@ class MultiselectBody(BaseModel):
 
 class Multiselect(BaseNotionModel):
     multi_select: list[MultiselectBody]
-
-    @computed_field
-    @property
-    def value(self) -> list[str]:
-        return [str(r.name) for r in self.multi_select]
-
-    @computed_field
-    @property
-    def title(self) -> str:
-        return ", ".join(r.name for r in self.multi_select if r)

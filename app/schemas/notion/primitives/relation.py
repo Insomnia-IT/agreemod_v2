@@ -6,7 +6,7 @@ from app.schemas.notion.primitives.base import BaseNotionModel
 
 
 class RelationBody(BaseModel):
-    id: UUID
+    id: str | None
     title: str | None = None
     properties: dict = Field(default_factory=dict)
 
@@ -21,27 +21,16 @@ class Relation(BaseNotionModel):
     relation: list[RelationBody]
     has_more: bool
 
-    @computed_field
-    @property
-    def value(self) -> list[UUID]:
-        return [r.id for r in self.relation]
-
-    @computed_field
-    @property
-    def title(self) -> list[str]:
-        return [r.title for r in self.relation if r]
-
     @classmethod
     def create_model(cls, values: list[str | UUID | dict], has_more: bool = False):
         result = []
         for value in values:
             if isinstance(value, UUID):
+                result.append({"id": value.hex})
+            elif isinstance(value, str) or value is None:
                 result.append({"id": value})
-            elif isinstance(value, str):
-                print(value)
-                result.append({"id": UUID(value)})
             elif isinstance(value, dict):
-                result.append(value)
+                result.append(value)                
             else:
                 raise ValueError(f"{type(value)=}, {value=} is a wrong type")
         return cls.model_validate(
