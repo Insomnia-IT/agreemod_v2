@@ -15,6 +15,7 @@ from notion_client import Client
 
 from app.config import config
 from app.schemas.notion.badge import Badge
+from dictionaries.feed_type import FeedType
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,8 @@ class NotionWriter:
             else "Ж" if badge_dict['gender'] in ['женский', 'FEMALE']
             else "др."
         )
+        if badge_dict.get('feed') is None:
+            badge_dict['feed'] = FeedType.NO.value
         badge = Badge.create_model(badge_dict)
         existing = badge_dict.get('notion_id')
         notion_payload = badge.model_dump(by_alias=True, exclude_none=True)
