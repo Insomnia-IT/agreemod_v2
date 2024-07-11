@@ -72,10 +72,17 @@ class FeederService:
         badges = intake.badges
         badges_to_upd = []
         if badges:
+            logger.info('back_sync badges...')
             existing = await self.badges.update_feeder([x.data for x in badges])
             for e, b in zip(existing, badges):
                 actor = await self.badges.retrieve(b.actor_badge)
                 dt = b.date.replace(tzinfo=None)
+                logger.info(
+                    'badge_id: %s, actor name: %s, dt: %s',
+                    b.data.id if e else None,
+                    actor.name if actor else "ANON",
+                    dt.isoformat()
+                )
                 await self.logs.add_log(
                     Logs(
                         author=actor.name if actor else "ANON",
@@ -89,6 +96,9 @@ class FeederService:
                 if e is not None:
                     badges_to_upd.append(b.data.id)
         await self.session.commit()
+        logger.info('badges to update:')
+        for b in badges_to_upd:
+            logger.info('%s', b)
         return badges_to_upd
 
     @retry(
@@ -96,6 +106,9 @@ class FeederService:
         wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     async def update_notion_badges(self, badges):
+        logger.info('uploading following badges to Notion:')
+        for b in badges:
+            logger.info('%s', b)
         await notion_writer_v2(badges)
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
