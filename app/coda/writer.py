@@ -34,7 +34,7 @@ class CodaWriter:
             new_data.update(data.model_dump(exclude_none=True))
             new_row = [
                 Cell(column=self.ArrivalMapping.badge, value_storage=new_data["badge"].hex),
-                Cell(column=self.ArrivalMapping.status, value_storage=new_data["status"].value),
+                Cell(column=self.ArrivalMapping.status, value_storage=new_data["status"].value.capitalize()),
                 Cell(column=self.ArrivalMapping.arrival_date, value_storage=new_data["arrival_date"].isoformat()),
                 Cell(column=self.ArrivalMapping.arrival_transport, value_storage=new_data["arrival_transport"].value),
                 Cell(column=self.ArrivalMapping.departure_date, value_storage=new_data["departure_date"].isoformat()),
