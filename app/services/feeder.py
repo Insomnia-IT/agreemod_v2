@@ -154,8 +154,11 @@ class FeederService:
             e.coda_index = coda_index
             await self.session.merge(e)
 
+        logger.info('deleting following arrivals from Coda:')
         for d in delete_arrivals:
-            self.coda_writer.delete_arrival(d)
+            logger.info('%s', d)
+            await self.coda_writer.delete_arrival(d)
+
 
     async def back_sync(self, intake: BackSyncIntakeSchema):
         async with BackgroungInterlock("back_sync"):
