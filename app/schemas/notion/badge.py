@@ -19,11 +19,11 @@ class Badge(BaseModel):
     feed: Select = Field(..., alias="Тип питания")
     occupation: RichText = Field(..., alias="Должность")
     role: Relation = Field(..., alias="Роль")
-    photo: Files = Field(..., alias="Фото")
+    # photo: Files = Field(..., alias="Фото")
     person: Relation = Field(..., alias="Человек")
     comment: RichText = Field(..., alias="Комментарий")
     directions: Relation = Field(..., alias="Службы и локации")
-    color: Select = Field(..., alias="Цвет")
+    # color: Select = Field(..., alias="Цвет")
 
     @classmethod
     def create_model(cls, values: dict):

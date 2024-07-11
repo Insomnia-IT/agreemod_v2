@@ -6,14 +6,14 @@ from app.schemas.notion.primitives.base import BaseNotionModel
 class SelectBody(BaseModel):
     name: str
 
-    @computed_field
-    @property
-    def color(self) -> str:
-        return (
-            "red" if self.name == 'Ж'
-            else "blue" if self.name == 'М'
-            else "gray"
-        )
+    # @computed_field
+    # @property
+    # def color(self) -> str:
+    #     return (
+    #         "red" if self.name == 'Ж'
+    #         else "blue" if self.name == 'М'
+    #         else "gray"
+    #     )
 
 class Select(BaseNotionModel):
     select: SelectBody | None
