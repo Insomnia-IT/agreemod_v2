@@ -104,7 +104,7 @@ class NotionWriter:
         )
         if notion_id:
             badge_dict['notion_id'] = notion_id
-            badge_dict['role'] = next((x for x, y in badge_data.items() if y == badge['role']))
+            badge_dict['role'] = next((x for x, y in badge_data.items() if y == badge_dict['role']))
             model = BadgeModel(**badge_dict)
             await repo.update(model)
 
@@ -203,8 +203,8 @@ async def notion_writer_v2(badges: list[UUID]):
     try:
         async with async_session() as session:
             repo = BadgeRepo(session)
-            badges = await repo.retrieve_many_by_ids(badges)
-            for badge_model in badges:
+            badge_models = await repo.retrieve_many_by_ids(badges)
+            for badge_model in badge_models:
                 badge = badge_model.model_dump()
                 badge['directions'] = [
                     x['notion_id'] for x
