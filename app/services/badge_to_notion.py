@@ -245,7 +245,7 @@ async def update_badges(badges):
                 photo_name=badge["nickname"],
                 party=badge.get("batch"),
                 color=None,  # Заменить на подходящее значение, если оно есть
-                comment=badge["comment"],
+                comment=badge["comment"]
             )
 
             unique_id = badge.get("notion_id")
