@@ -85,7 +85,7 @@ class Badge(DomainModel):
     @field_validator("batch", mode="before")
     @classmethod
     def convert_batch(cls, value):
-        if value == 'None':
+        if value == 'None' or value is None:
             return None
         else:
             return int(value)
