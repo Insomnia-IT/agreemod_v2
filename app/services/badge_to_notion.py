@@ -79,6 +79,7 @@ class NotionWriter:
                 # Если запись не существует, создаём новую
                 response = self.client.pages.create(parent={"database_id": database_id}, properties=page_data)
                 logger.info(f"Новая запись создана: {response}")
+                return response['id']
         except Exception as e:
             logger.error(f"Произошла ошибка: {e}")
 
