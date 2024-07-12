@@ -104,6 +104,7 @@ class NotionWriter:
         )
         if notion_id:
             badge_dict['notion_id'] = notion_id
+            badge_dict['role'] = next((x for x, y in badge_data.items() if y == badge['role']))
             model = BadgeModel(**badge_dict)
             await repo.update(model)
 
