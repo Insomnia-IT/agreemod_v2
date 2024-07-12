@@ -210,7 +210,7 @@ async def notion_writer_v2(badges: list[UUID]):
                     in badge.get('directions', [])
                     if x.get('notion_id')
                 ]
-                await notion.write_badge(database_id, badge, session)
+                await notion.write_badge(database_id, badge, repo)
                 logger.info("finished sync badges...")
     except Exception as e:
         logger.error(f"back sync badge problem: {e}")
