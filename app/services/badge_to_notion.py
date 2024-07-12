@@ -16,10 +16,15 @@ from notion_client import Client
 from app.config import config
 from app.schemas.notion.badge import Badge
 from dictionaries.feed_type import FeedType
+from app.config import config
 
 logger = logging.getLogger(__name__)
 
-with open("app/notion_db.yml", "r", encoding="utf-8") as file:
+if config.TESTING:
+    DATABASES = "app/notion_db.yml"
+else:
+    DATABASES = "app/notion_db_prod.yml"
+with open(DATABASES, "r", encoding="utf-8") as file:
     dbs = yaml.safe_load(file)
 
 badge_data = {  # TODO: читать это из базы?! Или из ParticipationRole?

@@ -27,12 +27,12 @@ class RichText(BaseNotionModel):
     ):
         result = []
         for value in values:
-            if isinstance(value, (str, int, float)):
+            if isinstance(value, (str, int, float, type(None))):
                 result.append(
                     {
                         "type": "text",
-                        "text": {"content": value},
-                        "plain_text": value,
+                        "text": {"content": value if value is not None else ''},
+                        "plain_text": value if value is not None else '',
                     }
                 )
             elif isinstance(value, dict):

@@ -6,7 +6,7 @@ from app.schemas.notion.primitives.base import BaseNotionModel
 
 
 class RelationBody(BaseModel):
-    id: str | None
+    id: str | UUID | None
     title: str | None = None
     properties: dict = Field(default_factory=dict)
 
@@ -30,7 +30,9 @@ class Relation(BaseNotionModel):
             elif isinstance(value, str) or value is None:
                 result.append({"id": value})
             elif isinstance(value, dict):
-                result.append(value)                
+                if isinstance(value.get('id'), UUID):
+                    value['id'] = value['id'].hex
+                result.append(value)
             else:
                 raise ValueError(f"{type(value)=}, {value=} is a wrong type")
         return cls.model_validate(
