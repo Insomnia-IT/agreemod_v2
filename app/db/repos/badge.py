@@ -19,7 +19,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     def query(
         self,
-        notion_id: str = None,
+        nocode_int_id: int = None,
         badge_number: str = None,
         phone: str = None,
         include_person: bool = False,
@@ -34,8 +34,8 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = select(BadgeAppORM, BadgeDirectionsAppORM).join(BadgeAppORM.directions, isouter=True)
         else:
             query = select(BadgeAppORM)
-        if notion_id:
-            query = query.where(BadgeAppORM.notion_id == notion_id)
+        if nocode_int_id:
+            query = query.where(BadgeAppORM.nocode_int_id == nocode_int_id)
         if badge_number:
             query = query.where(BadgeAppORM.number == badge_number)
         if phone:
@@ -68,14 +68,14 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
     async def retrieve(
         self,
-        notion_id: str = None,
+        nocode_int_id: int = None,
         badge_number: str = None,
         phone: str = None,
     ) -> Badge:
-        if notion_id or badge_number or phone:
+        if nocode_int_id or badge_number or phone:
             result: BadgeAppORM = await self.session.scalar(
                 self.query(
-                    notion_id=notion_id,
+                    nocode_int_id=nocode_int_id,
                     badge_number=badge_number,
                     phone=phone,
                     include_directions=True,
@@ -135,7 +135,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         badge = BadgeAppORM.to_orm(data)
         for d in data.directions:
             direction = await self.session.scalar(
-                select(DirectionAppORM).filter_by(notion_id=d.notion_id if isinstance(d, Direction) else d)
+                select(DirectionAppORM).filter_by(nocode_int_id=d.nocode_int_id if isinstance(d, Direction) else d)
             )
             badge_dir = BadgeDirectionsAppORM()
             badge_dir.direction = direction
@@ -155,10 +155,10 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         for b_id, badge in collected.items():
             exist = False
             directions: list[DirectionAppORM] = await self.session.scalars(
-                select(DirectionAppORM).where(DirectionAppORM.notion_id.in_(badge["directions"]))
+                select(DirectionAppORM).where(DirectionAppORM.nocode_int_id.in_(badge["directions"]))
             )
             badge_orm: BadgeAppORM = await self.session.scalar(
-                select(BadgeAppORM).where(BadgeAppORM.notion_id == b_id).options(selectinload(BadgeAppORM.parent))
+                select(BadgeAppORM).where(BadgeAppORM.nocode_int_id == b_id).options(selectinload(BadgeAppORM.parent))
             )
             if badge_orm:
                 if badge.get("deleted", False) is True:
@@ -177,20 +177,20 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                     for d in directions:
                         badge_dir = BadgeDirectionsAppORM()
                         badge_dir.direction = d
-                        if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
+                        if d.nocode_int_id not in [x.direction_id for x in badge_orm.directions]:
                             badge_orm.directions.append(badge_dir)
                             badge_orm.last_updated = datetime.now()
                 await self.session.merge(badge_orm)
             elif badge.get("deleted", False) is False:
                 badge["directions"] = [
-                    DirectionDTO(id=x.id, name=x.name, type=x.type, notion_id=x.notion_id) for x in directions
+                    DirectionDTO(id=x.id, name=x.name, type=x.type, nocode_int_id=x.nocode_int_id) for x in directions
                 ]
                 badge_orm = BadgeAppORM.to_orm(Badge.model_validate(badge))
                 badge_orm.last_updated = datetime.now()
                 for d in directions:
                     badge_dir = BadgeDirectionsAppORM()
                     badge_dir.direction = d
-                    if d.notion_id not in [x.direction_id for x in badge_orm.directions]:
+                    if d.nocode_int_id not in [x.direction_id for x in badge_orm.directions]:
                         badge_orm.directions.append(badge_dir)
                 self.session.add(badge_orm)
             elif badge.get("deleted", False) is True:
@@ -198,5 +198,5 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             existing.append(exist)
         return existing
 
-    async def delete(self, notion_id):
-        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.notion_id == notion_id))
+    async def delete(self, nocode_int_id):
+        await self.session.execute(delete(BadgeAppORM).where(BadgeAppORM.nocode_int_id == nocode_int_id))

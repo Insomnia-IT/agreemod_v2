@@ -23,7 +23,7 @@ class Person(DomainModel):
     email: str | None = None
     diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
-    notion_id: UUID | None = None
+    nocode_int_id: int | None = None
     last_updated: datetime | None = None
 
     @field_validator("gender", mode="before")

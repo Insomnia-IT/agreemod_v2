@@ -15,7 +15,7 @@ class Direction(DomainModel):
     last_year: int | None = None
     last_updated: datetime | None = None
 
-    notion_id: UUID
+    nocode_int_id: int
 
     badges: list[BadgeDTO] = Field(default_factory=list)
 

@@ -15,7 +15,7 @@ class DirectionORM(Base, BaseORM):
     type: строка на основе справочника api.enums.services.Service
     first_year:
     last_year:
-    notion_id:
+    nocode_int_id:
     """
 
     __tablename__ = "direction"
@@ -29,10 +29,10 @@ class DirectionORM(Base, BaseORM):
     )
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
-    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
+    nocode_int_id: Mapped[int] = Column(Integer)
     last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
-    _unique_constraint = UniqueConstraint(notion_id)
+    _unique_constraint = UniqueConstraint(nocode_int_id)
 
     def __repr__(self):
         return (
@@ -40,5 +40,5 @@ class DirectionORM(Base, BaseORM):
             f"type='{self.type}', "
             f"first_year={self.first_year}, "
             f"last_year={self.last_year}, "
-            f"notion_id='{self.notion_id}')"
+            f"nocode_int_id='{self.nocode_int_id}')"
         )

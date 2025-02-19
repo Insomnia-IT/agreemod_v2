@@ -41,7 +41,7 @@ class PersonAppORM(PersonORM):
             email=person.email,
             diet=person.diet.value if person.diet else DietType.STANDARD.value,
             comment=person.comment,
-            notion_id=person.notion_id.hex,
+            nocode_int_id=person.nocode_int_id,
             last_updated=person.last_updated,
         )
 
@@ -61,7 +61,7 @@ class PersonAppORM(PersonORM):
             email=self.email,
             diet=self.diet,
             comment=self.comment,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
         return person
@@ -78,7 +78,7 @@ class DirectionAppORM(DirectionORM):
             type=model.type.name,
             first_year=model.first_year,
             last_year=model.last_year,
-            notion_id=model.notion_id.hex,
+            nocode_int_id=model.nocode_int_id,
             last_updated=model.last_updated,
         )
 
@@ -89,7 +89,7 @@ class DirectionAppORM(DirectionORM):
             type=DirectionType[self.type].value,
             first_year=self.first_year,
             last_year=self.last_year,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
             badges=(
                 [BadgeDTO.model_validate(x.badge, from_attributes=True) for x in self.badges] if include_badges else []
@@ -112,7 +112,7 @@ class BadgeAppORM(BadgeORM):
             nickname=model.nickname,
             gender=model.gender,
             phone=model.phone,
-            parent_id=model.parent.id if model.parent else None,
+            parent_id=model.parent.nocode_int_id if model.parent else None, #TODO: Not sure about this
             child=model.child,
             diet=(
                 model.diet.name if model.diet else DietType.STANDARD.name
@@ -125,7 +125,7 @@ class BadgeAppORM(BadgeORM):
             occupation=model.occupation,
             person_id=model.person.id if model.person else None,
             comment=model.comment,
-            notion_id=model.notion_id.hex if model.notion_id else None,
+            nocode_int_id=model.nocode_int_id if model.nocode_int_id else None,
         )
 
     def to_model(
@@ -162,7 +162,7 @@ class BadgeAppORM(BadgeORM):
             ),
             occupation=self.occupation,
             comment=self.comment,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
 
@@ -174,7 +174,7 @@ class ArrivalAppORM(ArrivalORM):
     def to_orm(cls, model: Arrival) -> Self:
         return cls(
             id=model.id,
-            badge_id=model.badge.id if isinstance(model.badge, Badge) else model.badge,
+            badge_id=model.badge.nocode_int_id if isinstance(model.badge, Badge) else model.badge,
             arrival_date=model.arrival_date,
             arrival_transport=model.arrival_transport.name,  # if isinstance(model.arrival_transport, TransportType) else model.arrival_transport,
             arrival_registered=model.arrival_registered.isoformat() if model.arrival_registered else None,
@@ -219,7 +219,7 @@ class ParticipationAppORM(ParticipationORM):
             direction_id=model.direction.id,
             role_code=model.role.name,
             status_code=model.status.name,
-            notion_id=model.notion_id,
+            nocode_int_id=model.nocode_int_id,
             last_updated=model.last_updated,
         )
 
@@ -234,7 +234,7 @@ class ParticipationAppORM(ParticipationORM):
             ),
             role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
             status=ParticipationStatus[self.status_code].value if self.status_code else None,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
 

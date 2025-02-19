@@ -81,7 +81,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     created.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
-                badge = self.session(select(BadgeORM).where(BadgeORM.notion_id == arrival['badge']))
+                badge = self.session(select(BadgeORM).where(BadgeORM.nocode_int_id == arrival['badge']))
                 if badge:
                     arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                     arrival_orm.last_updated = datetime.now()

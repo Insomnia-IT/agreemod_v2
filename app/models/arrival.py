@@ -12,7 +12,7 @@ from app.models.base import DomainModel
 
 
 class Arrival(DomainModel):
-    badge: BadgeDTO | UUID
+    badge: BadgeDTO | int
     arrival_date: date
     arrival_transport: TransportType | None = None
     arrival_registered: time | None = None
@@ -23,6 +23,7 @@ class Arrival(DomainModel):
     extra_data: dict | None = None
     comment: str | None = None
     last_updated: datetime | None = None
+    #TODO: What should we do with coda index?
     coda_index: str | None = None
 
     model_config = ConfigDict(

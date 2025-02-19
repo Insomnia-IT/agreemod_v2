@@ -12,6 +12,6 @@ COPY rabbit rabbit
 
 COPY .env updater/poetry.lock updater/pyproject.toml ./
 
-RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi  --no-root
 
 ENTRYPOINT ["python", "-m", "updater.main_updater"]
