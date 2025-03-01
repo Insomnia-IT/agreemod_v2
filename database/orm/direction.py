@@ -24,7 +24,7 @@ class DirectionORM(Base, BaseORM):
     name: Mapped[str] = Column(String, nullable=False)
     type: Mapped[str] = Column(
         String,
-        ForeignKey("direction_type.code"),
+        ForeignKey("direction_type.name"),
         nullable=False,
     )
     first_year: Mapped[int] = Column(Integer)

@@ -24,8 +24,8 @@ class ParticipationORM(Base, BaseORM):
     __tablename__ = "participation"
 
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    coda_index: Mapped[str] = Column(String, nullable=False)
-    year: Mapped[int] = Column(Integer, nullable=False)  # req
+    coda_index: Mapped[str] = Column(String, nullable=True)
+    year: Mapped[int] = Column(Integer, nullable=True)  # req
     person_id: Mapped[int] = Column(
         Integer, ForeignKey("person.nocode_int_id"), nullable=False
     )  # req fk
@@ -36,7 +36,7 @@ class ParticipationORM(Base, BaseORM):
         String, ForeignKey("participation_role.code")
     )  # req fk
     status_code: Mapped[str] = Column(
-        String, ForeignKey("participation_status.code"), nullable=False
+        String, ForeignKey("participation_status.code"), nullable=True
     )  # req fk
     nocode_int_id: Mapped[int] = Column(Integer)  # opt
     last_updated: Mapped[time] = Column(TIMESTAMP)

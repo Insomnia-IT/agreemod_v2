@@ -3,16 +3,28 @@ import os
 
 SERVER = "https://grist.insomniafest.ru"
 DOC_ID = "mhwDM83vLmT3HsFa4CJsTh"
-#GRIST_API_KEY = "15ef01f2503ecc4f9201a0841e6d70beb2338456"
-GRIST_API_KEY = "def9b5d12833fe4fd45efe30a2d6d0c263c8eb0a"
+GRIST_API_KEY = "15ef01f2503ecc4f9201a0841e6d70beb2338456"
+#GRIST_API_KEY = "def9b5d12833fe4fd45efe30a2d6d0c263c8eb0a"
 
 os.environ["GRIST_API_KEY"] = GRIST_API_KEY
 
 api = GristDocAPI(DOC_ID, server=SERVER)
 
 
-people = api.fetch_table("People")[0]
-print(people)
+#people = api.fetch_table("People")[0]
+#print(people)
+
+#directions = api.fetch_table("Directions2025")[0]
+#print(directions)
+
+#participations = api.fetch_table("Participations")[0]
+#print(participations)
+
+#participation_statuses = api.fetch_table("Participation_statuses")[0]
+#print(participation_statuses)
+
+participant = api.fetch_table("Participations", filters={"person":0})[0]
+print(participant)
 
 '''
 directions = api.fetch_table("Directions2025")[0]
