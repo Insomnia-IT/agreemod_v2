@@ -1,0 +1,381 @@
+# sync_module.py
+import aiohttp
+import asyncio
+import psycopg2
+from psycopg2.extras import execute_values
+from datetime import datetime
+from config import SERVER, DOC_ID, GRIST_API_KEY
+from typing import Dict, List, Optional
+import json
+import uuid
+from uuid import UUID
+
+class GristSync:
+    def __init__(self):
+        self.last_sync: Dict[str, float] = {}
+        self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
+        self.roles: List[str] = []
+        self.bages_map: Dict[str, int] = {}
+        self.roles_mapping: Dict[str, str] = {}# {"VOLUNTEER": "4 Волонтёр",
+                                               #"FELLOW": "8 Участник",
+                                               #"ORGANIZER": "1 Организатор",
+                                               #"TEAM_LEAD": "3 Бригадир",
+                                               #"CAMP_GUY": "6 Волонтёр нефедеральной локации",
+                                               #"CAMP_LEAD": "5 Лидер нефедеральной локации",
+                                               #"VICE": "2 Зам.руководителя"}
+
+    
+    @staticmethod
+    def get_pg_connection():
+        """Подключение к PostgreSQL"""
+        return psycopg2.connect(
+            dbname='agreemod',
+            user='agreemod',
+            password='pswd',
+            host='localhost',
+            port='5432'
+        )
+
+    async def fetch_grist_data(self, table_name: str, filters: Optional[Dict] = None) -> List[Dict]:
+        """Получение данных из Grist с фильтрацией по времени"""
+        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/records"
+        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        
+        params = {}
+        if self.last_sync.get(table_name):
+            params['filter'] = json.dumps({'updated_at': {'$gte': self.last_sync[table_name]}})
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, params=params) as resp:
+                if resp.status != 200:
+                    raise Exception(f"Ошибка запроса: {resp.status}")
+                data = await resp.json()
+                return data.get('records', [])
+
+    async def fetch_grist_table(self, table_name: str) -> List[Dict]:
+        """Получение данных из таблицы Grist"""
+        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/records"
+        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status != 200:
+                    raise Exception(f"Ошибка запроса: {resp.status}")
+                data = await resp.json()
+                return data.get('records', [])
+            
+    async def fetch_column_choices(self, table_name: str, column_name: str) -> List[str]:
+        """Получение вариантов ролей из метаданных колонки"""
+        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/columns"
+        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status != 200:
+                    raise Exception(f"Ошибка: {resp.status}")
+                data = await resp.json()
+                for col in data.get('columns', []):
+                    if col['id'] == column_name:
+                        widget_options = json.loads(col['fields'].get('widgetOptions', '{}'))
+                        return widget_options.get('choices', [])
+                return []
+            
+    async def update_utility_data(self):
+        """badges = await self.fetch_grist_table('Badges_2024')
+        self.bages_map = {
+            p['fields']['notion_id']:p["id"]
+            for p in badges
+        }"""
+        """Обновление служебных данных: роли и статусы"""
+        # 1. Получение ролей из виджета колонки 'role'
+        #self.roles = await self.fetch_column_choices('Participations', 'role_old') #TODO: THERE ARE NEW ROLES???s
+        #await self._insert_roles()
+
+        print(self.roles)
+
+        # 2. Получение статусов из таблицы Participations
+        participations = await self.fetch_grist_table('Participation_statuses')
+        self.status_mapping = {
+            p['fields']['status']: p['fields'].get('status_code', 'unknown')
+            for p in participations if 'status' in p['fields']
+        }
+
+        roles = await self.fetch_grist_table('Roles')
+        print(roles)
+        self.roles_mapping = {
+            p['id']: {
+                "code":p['fields']['Code'],
+                "name":p['fields']['Name']}
+            for p in roles
+        }
+        try:
+            await self._insert_roles()
+        except Exception:
+            pass
+
+    async def _insert_roles(self):
+        """Вставка ролей в PostgreSQL"""
+        conn = self.get_pg_connection()
+        print(self.roles_mapping)
+        try:
+            with conn.cursor() as cursor:
+                execute_values(
+                    cursor,
+                    "INSERT INTO participation_role (code, name) VALUES %s",
+                    [(role['code'], role['name']) for key, role in self.roles_mapping.items()],
+                    template="(%s, %s)"
+                )
+                conn.commit()
+        finally:
+            conn.close()
+
+    def order_tables_by_dependencies(self, tables: List[Dict]) -> List[Dict]:
+        """Топологическая сортировка таблиц"""
+        visited = set()
+        ordered = []
+
+        def visit(table):
+            if table['grist_table'] not in visited:
+                visited.add(table['grist_table'])
+                for dep in table.get('dependencies', []):
+                    dep_table = next(t for t in tables if t['grist_table'] == dep)
+                    visit(dep_table)
+                ordered.append(table)
+
+        for table in tables:
+            visit(table)
+        return ordered
+
+    async def sync_table(self, config: Dict):
+        """Основной метод синхронизации для одной таблицы"""
+        records = await self.fetch_grist_data(config['grist_table'])
+
+        if config['grist_table'] == 'Participations':
+            records = [
+                record for record in records
+                if record['fields'].get('person', 0) != 0 
+                and record['fields'].get('team', 0) != 0
+                and record['fields'].get('role_old') != ''
+            ]
+
+        if config['grist_table'] == 'Arrivals_20240904':
+            records = [
+                record for record in records
+                if record['fields'].get('badge_id', 0) != 0 
+                #and record['fields'].get('team', 0) != 0
+                #and record['fields'].get('role_old') != ''
+            ]
+        
+        if not records:
+            return
+        
+        context = {
+            "status_mapping": self.status_mapping,
+            "roles_mapping": self.roles_mapping,
+            "bages_map": self.bages_map,
+            "roles": self.roles
+        }
+
+        # Преобразование данных
+        transformed = [
+            self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
+            for record in records
+        ]
+
+        # Вставка в PostgreSQL
+        conn = self.get_pg_connection()
+        try:
+            with conn.cursor() as cursor:
+                execute_values(
+                    cursor,
+                    config['insert_query'],
+                    transformed,
+                    template=config['template']
+                )
+                conn.commit()
+                self.last_sync[config['grist_table']] = datetime.now().timestamp()
+        finally:
+            conn.close()
+
+    def _transform_record(
+        self, 
+        record: Dict, 
+        mapping: Dict, 
+        transformations: Dict,
+        context: Dict  # Добавляем контекст
+    ) -> tuple:
+        """Преобразование структуры записи с контекстом"""
+        transformed = []
+        for grist_field, pg_field in mapping.items():
+            value = self._get_nested_value(record, grist_field)
+            
+            if transformations and grist_field in transformations:
+                # Передаем контекст в функцию преобразования
+                value = transformations[grist_field](value, context)
+            
+            transformed.append(value)
+        return tuple(transformed)
+
+    @staticmethod
+    def _get_nested_value(data: Dict, path: str):
+        """Получение значения из вложенных полей (например: 'fields.updated_at')"""
+        keys = path.split('.')
+        value = data
+        for key in keys:
+            value = value.get(key, None)
+            if value is None:
+                break
+        return value
+
+TABLES_CONFIG = [
+    {
+        'grist_table': 'Teams',
+        'insert_query': """
+            INSERT INTO direction (
+                id, name, type, first_year, last_year, nocode_int_id
+            ) VALUES %s
+        """,
+        'template': "(%s, %s, %s, %s, %s, %s)",
+        'field_mapping': {
+            'uuid': 'id',
+            'fields.team_name': 'name',
+            'fields.type_of_team': 'type',
+            'fields.year_of_establishment_': 'first_year',
+            'fields.last_year': 'last_year',
+            'id': 'nocode_int_id'
+        },
+        'transformations': {
+            'uuid': lambda x, ctx: str(uuid.uuid4()),
+        },
+        'dependencies': []
+    },
+    {
+        'grist_table': 'Participations',
+        'insert_query': """
+            INSERT INTO participation (
+                id, year, role_code, status_code, person_id, direction_id
+            ) VALUES %s
+        """,
+        'template': "(%s, %s, %s, %s, %s, %s)",
+        'field_mapping': {
+            'uuid': 'id',
+            'fields.year': 'year',
+            'fields.role': 'role_code',
+            'fields.status': 'status_code',
+            'fields.person': 'person_id',
+            'fields.team': 'direction_id'
+        },
+        'transformations': {
+            'uuid': lambda x, ctx: str(uuid.uuid4()),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),  # Используем словарь статусов
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'][4]).get('code', 'VOLUNTEER')
+        },
+        'dependencies': ['People', 'Teams']
+    },
+    {
+        'grist_table': 'People',
+        'insert_query': """
+            INSERT INTO person (
+                id, name, last_name, first_name, nickname, other_names, 
+                telegram, phone, email, gender, birth_date, city, comment, 
+                nocode_int_id, last_updated
+            ) VALUES %s
+        """,
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'field_mapping': {
+            'fields.ntn_id': 'id',
+            'fields.name': 'name',
+            'fields.last_name': 'last_name',
+            'fields.first_name': 'first_name',
+            'fields.nickname': 'nickname',
+            'fields.other_names': 'other_names',
+            'fields.Telegram': 'telegram',
+            'fields.phone': 'phone',
+            'fields.Email': 'email',
+            'fields.gender': 'gender',
+            'fields.birth_date': 'birth_date',
+            'fields.city': 'city',
+            'fields.comment': 'comment',
+            'id': 'nocode_int_id',
+            'fields.updated_at': 'last_updated'
+        },
+        'transformations': {
+            'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else []
+        },
+        'dependencies': []
+    },
+    {
+        'grist_table': 'Badges_2025',
+        'insert_query': """
+            INSERT INTO badge (
+                id, name, last_name, first_name, gender, 
+                phone, diet, feed, batch, role_code,
+                comment, nocode_int_id, last_updated,
+                occupation, person_id
+            ) VALUES %s
+        """, #photo?
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'field_mapping': {
+            'uuid': 'id',
+            #'fields.notion_id': 'id',
+            'fields.name': 'name',
+            'fields.last_name': 'last_name',
+            'fields.first_name': 'first_name',
+            #'fields.nickname': 'nickname',
+            'fields.gender_id': 'gender',
+            'fields.phone': 'phone',
+            'fields.is_vegan': 'diet',
+            'fields.feed_type': 'feed',
+            'fields.printing_batch': 'batch',
+            'fields.role': 'role_code',
+            'fields.comment': 'comment',
+            'id': 'nocode_int_id',
+            'fields.updated_at': 'last_updated',
+            'fields.position': 'occupation',
+            'fields.person': 'person_id',
+            'fields.infant': 'child',
+            'fields.parent': 'parent_id'
+        },
+        'transformations': {
+            #'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'uuid': lambda x, ctx: str(uuid.uuid4()),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'][4]).get('code', 'VOLUNTEER'),
+            #'fields.person': lambda x, ctx: x if x != 0 else None
+        },
+        'dependencies': []
+    },
+    {
+        'grist_table': 'Arrivals_2025',
+        'insert_query': """
+            INSERT INTO arrival (
+                id, arrival_date, arrival_transport, 
+                departure_date, departure_transport, last_updated,  
+                status, badge_id
+            ) VALUES %s
+        """, #photo?
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
+        'field_mapping': {
+            'uuid': 'id',
+            'fields.arrival_date': 'arrival_date',
+            'fields.arrival_transport': 'arrival_transport',
+            'fields.departure_date': 'departure_date',
+            'fields.departure_transport': 'departure_transport',
+            'fields.updated_at': 'last_updated',
+            'fields.status': 'status',
+            'fields.badge': 'badge_id',
+        },
+        'transformations': {
+            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'uuid': lambda x, ctx: str(uuid.uuid4()),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None)
+            #'fields.badge': lambda x, ctx: ctx['bages_map'].get(str(UUID(x)), None)
+            #'fields.main_role_id': lambda x, ctx: ctx['roles_mapping'].get(x, None)
+        },
+        'dependencies': []
+    },
+]

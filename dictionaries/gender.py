@@ -2,6 +2,6 @@ from enum import StrEnum
 
 
 class Gender(StrEnum):
-    MALE = "мужской"
-    FEMALE = "женский"
-    OTHER = "другой"
+    MALE = "М"#"мужской"
+    FEMALE = "Ж" #"женский"
+    OTHER = "др." #"другой"

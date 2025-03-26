@@ -43,7 +43,7 @@ class BadgeORM(Base, BaseORM):
     photo: Mapped[str] = Column(String)
     person_id: Mapped[int] = Column(
         Integer,
-        ForeignKey("person.nocode_int_id"),
+        ForeignKey("person.nocode_int_id"), nullable=True
     )
     comment: Mapped[str] = Column(String)
     nocode_int_id: Mapped[int] = Column(Integer)
