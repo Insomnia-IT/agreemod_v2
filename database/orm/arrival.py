@@ -27,7 +27,7 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    coda_index: Mapped[str] = Column(String)
+    nocode_int_id: Mapped[int] = Column(String)
     badge_id: Mapped[int] = Column(
         Integer, ForeignKey("badge.nocode_int_id", ondelete="CASCADE"), nullable=False
     )
@@ -42,7 +42,7 @@ class ArrivalORM(Base, BaseORM):
     comment: Mapped[str] = Column(String)
     last_updated: Mapped[time] = Column(TIMESTAMP)
 
-    _unique_constraint_coda = UniqueConstraint(coda_index)
+    _unique_constraint_nocode = UniqueConstraint(nocode_int_id)
 
     def __repr__(self):
         return (

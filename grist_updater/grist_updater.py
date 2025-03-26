@@ -10,21 +10,34 @@ import json
 import uuid
 from uuid import UUID
 
+import json
+from pathlib import Path
+
 class GristSync:
-    def __init__(self):
-        self.last_sync: Dict[str, float] = {}
+    def __init__(self, state_file='sync_state.json'):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
         self.bages_map: Dict[str, int] = {}
-        self.roles_mapping: Dict[str, str] = {}# {"VOLUNTEER": "4 Волонтёр",
-                                               #"FELLOW": "8 Участник",
-                                               #"ORGANIZER": "1 Организатор",
-                                               #"TEAM_LEAD": "3 Бригадир",
-                                               #"CAMP_GUY": "6 Волонтёр нефедеральной локации",
-                                               #"CAMP_LEAD": "5 Лидер нефедеральной локации",
-                                               #"VICE": "2 Зам.руководителя"}
+        self.roles_mapping: Dict[str, str] = {}
+        self.state_file = Path(state_file)
+        self.last_sync = self._load_sync_state()
 
+    def _load_sync_state(self) -> Dict[str, float]:
+        try:
+            if self.state_file.exists():
+                with open(self.state_file, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Ошибка загрузки состояния: {e}")
+        return {}
     
+    def _save_sync_state(self):
+        try:
+            with open(self.state_file, 'w') as f:
+                json.dump(self.last_sync, f, indent=2)
+        except Exception as e:
+            print(f"Ошибка сохранения состояния: {e}")
+
     @staticmethod
     def get_pg_connection():
         """Подключение к PostgreSQL"""
@@ -42,13 +55,14 @@ class GristSync:
         headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
         
         params = {}
-        if self.last_sync.get(table_name):
-            params['filter'] = json.dumps({'updated_at': {'$gte': self.last_sync[table_name]}})
+        if self.last_sync.get(table_name) and table_name is not "Teams":
+            last_sync = int(self.last_sync[table_name] * 1000)
+            params['filter'] = json.dumps({'updated_at': {'$gte': last_sync}})
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as resp:
                 if resp.status != 200:
-                    raise Exception(f"Ошибка запроса: {resp.status}")
+                    raise Exception(f"Ошибка запроса: {resp}")
                 data = await resp.json()
                 return data.get('records', [])
 
@@ -81,18 +95,6 @@ class GristSync:
                 return []
             
     async def update_utility_data(self):
-        """badges = await self.fetch_grist_table('Badges_2024')
-        self.bages_map = {
-            p['fields']['notion_id']:p["id"]
-            for p in badges
-        }"""
-        """Обновление служебных данных: роли и статусы"""
-        # 1. Получение ролей из виджета колонки 'role'
-        #self.roles = await self.fetch_column_choices('Participations', 'role_old') #TODO: THERE ARE NEW ROLES???s
-        #await self._insert_roles()
-
-        print(self.roles)
-
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
@@ -234,6 +236,12 @@ TABLES_CONFIG = [
             INSERT INTO direction (
                 id, name, type, first_year, last_year, nocode_int_id
             ) VALUES %s
+            ON CONFLICT (nocode_int_id) 
+            DO UPDATE SET
+                name = EXCLUDED.name,
+                type = EXCLUDED.type,
+                first_year = EXCLUDED.first_year,
+                last_year = EXCLUDED.last_year
         """,
         'template': "(%s, %s, %s, %s, %s, %s)",
         'field_mapping': {
@@ -245,7 +253,7 @@ TABLES_CONFIG = [
             'id': 'nocode_int_id'
         },
         'transformations': {
-            'uuid': lambda x, ctx: str(uuid.uuid4()),
+            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
         },
         'dependencies': []
     },
@@ -255,6 +263,13 @@ TABLES_CONFIG = [
             INSERT INTO participation (
                 id, year, role_code, status_code, person_id, direction_id
             ) VALUES %s
+            ON CONFLICT (id) 
+            DO UPDATE SET
+                year = EXCLUDED.year,
+                role_code = EXCLUDED.role_code,
+                status_code = EXCLUDED.status_code,
+                person_id = EXCLUDED.person_id,
+                direction_id = EXCLUDED.direction_id
         """,
         'template': "(%s, %s, %s, %s, %s, %s)",
         'field_mapping': {
@@ -266,9 +281,9 @@ TABLES_CONFIG = [
             'fields.team': 'direction_id'
         },
         'transformations': {
-            'uuid': lambda x, ctx: str(uuid.uuid4()),
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),  # Используем словарь статусов
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'][4]).get('code', 'VOLUNTEER')
+            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER')
         },
         'dependencies': ['People', 'Teams']
     },
@@ -280,6 +295,21 @@ TABLES_CONFIG = [
                 telegram, phone, email, gender, birth_date, city, comment, 
                 nocode_int_id, last_updated
             ) VALUES %s
+            ON CONFLICT (nocode_int_id) 
+            DO UPDATE SET
+                name = EXCLUDED.name,
+                last_name = EXCLUDED.last_name,
+                first_name = EXCLUDED.first_name,
+                nickname = EXCLUDED.nickname,
+                other_names = EXCLUDED.other_names,
+                telegram = EXCLUDED.telegram,
+                phone = EXCLUDED.phone,
+                email = EXCLUDED.email,
+                gender = EXCLUDED.gender,
+                birth_date = EXCLUDED.birth_date,
+                city = EXCLUDED.city,
+                comment = EXCLUDED.comment,
+                last_updated = EXCLUDED.last_updated
         """,
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
@@ -316,15 +346,28 @@ TABLES_CONFIG = [
                 comment, nocode_int_id, last_updated,
                 occupation, person_id
             ) VALUES %s
-        """, #photo?
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            ON CONFLICT (nocode_int_id) 
+            DO UPDATE SET
+                name = EXCLUDED.name,
+                last_name = EXCLUDED.last_name,
+                first_name = EXCLUDED.first_name,
+                gender = EXCLUDED.gender,
+                phone = EXCLUDED.phone,
+                diet = EXCLUDED.diet,
+                feed = EXCLUDED.feed,
+                batch = EXCLUDED.batch,
+                role_code = EXCLUDED.role_code,
+                comment = EXCLUDED.comment,
+                last_updated = EXCLUDED.last_updated,
+                occupation = EXCLUDED.occupation,
+                person_id = EXCLUDED.person_id
+        """,
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
-            #'fields.notion_id': 'id',
             'fields.name': 'name',
             'fields.last_name': 'last_name',
             'fields.first_name': 'first_name',
-            #'fields.nickname': 'nickname',
             'fields.gender_id': 'gender',
             'fields.phone': 'phone',
             'fields.is_vegan': 'diet',
@@ -335,15 +378,11 @@ TABLES_CONFIG = [
             'id': 'nocode_int_id',
             'fields.updated_at': 'last_updated',
             'fields.position': 'occupation',
-            'fields.person': 'person_id',
-            'fields.infant': 'child',
-            'fields.parent': 'parent_id'
+            'fields.person': 'person_id'
         },
         'transformations': {
-            #'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'uuid': lambda x, ctx: str(uuid.uuid4()),
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'][4]).get('code', 'VOLUNTEER'),
-            #'fields.person': lambda x, ctx: x if x != 0 else None
+            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER')
         },
         'dependencies': []
     },
@@ -353,10 +392,19 @@ TABLES_CONFIG = [
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
                 departure_date, departure_transport, last_updated,  
-                status, badge_id
+                status, badge_id, nocode_int_id
             ) VALUES %s
-        """, #photo?
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
+            ON CONFLICT (nocode_int_id) 
+            DO UPDATE SET
+                arrival_date = EXCLUDED.arrival_date,
+                arrival_transport = EXCLUDED.arrival_transport,
+                departure_date = EXCLUDED.departure_date,
+                departure_transport = EXCLUDED.departure_transport,
+                last_updated = EXCLUDED.last_updated,
+                status = EXCLUDED.status,
+                badge_id = EXCLUDED.badge_id
+        """,
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
             'fields.arrival_date': 'arrival_date',
@@ -366,15 +414,14 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated',
             'fields.status': 'status',
             'fields.badge': 'badge_id',
+            'fields.nocode_int_id': 'nocode_int_id',
         },
         'transformations': {
+            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'uuid': lambda x, ctx: str(uuid.uuid4()),
             'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None)
-            #'fields.badge': lambda x, ctx: ctx['bages_map'].get(str(UUID(x)), None)
-            #'fields.main_role_id': lambda x, ctx: ctx['roles_mapping'].get(x, None)
         },
         'dependencies': []
     },
