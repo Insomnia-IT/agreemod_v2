@@ -113,8 +113,6 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         if not results:
             return []
         unique_results = results.unique()
-        for result in unique_results:
-            print(result)
         return [
             result.to_model(
                 include_person=include_person,

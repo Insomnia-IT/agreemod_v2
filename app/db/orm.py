@@ -143,9 +143,10 @@ class BadgeAppORM(BadgeORM):
             gender=self.gender,
             phone=self.phone,
             parent=(
-                Parent.model_validate(self.parent, from_attributes=True)
-                if self.parent and include_parent
-                else self.parent_id
+                #Parent.model_validate(self.parent, from_attributes=True)
+                #if self.parent and include_parent
+                #else self.parent_id
+                self.parent_id
             ),
             child=self.child,
             diet=DietType[self.diet].value if self.diet else None,

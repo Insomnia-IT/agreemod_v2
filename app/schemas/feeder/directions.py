@@ -22,7 +22,7 @@ class DirectionResponse(BaseModel):
     first_year: int | None = None
     last_year: int | None = None
     type: DirectionType
-    notion_id: UUID
+    nocode_int_id: int
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):  # type: ignore
