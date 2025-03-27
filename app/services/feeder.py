@@ -156,7 +156,7 @@ class FeederService:
         await self.session.commit()
 
     async def sync(self, from_date: datetime):
-        get_badges = await self.badges.retrieve_many(include_directions=True, from_date=from_date) #include_infant=True
+        get_badges = await self.badges.retrieve_many(include_directions=False, from_date=from_date) #include_infant=True
         badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]
         get_arrivals = await self.arrivals.retrieve_all(from_date=from_date)
         arrivals = [ArrivalResponse.model_validate(x.model_dump()) for x in get_arrivals]

@@ -3,7 +3,7 @@ from enum import StrEnum
 
 class ParticipationStatus(StrEnum):
     PLANNED = "планируется"
-    CANCELED = "отменилось"
+    CANCELLED = "отменилось"
     PENDING = "ждём ответа"
     CONFIRMED = "подтверждено накануне"
     SKIPPED = "не доехал"

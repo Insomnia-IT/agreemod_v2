@@ -202,7 +202,7 @@ class ArrivalAppORM(ArrivalORM):
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
-            coda_index=self.coda_index,
+            nocode_int_id=self.nocode_int_id,
         )
 
 

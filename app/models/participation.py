@@ -14,7 +14,7 @@ class Participation(DomainModel):
     person: Person | int
     direction: DirectionDTO | int
     role: ParticipationRole
-    status: ParticipationStatus
+    status: ParticipationStatus | None
     nocode_int_id: int | None = None
     last_updated: datetime = None
 

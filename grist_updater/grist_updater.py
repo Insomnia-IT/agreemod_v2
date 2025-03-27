@@ -113,9 +113,11 @@ class GristSync:
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
-            p['fields']['status']: p['fields'].get('status_code', 'unknown')
-            for p in participations if 'status' in p['fields']
+        #    p['fields']['status']: p['fields'].get('status_code', 'unknown')
+             p['id']: p['fields'].get('C', None)
+            for p in participations
         }
+        print(self.status_mapping)
 
         roles = await self.fetch_grist_table('Roles')
         self.roles_mapping = {
