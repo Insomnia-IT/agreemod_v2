@@ -6,14 +6,12 @@ import asyncio
 async def sync_loop():
     sync = GristSync()
     while True:
-        try:
-            print("\n--- Начало цикла синхронизации ---")
-            await main_cycle(sync)
-            sync._save_sync_state()
-            print("--- Цикл завершен. Ожидание 5 минут ---")
-        except Exception as e:
-            print(f"Критическая ошибка: {e}")
-        await asyncio.sleep(100)
+        print("\n--- Начало цикла синхронизации ---")
+        await main_cycle(sync)
+        sync._save_sync_state()
+        print("--- Цикл завершен. Ожидание 5 минут ---")
+
+        await asyncio.sleep(30)
 
 async def main_cycle(sync):
     print("Обновление ролей и статусов...")

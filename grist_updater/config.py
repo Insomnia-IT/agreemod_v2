@@ -3,8 +3,8 @@ import os
 
 SERVER = "https://grist.insomniafest.ru"
 DOC_ID = "mhwDM83vLmT3HsFa4CJsTh"
-GRIST_API_KEY = "15ef01f2503ecc4f9201a0841e6d70beb2338456"
-#GRIST_API_KEY = "def9b5d12833fe4fd45efe30a2d6d0c263c8eb0a"
+#GRIST_API_KEY = "15ef01f2503ecc4f9201a0841e6d70beb2338456"
+GRIST_API_KEY = "def9b5d12833fe4fd45efe30a2d6d0c263c8eb0a"
 
 os.environ["GRIST_API_KEY"] = GRIST_API_KEY
 

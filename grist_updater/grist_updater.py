@@ -17,7 +17,7 @@ class GristSync:
     def __init__(self, state_file='sync_state.json'):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
-        self.bages_map: Dict[str, int] = {}
+        self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
         self.state_file = Path(state_file)
         self.last_sync = self._load_sync_state()
@@ -49,22 +49,27 @@ class GristSync:
             port='5432'
         )
 
-    async def fetch_grist_data(self, table_name: str, filters: Optional[Dict] = None) -> List[Dict]:
-        """Получение данных из Grist с фильтрацией по времени"""
-        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/records"
+    async def fetch_grist_data(self, table_name: str) -> List[Dict]:
+        """Получение данных через SQL API с использованием sql_query"""
+        config = next(t for t in TABLES_CONFIG if t['grist_table'] == table_name)
+        url = f"{SERVER}/api/docs/{DOC_ID}/sql"
         headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
         
-        params = {}
-        if self.last_sync.get(table_name) and table_name is not "Teams":
-            last_sync = int(self.last_sync[table_name] * 1000)
-            params['filter'] = json.dumps({'updated_at': {'$gte': last_sync}})
-
+        base_query = config['sql_query']
+        last_sync = self.last_sync.get(table_name)
+        
+        # Добавляем фильтр по времени, если есть
+        where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
+        full_query = f"{base_query} {where_clause}"
+        
+        params = {"q": full_query}
+        
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as resp:
                 if resp.status != 200:
-                    raise Exception(f"Ошибка запроса: {resp}")
-                data = await resp.json()
-                return data.get('records', [])
+                    error = await resp.text()
+                    raise Exception(f"SQL Error ({resp.status}): {error}")
+                return await resp.json()
 
     async def fetch_grist_table(self, table_name: str) -> List[Dict]:
         """Получение данных из таблицы Grist"""
@@ -94,6 +99,16 @@ class GristSync:
                         return widget_options.get('choices', [])
                 return []
             
+    async def _fetch_badges_mapping(self):
+        """Получение связи nocode_int_id → badge_id из PostgreSQL"""
+        conn = self.get_pg_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT nocode_int_id, id FROM badge")
+                self.badges_map = {row[0]: row[1] for row in cursor.fetchall()}
+        finally:
+            conn.close()
+            
     async def update_utility_data(self):
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
@@ -103,7 +118,6 @@ class GristSync:
         }
 
         roles = await self.fetch_grist_table('Roles')
-        print(roles)
         self.roles_mapping = {
             p['id']: {
                 "code":p['fields']['Code'],
@@ -118,7 +132,6 @@ class GristSync:
     async def _insert_roles(self):
         """Вставка ролей в PostgreSQL"""
         conn = self.get_pg_connection()
-        print(self.roles_mapping)
         try:
             with conn.cursor() as cursor:
                 execute_values(
@@ -151,6 +164,7 @@ class GristSync:
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
+        records = records.get('records')
 
         if config['grist_table'] == 'Participations':
             records = [
@@ -160,13 +174,8 @@ class GristSync:
                 and record['fields'].get('role_old') != ''
             ]
 
-        if config['grist_table'] == 'Arrivals_20240904':
-            records = [
-                record for record in records
-                if record['fields'].get('badge_id', 0) != 0 
-                #and record['fields'].get('team', 0) != 0
-                #and record['fields'].get('role_old') != ''
-            ]
+#        if config['grist_table'] == 'Arrivals_2025':
+#            await self._fetch_badges_mapping()
         
         if not records:
             return
@@ -174,7 +183,7 @@ class GristSync:
         context = {
             "status_mapping": self.status_mapping,
             "roles_mapping": self.roles_mapping,
-            "bages_map": self.bages_map,
+            "badges_map": self.badges_map,
             "roles": self.roles
         }
 
@@ -234,26 +243,31 @@ TABLES_CONFIG = [
         'grist_table': 'Teams',
         'insert_query': """
             INSERT INTO direction (
-                id, name, type, first_year, last_year, nocode_int_id
+                id, name, type, first_year, last_year, nocode_int_id, last_updated
             ) VALUES %s
             ON CONFLICT (nocode_int_id) 
             DO UPDATE SET
                 name = EXCLUDED.name,
                 type = EXCLUDED.type,
                 first_year = EXCLUDED.first_year,
-                last_year = EXCLUDED.last_year
+                last_year = EXCLUDED.last_year,
+                last_updated = EXCLUDED.last_updated
         """,
-        'template': "(%s, %s, %s, %s, %s, %s)",
+        'sql_query': "SELECT * FROM Teams",
+        'template': "(%s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
             'fields.team_name': 'name',
             'fields.type_of_team': 'type',
             'fields.year_of_establishment_': 'first_year',
             'fields.last_year': 'last_year',
-            'id': 'nocode_int_id'
+            'fields.id': 'nocode_int_id',
+            'fields.update_at': 'last_updated'
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.last_year': lambda x, ctx: x if type(x) is not dict else None,
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
         },
         'dependencies': []
     },
@@ -261,7 +275,7 @@ TABLES_CONFIG = [
         'grist_table': 'Participations',
         'insert_query': """
             INSERT INTO participation (
-                id, year, role_code, status_code, person_id, direction_id
+                id, year, role_code, status_code, person_id, direction_id, last_updated
             ) VALUES %s
             ON CONFLICT (id) 
             DO UPDATE SET
@@ -269,21 +283,25 @@ TABLES_CONFIG = [
                 role_code = EXCLUDED.role_code,
                 status_code = EXCLUDED.status_code,
                 person_id = EXCLUDED.person_id,
-                direction_id = EXCLUDED.direction_id
+                direction_id = EXCLUDED.direction_id,
+                last_updated = EXCLUDED.last_updated
         """,
-        'template': "(%s, %s, %s, %s, %s, %s)",
+        'sql_query': "SELECT * FROM Participations",
+        'template': "(%s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
             'fields.year': 'year',
             'fields.role': 'role_code',
             'fields.status': 'status_code',
             'fields.person': 'person_id',
-            'fields.team': 'direction_id'
+            'fields.team': 'direction_id',
+            'fields.updated_at': 'last_updated',
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER')
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
         },
         'dependencies': ['People', 'Teams']
     },
@@ -311,6 +329,7 @@ TABLES_CONFIG = [
                 comment = EXCLUDED.comment,
                 last_updated = EXCLUDED.last_updated
         """,
+        'sql_query': "SELECT * FROM People",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.ntn_id': 'id',
@@ -326,13 +345,13 @@ TABLES_CONFIG = [
             'fields.birth_date': 'birth_date',
             'fields.city': 'city',
             'fields.comment': 'comment',
-            'id': 'nocode_int_id',
+            'fields.id': 'nocode_int_id',
             'fields.updated_at': 'last_updated'
         },
         'transformations': {
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else []
         },
         'dependencies': []
@@ -344,7 +363,7 @@ TABLES_CONFIG = [
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id
+                occupation, person_id, parent_id
             ) VALUES %s
             ON CONFLICT (nocode_int_id) 
             DO UPDATE SET
@@ -360,9 +379,11 @@ TABLES_CONFIG = [
                 comment = EXCLUDED.comment,
                 last_updated = EXCLUDED.last_updated,
                 occupation = EXCLUDED.occupation,
-                person_id = EXCLUDED.person_id
+                person_id = EXCLUDED.person_id,
+                parent_id = EXCLUDED.parent_id
         """,
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'sql_query': "SELECT * FROM Badges_2025",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
             'fields.name': 'name',
@@ -375,14 +396,18 @@ TABLES_CONFIG = [
             'fields.printing_batch': 'batch',
             'fields.role': 'role_code',
             'fields.comment': 'comment',
-            'id': 'nocode_int_id',
+            'fields.id': 'nocode_int_id',
             'fields.updated_at': 'last_updated',
             'fields.position': 'occupation',
-            'fields.person': 'person_id'
+            'fields.person': 'person_id',
+            'fields.parent': 'parent_id'
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER')
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.parent': lambda x, ctx: x if x !=0 else None,
+            'fields.person': lambda x, ctx: x if x != 0 else None,
         },
         'dependencies': []
     },
@@ -404,6 +429,7 @@ TABLES_CONFIG = [
                 status = EXCLUDED.status,
                 badge_id = EXCLUDED.badge_id
         """,
+        'sql_query': "SELECT * FROM Arrivals_2025",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
@@ -418,6 +444,7 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
@@ -426,3 +453,8 @@ TABLES_CONFIG = [
         'dependencies': []
     },
 ]
+
+
+
+
+
