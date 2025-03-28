@@ -97,6 +97,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         include_directions: bool = False,
         include_parent: bool = False,
         include_person: bool = False,
+        person_uuid: bool = False,
         from_date: datetime = None,
     ) -> List[Badge]:
         results = await self.session.scalars(
@@ -115,6 +116,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         unique_results = results.unique()
         return [
             result.to_model(
+                person_uuid=person_uuid,
                 include_person=include_person,
                 include_directions=include_directions,
                 include_parent=include_parent,

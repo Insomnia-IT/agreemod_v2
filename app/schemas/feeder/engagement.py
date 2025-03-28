@@ -9,11 +9,11 @@ class EngagementResponse(BaseModel):
     id: UUID
     deleted: bool = False
     year: int
-    person: int
+    person: int | UUID
     role: ParticipationRole
     position: str | None = Field(..., validation_alias="role")
     status: ParticipationStatus | None
-    direction: int
+    direction: int | UUID
 
     @field_serializer("role", "status")
     def serialize_enums(self, strenum: StrEnum, _info):

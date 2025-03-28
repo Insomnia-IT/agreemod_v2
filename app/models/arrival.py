@@ -12,7 +12,7 @@ from app.models.base import DomainModel
 
 
 class Arrival(DomainModel):
-    badge: BadgeDTO | int
+    badge: BadgeDTO | int | UUID
     arrival_date: date
     arrival_transport: TransportType | None = None
     arrival_registered: time | None = None

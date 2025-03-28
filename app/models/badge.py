@@ -23,7 +23,7 @@ class Badge(DomainModel):
     nickname: str | None = None
     gender: Gender | None = None
     phone: str | None = None
-    parent: Parent | int | None = None
+    parent: Parent | int | UUID | None = None
     child: bool | None = False
     diet: DietType = Field(default_factory=DietType.default)
     feed: str | None = None
@@ -31,7 +31,7 @@ class Badge(DomainModel):
     batch: int | None = None
     role: ParticipationRole
     photo: str | None = None
-    person: Person | int | None = None
+    person: Person | int | UUID | None = None
     comment: str | None = None
     occupation: str
     nocode_int_id: int | None = None

@@ -88,7 +88,7 @@ class BadgeResponse(BaseModel):
     role: ParticipationRole
     position: str = Field(..., validation_alias="occupation")
     photo: str
-    person: int | None
+    person: int | UUID| None
     comment: str | None
     nocode_int_id: int
     directions: list[int] = Field(..., default_factory=list)

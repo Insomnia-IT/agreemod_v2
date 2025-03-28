@@ -113,7 +113,6 @@ class GristSync:
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
-        #    p['fields']['status']: p['fields'].get('status_code', 'unknown')
              p['id']: p['fields'].get('C', None)
             for p in participations
         }
@@ -175,9 +174,6 @@ class GristSync:
                 and record['fields'].get('team', 0) != 0
                 and record['fields'].get('role_old') != ''
             ]
-
-#        if config['grist_table'] == 'Arrivals_2025':
-#            await self._fetch_badges_mapping()
         
         if not records:
             return
@@ -209,6 +205,33 @@ class GristSync:
                 self.last_sync[config['grist_table']] = datetime.now().timestamp()
         finally:
             conn.close()
+
+        if 'additional_queries' in config:
+            conn = self.get_pg_connection()
+            try:
+                with conn.cursor() as cursor:
+                    for query_config in config['additional_queries']:
+                        for record in records:
+                            # Получаем nocode_int_id бейджа и team_list
+                            badge_nocode_id = self._get_nested_value(record, 'fields.id')
+                            team_list_raw = self._get_nested_value(record, 'fields.team_list') or []
+
+                            if isinstance(team_list_raw, str):
+                                team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                            else:
+                                team_list = team_list_raw
+
+                            # Преобразуем список в строку формата PostgreSQL ARRAY
+                            team_list_str = "{" + ",".join(map(str, team_list)) + "}"
+
+                            # Выполняем запрос для текущего бейджа
+                            cursor.execute(
+                                query_config['insert_query'],
+                                (badge_nocode_id, team_list_str, badge_nocode_id)
+                            )
+                    conn.commit()
+            finally:
+                conn.close()
 
     def _transform_record(
         self, 
@@ -384,6 +407,27 @@ TABLES_CONFIG = [
                 person_id = EXCLUDED.person_id,
                 parent_id = EXCLUDED.parent_id
         """,
+        'additional_queries': [
+            {
+                'insert_query': """
+                    -- Удаляем старые связи
+                    DELETE FROM badge_directions
+                    WHERE badge_id = %s;
+
+                    -- Вставляем новые связи
+                    INSERT INTO badge_directions (badge_id, direction_id)
+                    SELECT b.nocode_int_id, d.nocode_int_id
+                    FROM UNNEST(%s::INT[]) AS grist_direction_id
+                    JOIN direction d ON d.nocode_int_id = grist_direction_id
+                    CROSS JOIN badge b
+                    WHERE b.nocode_int_id = %s;
+                """,
+                'fields': ['fields.id', 'fields.team_list'],
+                'transformations': {
+                    'fields.team_list': lambda x, ctx: x if isinstance(x, list) else [],
+                }
+            }
+        ],
         'sql_query': "SELECT * FROM Badges_2025",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
@@ -411,7 +455,7 @@ TABLES_CONFIG = [
             'fields.parent': lambda x, ctx: x if x !=0 else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
         },
-        'dependencies': []
+        'dependencies': ['Teams']
     },
     {
         'grist_table': 'Arrivals_2025',
@@ -453,7 +497,7 @@ TABLES_CONFIG = [
             'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None)
         },
         'dependencies': []
-    },
+    }
 ]
 
 

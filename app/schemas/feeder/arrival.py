@@ -37,7 +37,7 @@ class ArrivalWithMetadata(BaseModel):
 class ArrivalResponse(BaseModel):
     id: UUID
     deleted: bool = False
-    badge: int | None = None
+    badge: UUID | None = None
     status: ParticipationStatus
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None

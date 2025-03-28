@@ -11,8 +11,8 @@ from app.models.person import Person
 
 class Participation(DomainModel):
     year: int
-    person: Person | int
-    direction: DirectionDTO | int
+    person: Person | int | UUID
+    direction: DirectionDTO | int | UUID
     role: ParticipationRole
     status: ParticipationStatus | None
     nocode_int_id: int | None = None

@@ -108,14 +108,16 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         )
         return [x.to_model() for x in result]
 
-    async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None) -> list[Arrival]:
+    async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None, badge_uuid: bool = None) -> list[Arrival]:
         query = select(ArrivalAppORM)
         if page and page_size:
             offset = (page - 1) * page_size
             query = query.limit(page_size).offset(offset)
         if from_date:
             query = query.where(ArrivalAppORM.last_updated > from_date)
+        if badge_uuid:
+            query = query.options(selectinload(ArrivalAppORM.badge))
         results = await self.session.scalars(query)
         if not results:
             return []
-        return [result.to_model() for result in results]
+        return [result.to_model(include_badge=True) for result in results]

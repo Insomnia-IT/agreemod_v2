@@ -16,7 +16,7 @@ class BadgeDirectionsORM(Base):
     __tablename__ = "badge_directions"
     badge_id: Mapped[int] = Column(
         Integer,
-        ForeignKey("badge.nocode_int_id", onupdate="CASCADE", ondelete="CASCADE"),
+        ForeignKey("    ", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
     direction_id: Mapped[int] = Column(

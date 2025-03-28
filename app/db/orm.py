@@ -133,6 +133,8 @@ class BadgeAppORM(BadgeORM):
         include_person: bool = False,
         include_directions: bool = False,
         include_parent: bool = False,
+        person_uuid: bool = False,
+
     ) -> Badge:
         return Badge(
             id=self.id,
@@ -146,16 +148,16 @@ class BadgeAppORM(BadgeORM):
                 #Parent.model_validate(self.parent, from_attributes=True)
                 #if self.parent and include_parent
                 #else self.parent_id
-                self.parent_id
+                self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
             diet=DietType[self.diet].value if self.diet else None,
-            feed=FeedType[self.feed].value if self.feed else None,
+            feed=self.feed, #FeedType[self.feed].value if self.feed else None,
             number=self.number,
             batch=self.batch,
             role=ParticipationRole[self.role_code].value,
             photo=self.photo,
-            person=self.person.to_model() if self.person and include_person else self.person_id,
+            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid else self.person_id,
             directions=(
                 [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
@@ -192,7 +194,8 @@ class ArrivalAppORM(ArrivalORM):
     def to_model(self, include_badge: bool = False) -> Arrival:
         return Arrival(
             id=self.id,
-            badge=(BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id),
+            #badge=(BadgeDTO.model_validate(self.badge, from_attributes=True).id if include_badge else self.badge_id),
+            badge = (self.badge.id if include_badge else self.badge_id),
             arrival_date=self.arrival_date,
             arrival_transport=TransportType[self.arrival_transport].value if self.arrival_transport else None,
             arrival_registered=self.arrival_registered,
@@ -224,13 +227,14 @@ class ParticipationAppORM(ParticipationORM):
             last_updated=model.last_updated,
         )
 
-    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
+    def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
         return Participation(
             year=self.year,
-            person=self.person.to_model() if include_person else self.person_id,
+            person=self.person.to_model() if include_person else self.person.id if uuid_ids else self.person_id,
             direction=(
                 DirectionDTO.model_validate(self.direction, from_attributes=True)
                 if include_direction
+                else self.direction.id if uuid_ids
                 else self.direction_id
             ),
             role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
