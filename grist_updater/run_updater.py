@@ -1,4 +1,4 @@
-from grist_updater import GristSync, TABLES_CONFIG
+from grist_updater.grist_updater import GristSync, TABLES_CONFIG
 import asyncio
 
 import asyncio
@@ -9,7 +9,7 @@ async def sync_loop():
         print("\n--- Начало цикла синхронизации ---")
         await main_cycle(sync)
         sync._save_sync_state()
-        print("--- Цикл завершен. Ожидание 5 минут ---")
+        print("--- Цикл завершен. Ожидание 30 секунд ---")
 
         await asyncio.sleep(30)
 

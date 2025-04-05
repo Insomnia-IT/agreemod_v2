@@ -77,7 +77,7 @@ services:
       dockerfile: docker/updater.dockerfile
       context: ./
     volumes:
-      - ./updater:${VOLUME_MOUNT_PREFIX}/updater
+      - ./grist_updater:${VOLUME_MOUNT_PREFIX}/grist_updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
       - ./rabbit:${VOLUME_MOUNT_PREFIX}/rabbit

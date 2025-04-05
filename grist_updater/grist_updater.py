@@ -1,10 +1,9 @@
 # sync_module.py
 import aiohttp
-import asyncio
 import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime
-from config import SERVER, DOC_ID, GRIST_API_KEY
+from grist_updater.config import config as app_config
 from typing import Dict, List, Optional
 import json
 import uuid
@@ -42,25 +41,30 @@ class GristSync:
     def get_pg_connection():
         """Подключение к PostgreSQL"""
         return psycopg2.connect(
-            dbname='agreemod',
-            user='agreemod',
-            password='pswd',
-            host='localhost',
-            port='5432'
+            dbname=app_config.postgres.name,
+            user=app_config.postgres.user,
+            password=app_config.postgres.password,
+            host=app_config.postgres.host,
+            port=app_config.postgres.port
         )
 
     async def fetch_grist_data(self, table_name: str) -> List[Dict]:
         """Получение данных через SQL API с использованием sql_query"""
         config = next(t for t in TABLES_CONFIG if t['grist_table'] == table_name)
-        url = f"{SERVER}/api/docs/{DOC_ID}/sql"
-        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        url = f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/sql"
+        headers = {"Authorization": f"Bearer {app_config.grist.api_key}"}
         
         base_query = config['sql_query']
         last_sync = self.last_sync.get(table_name)
         
         # Добавляем фильтр по времени, если есть
         where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
+        if table_name == 'Participations' and last_sync:
+            where_clause += " AND year = 2025"
+        elif table_name == 'Participations':
+            where_clause = "WHERE year = 2025"
         full_query = f"{base_query} {where_clause}"
+        print(full_query)
         
         params = {"q": full_query}
         
@@ -73,8 +77,8 @@ class GristSync:
 
     async def fetch_grist_table(self, table_name: str) -> List[Dict]:
         """Получение данных из таблицы Grist"""
-        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/records"
-        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        url = f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/tables/{table_name}/records"
+        headers = {"Authorization": f"Bearer {app_config.grist.api_key}"}
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as resp:
@@ -85,8 +89,8 @@ class GristSync:
             
     async def fetch_column_choices(self, table_name: str, column_name: str) -> List[str]:
         """Получение вариантов ролей из метаданных колонки"""
-        url = f"{SERVER}/api/docs/{DOC_ID}/tables/{table_name}/columns"
-        headers = {"Authorization": f"Bearer {GRIST_API_KEY}"}
+        url = f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/tables/{table_name}/columns"
+        headers = {"Authorization": f"Bearer {app_config.grist.api_key}"}
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as resp:
@@ -287,7 +291,7 @@ TABLES_CONFIG = [
             'fields.year_of_establishment_': 'first_year',
             'fields.last_year': 'last_year',
             'fields.id': 'nocode_int_id',
-            'fields.update_at': 'last_updated'
+            'fields.updated_at': 'last_updated'
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
