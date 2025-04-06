@@ -21,7 +21,7 @@ class Direction(DomainModel):
 
     model_config = ConfigDict(
         json_encoders={
-            DirectionType: lambda t: t.name,
+            DirectionType: lambda t: t.value,
         },
         use_enum_values=True,
     )

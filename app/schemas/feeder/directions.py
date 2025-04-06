@@ -28,8 +28,8 @@ class DirectionResponse(BaseModel):
     def get_strenum_name(strenum: type[StrEnum], value: str):  # type: ignore
         if not strenum:
             return None
-        return strenum(value).name
+        return strenum(value).value
 
     @field_serializer("type")
     def serialize_enums(self, strenum: StrEnum, _info):
-        return strenum.name
+        return strenum.value
