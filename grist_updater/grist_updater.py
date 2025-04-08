@@ -435,7 +435,7 @@ TABLES_CONFIG = [
         'sql_query': "SELECT * FROM Badges_2025",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
-            'uuid': 'id',
+            'fields.UUID': 'id',
             'fields.name': 'name',
             'fields.last_name': 'last_name',
             'fields.first_name': 'first_name',
@@ -453,7 +453,7 @@ TABLES_CONFIG = [
             'fields.parent': 'parent_id'
         },
         'transformations': {
-            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            #'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.parent': lambda x, ctx: x if x !=0 else None,

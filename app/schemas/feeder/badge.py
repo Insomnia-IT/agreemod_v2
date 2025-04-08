@@ -91,7 +91,7 @@ class BadgeResponse(BaseModel):
     person: int | UUID| None
     comment: str | None
     nocode_int_id: int
-    directions: list[int] = Field(..., default_factory=list)
+    directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):
@@ -124,7 +124,7 @@ class BadgeResponse(BaseModel):
     @classmethod
     def list_directions(cls, values: list[dict]) -> list[str]:
         if values:
-            return [x["nocode_int_id"] for x in values]
+            return [x["id"] for x in values]
         else:
             return []
 
