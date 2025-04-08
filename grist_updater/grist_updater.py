@@ -304,19 +304,20 @@ TABLES_CONFIG = [
         'grist_table': 'Participations',
         'insert_query': """
             INSERT INTO participation (
-                id, year, role_code, status_code, person_id, direction_id, last_updated
+                id, year, role_code, status_code, person_id, direction_id, last_updated, nocode_int_id
             ) VALUES %s
-            ON CONFLICT (id) 
+            ON CONFLICT (nocode_int_id) 
             DO UPDATE SET
                 year = EXCLUDED.year,
                 role_code = EXCLUDED.role_code,
                 status_code = EXCLUDED.status_code,
                 person_id = EXCLUDED.person_id,
                 direction_id = EXCLUDED.direction_id,
-                last_updated = EXCLUDED.last_updated
+                last_updated = EXCLUDED.last_updated,
+                nocode_int_id = EXCLUDED.nocode_int_id
         """,
         'sql_query': "SELECT * FROM Participations",
-        'template': "(%s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
             'fields.year': 'year',
@@ -325,6 +326,7 @@ TABLES_CONFIG = [
             'fields.person': 'person_id',
             'fields.team': 'direction_id',
             'fields.updated_at': 'last_updated',
+            'fields.id': 'nocode_int_id',
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
@@ -490,7 +492,7 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated',
             'fields.status': 'status',
             'fields.badge': 'badge_id',
-            'fields.nocode_int_id': 'nocode_int_id',
+            'fields.id': 'nocode_int_id',
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
