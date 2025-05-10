@@ -21,7 +21,7 @@ from app.models.direction import Direction
 from app.models.logging import Logs
 from app.models.participation import Participation
 from app.models.person import Person
-
+from uuid import UUID
 
 class PersonAppORM(PersonORM):
     @classmethod
@@ -33,7 +33,7 @@ class PersonAppORM(PersonORM):
             first_name=person.first_name,
             nickname=person.nickname,
             other_names=person.other_names,
-            gender=person.gender.value if person.gender else Gender.OTHER.value,
+            gender=person.gender.value if person.gender else None,#Gender.OTHER.value,
             birth_date=person.birth_date,
             city=person.city,
             telegram=person.telegram,
@@ -123,7 +123,7 @@ class BadgeAppORM(BadgeORM):
             role_code=model.role.name,  # if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
             photo=model.photo,
             occupation=model.occupation,
-            person_id=model.person.id if model.person else None,
+            person_id=model.person.id if type(model.person)==Person else model.person if type(model.person)==UUID else None,
             comment=model.comment,
             nocode_int_id=model.nocode_int_id if model.nocode_int_id else None,
         )
@@ -137,6 +137,7 @@ class BadgeAppORM(BadgeORM):
 
     ) -> Badge:
         return Badge(
+            #TODO: Add delete value
             id=self.id,
             name=self.name,
             last_name=self.last_name,
@@ -145,14 +146,11 @@ class BadgeAppORM(BadgeORM):
             gender=self.gender,
             phone=self.phone,
             parent=(
-                #Parent.model_validate(self.parent, from_attributes=True)
-                #if self.parent and include_parent
-                #else self.parent_id
                 self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
             diet=DietType[self.diet].value if self.diet else None,
-            feed=self.feed, #FeedType[self.feed].value if self.feed else None,
+            feed=self.feed,
             number=self.number,
             batch=self.batch,
             role=ParticipationRole[self.role_code].value,
@@ -192,9 +190,9 @@ class ArrivalAppORM(ArrivalORM):
         )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
+        #TODO: Add delete field here? From comment at least?
         return Arrival(
             id=self.id,
-            #badge=(BadgeDTO.model_validate(self.badge, from_attributes=True).id if include_badge else self.badge_id),
             badge = (self.badge.id if include_badge else self.badge_id),
             arrival_date=self.arrival_date,
             arrival_transport=TransportType[self.arrival_transport].value if self.arrival_transport else None,
@@ -237,7 +235,8 @@ class ParticipationAppORM(ParticipationORM):
                 else self.direction.id if uuid_ids
                 else self.direction_id
             ),
-            role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
+            #role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
+            role=ParticipationRole[self.role_code].value if self.role_code else None,
             status=ParticipationStatus[self.status_code].value if self.status_code else None,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,

@@ -28,5 +28,9 @@ class Person(DomainModel):
 
     @field_validator("gender", mode="before")
     def convert_gender(cls, value: str):
-        if value not in [x.value for x in Gender]:
-            return Gender.OTHER.value
+        if value == '':
+            return None
+        try:
+            return Gender[value]
+        except KeyError:
+            return value

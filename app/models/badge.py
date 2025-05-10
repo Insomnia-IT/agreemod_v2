@@ -93,6 +93,8 @@ class Badge(DomainModel):
     @field_validator("gender", mode="before")
     @classmethod
     def convert_gender(cls, value: str):
+        if value == '':
+            return None
         try:
             return Gender[value]
         except KeyError:

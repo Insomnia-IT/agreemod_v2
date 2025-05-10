@@ -117,7 +117,7 @@ class GristSync:
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
-             p['id']: p['fields'].get('C', None)
+             p['id']: p['fields'].get('code', None)
             for p in participations
         }
         print(self.status_mapping)
@@ -441,7 +441,7 @@ TABLES_CONFIG = [
             'fields.name': 'name',
             'fields.last_name': 'last_name',
             'fields.first_name': 'first_name',
-            'fields.gender_id': 'gender',
+            'fields.gender': 'gender',
             'fields.phone': 'phone',
             'fields.is_vegan': 'diet',
             'fields.feed_type': 'feed',
