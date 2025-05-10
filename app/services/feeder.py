@@ -25,7 +25,7 @@ from app.schemas.feeder.directions import DirectionResponse
 from app.schemas.feeder.engagement import EngagementResponse
 from app.schemas.feeder.person import PersonResponse
 from app.schemas.feeder.requests import BackSyncIntakeSchema, SyncResponseSchema
-from app.services.badge_to_notion import notion_writer_v2
+from app.services.badge_to_grist import grist_writer_v2
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +64,13 @@ class FeederService:
 
     async def back_sync_badges(self, intake: BackSyncIntakeSchema):
         badges = intake.badges
+        logger.info(badges)
         if badges:
+            # First update the badges in the database
             existing = await self.badges.update_feeder([x.data for x in badges])
+            logger.info(existing)
             for e, b in zip(existing, badges):
-                actor = await self.badges.retrieve(b.actor_badge)
+                actor = await self.badges.retrieve(id=b.actor_badge)
                 dt = b.date.replace(tzinfo=None)
                 await self.logs.add_log(
                     Logs(
@@ -79,8 +82,17 @@ class FeederService:
                         new_data=serialize(b.data.model_dump() if e is not None else {}),
                     )
                 )
-            badges_uuid = [i.actor_badge for i in badges]
-            await notion_writer_v2(badges_uuid)
+            
+            # Get the updated badges with all their relationships
+            updated_badges = await self.badges.retrieve_many(
+                include_parent=True,
+                include_person=True,
+                include_directions=True,
+                idIn=[b.data.id for b in badges if b.data.id]
+            )
+            
+            # Pass the full badge models to Grist writer
+            await grist_writer_v2(updated_badges)
         await self.session.commit()
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
@@ -129,7 +141,7 @@ class FeederService:
                     )
                 )
             badges_uuid = [i.actor_badge for i in badges]
-            await notion_writer_v2(badges_uuid)
+            await grist_writer_v2(badges_uuid)
 
         if arrivals:
             created, deleted = await self.arrivals.update_feeder([x.data for x in arrivals])

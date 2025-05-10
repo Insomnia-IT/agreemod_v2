@@ -16,6 +16,11 @@ class CodaConfig(BaseSettings):
 
     model_config = SettingsConfigDict(extra="ignore")
 
+class GristConfig(BaseSettings):
+    server: str
+    doc_id: str
+    api_key: str
+
 
 class NotionConfig(BaseModel):
     token: str = Field(alias="token")
@@ -74,6 +79,7 @@ class Config(BaseSettings):
     notion: NotionConfig
     postgres: PostgresConfig
     rabbitmq: RabbitMQ
+    grist: GristConfig
 
     ROUTER_GET_QUERY_CACHE_TIMEOUT: int = 15
 
