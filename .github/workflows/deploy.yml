@@ -2,9 +2,7 @@ name: CI/CD - main & dev
 
 on:
   push:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
     paths:
       - '.github/**'
       - 'Dockerfile'
@@ -30,29 +28,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: SSH into the server and deploy
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        script: |
-          # Create directory for the current branch if it doesn't exist
-          mkdir -p /opt/insomnia-app/agreemod/${{ github.ref_name }}
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SRV_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SRV_HOST }} >> ~/.ssh/known_hosts
 
-          cd /opt/insomnia-app/agreemod/${{ github.ref_name }}
-          
-          # Clone the repository if it doesn't exist, else pull the latest changes
+    - name: Deploy via SSH
+      run: |
+        ssh ${{ secrets.SRV_USER_NAME }}@${{ secrets.SRV_HOST }} << 'EOF'
+          set -e
+          BRANCH="${{ github.ref_name }}"
+          DIR="/opt/insomnia-app/agreemod/$BRANCH"
+          REPO="https://github.com/${{ github.repository }}"
+
+          mkdir -p "$DIR"
+          cd "$DIR"
+
           if [ ! -d ".git" ]; then
-            git clone https://github.com/${{ github.repository }}
+            git clone "$REPO" .
           fi
-          cd /opt/insomnia-app/agreemod/${{ github.ref_name }}/agreemod_v2/
-          git pull origin ${{ github.ref_name }}
-          git checkout ${{ github.ref_name }}
 
-          # Prepare .env file on the server
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH"
+          git pull origin "$BRANCH"
+
           cp .env.example .env
-          if [ "${{ github.ref_name }}" = "dev" ]; then
+
+          if [ "$BRANCH" = "dev" ]; then
             sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
             sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
             sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
@@ -62,7 +66,7 @@ jobs:
             sed -i "s|\$ENV_GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
             sed -i "s|\$ENV_GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_DEV }}|g" .env
             sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
-          elif [ "${{ github.ref_name }}" = "main" ]; then
+          elif [ "$BRANCH" = "main" ]; then
             sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
             sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
             sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
@@ -74,8 +78,8 @@ jobs:
             sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
           fi
 
-          # Restart docker-compose with the updated .env
-          docker compose --project-name agreemod-${{ github.ref_name }} down
-          docker compose --project-name agreemod-${{ github.ref_name }} build
-          docker compose --project-name agreemod-${{ github.ref_name }} up -d
-          docker update --restart always $(docker ps --filter "name=agreemod-${{ github.ref_name }}" -q)
+          docker compose --project-name agreemod-$BRANCH down
+          docker compose --project-name agreemod-$BRANCH build
+          docker compose --project-name agreemod-$BRANCH up -d
+          docker update --restart always $(docker ps --filter "name=agreemod-$BRANCH" -q)
+        EOF
