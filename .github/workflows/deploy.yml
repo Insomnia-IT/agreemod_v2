@@ -50,6 +50,7 @@ jobs:
           if [ ! -d "$DIR/agreemod_v2/.git" ]; then
             # Если нет, то клонируем репозиторий
             git clone -b alpatov_dev "$REPO" "$DIR/agreemod_v2"
+            cd "$DIR/agreemod_v2"
           else
             # Если да, то переходим в директорию и выполняем git pull
             cd "$DIR/agreemod_v2"
