@@ -1,7 +1,7 @@
 FROM python:3.11-slim-bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN pip3 install --upgrade pip poetry
+RUN pip3 install --upgrade pip poetry virtualenv
 
 WORKDIR /opt/app
 
