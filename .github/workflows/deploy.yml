@@ -40,13 +40,13 @@ jobs:
           # Create directory for the current branch if it doesn't exist
           mkdir -p /opt/insomnia-app/agreemod/${{ github.ref_name }}
 
-          # Navigate to the correct directory
           cd /opt/insomnia-app/agreemod/${{ github.ref_name }}
           
           # Clone the repository if it doesn't exist, else pull the latest changes
           if [ ! -d ".git" ]; then
-            git clone https://github.com/${{ github.repository }} .
+            git clone https://github.com/${{ github.repository }}
           fi
+          cd /opt/insomnia-app/agreemod/${{ github.ref_name }}/agreemod_v2/
           git pull origin ${{ github.ref_name }}
           git checkout ${{ github.ref_name }}
 
