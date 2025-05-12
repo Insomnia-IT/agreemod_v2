@@ -47,9 +47,10 @@ jobs:
           cd "$DIR"
 
           if [ ! -d ".git" ]; then
-            git clone "$REPO" .
+            git clone "$REPO" 
           fi
 
+          cd ./agreemod_v2
           git fetch origin "$BRANCH"
           git checkout "$BRANCH"
           git pull origin "$BRANCH"
