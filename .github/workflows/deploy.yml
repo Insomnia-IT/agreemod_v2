@@ -58,25 +58,25 @@ jobs:
           cp env.example .env
 
           if [ "$BRANCH" = "dev" ]; then
-            sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
-            sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
-            sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
-            sed -i "s|\$ENV_POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
-            sed -i "s|\$ENV_POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_DEV }}|g" .env
-            sed -i "s|\$ENV_TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_DEV }}|g" .env
-            sed -i "s|\$ENV_GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
-            sed -i "s|\$ENV_GRIST__DOC_ID|xxxxxxxxxxxxxx|g" .env
-            sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
+            sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
+            sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
+            sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
+            sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
+            sed -i "s|\$POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_DEV }}|g" .env
+            sed -i "s|\$TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_DEV }}|g" .env
+            sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
+            sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_DEV }}|g" .env
+            sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
           elif [ "$BRANCH" = "main" ]; then
-            sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
-            sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
-            sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
-            sed -i "s|\$ENV_POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env
-            sed -i "s|\$ENV_POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_MAIN }}|g" .env
-            sed -i "s|\$ENV_TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_MAIN }}|g" .env
-            sed -i "s|\$ENV_GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_MAIN }}|g" .env
-            sed -i "s|\$ENV_GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_MAIN }}|g" .env
-            sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
+            sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
+            sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
+            sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_MAIN }}|g" .env
+            sed -i "s|\$TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_MAIN }}|g" .env
+            sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_MAIN }}|g" .env
+            sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_MAIN }}|g" .env
+            sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
           fi
 
           docker compose --project-name agreemod-$BRANCH down
