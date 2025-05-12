@@ -20,6 +20,8 @@ on:
       - 'dictionaries/**'
       - 'rabbit/**'
       - 'updater/**'
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,19 +30,52 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Deploy to server
+    - name: SSH into the server and deploy
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         script: |
-          tmux new-session -d -s gh-actions-${{ github.ref_name }}
-          tmux a -t gh-actions-${{ github.ref_name }}
-          cd /deploy/agreemod-${{ github.ref_name }}/agreemod_v2
+          # Create directory for the current branch if it doesn't exist
+          mkdir -p /opt/insomnia-app/agreemod/${{ github.ref_name }}
+
+          # Navigate to the correct directory
+          cd /opt/insomnia-app/agreemod/${{ github.ref_name }}
+          
+          # Clone the repository if it doesn't exist, else pull the latest changes
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/${{ github.repository }} .
+          fi
           git pull origin ${{ github.ref_name }}
           git checkout ${{ github.ref_name }}
-          docker compose --project-name agreemod-${{ github.ref_name }} build
+
+          # Prepare .env file on the server
+          cp .env.example .env
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
+            sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
+            sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
+            sed -i "s|\$ENV_POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
+            sed -i "s|\$ENV_POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_DEV }}|g" .env
+            sed -i "s|\$ENV_TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_DEV }}|g" .env
+            sed -i "s|\$ENV_GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
+            sed -i "s|\$ENV_GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_DEV }}|g" .env
+            sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
+            sed -i "s|\$ENV_API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
+            sed -i "s|\$ENV_API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$ENV_POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$ENV_POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_MAIN }}|g" .env
+            sed -i "s|\$ENV_TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_MAIN }}|g" .env
+            sed -i "s|\$ENV_GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_MAIN }}|g" .env
+            sed -i "s|\$ENV_GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_MAIN }}|g" .env
+            sed -i "s|\$ENV_GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
+          fi
+
+          # Restart docker-compose with the updated .env
           docker compose --project-name agreemod-${{ github.ref_name }} down
+          docker compose --project-name agreemod-${{ github.ref_name }} build
           docker compose --project-name agreemod-${{ github.ref_name }} up -d
           docker update --restart always $(docker ps --filter "name=agreemod-${{ github.ref_name }}" -q)
