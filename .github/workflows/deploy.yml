@@ -55,7 +55,7 @@ jobs:
           git checkout "$BRANCH"
           git pull origin "$BRANCH"
 
-          cp .env.example .env
+          cp env.example .env
 
           if [ "$BRANCH" = "dev" ]; then
             sed -i "s|\$ENV_API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
