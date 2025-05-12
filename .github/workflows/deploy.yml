@@ -51,9 +51,13 @@ jobs:
           fi
 
           cd ./agreemod_v2
-          git fetch origin "$BRANCH"
-          git checkout "$BRANCH"
-          git pull origin "$BRANCH"
+          #git fetch origin "$BRANCH"
+          #git checkout "$BRANCH"
+          #git pull origin "$BRANCH"
+
+          git fetch origin alpatov_dev
+          git checkout alpatov_dev
+          git pull origin alpatov_dev
 
           cp env.example .env
 
