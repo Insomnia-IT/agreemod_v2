@@ -46,14 +46,18 @@ jobs:
           mkdir -p "$DIR"
           cd "$DIR"
 
-          if [ ! -d ".git" ]; then
-            git clone "$REPO" 
+          # Проверяем, существует ли директория и является ли она репозиторием Git
+          if [ ! -d "$DIR/agreemod_v2/.git" ]; then
+            # Если нет, то клонируем репозиторий
+            git clone -b "$BRANCH" "$REPO" "$DIR/agreemod_v2"
+            cd "$DIR/agreemod_v2"
+          else
+            # Если да, то переходим в директорию и выполняем git pull
+            cd "$DIR/agreemod_v2"
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
           fi
-
-          cd ./agreemod_v2
-          git fetch origin "$BRANCH"
-          git checkout "$BRANCH"
-          git pull origin "$BRANCH"
 
           cp env.example .env
 
@@ -90,7 +94,7 @@ jobs:
           docker compose --project-name agreemod-$BRANCH down
           docker compose --project-name agreemod-$BRANCH build
           docker compose --project-name agreemod-$BRANCH up -d
-          docker exec -it agreemod-$BRANCH-alembic-1 alembic upgrade head
+          docker exec agreemod-$BRANCH-alembic-1 alembic upgrade head
           docker update --restart always $(docker ps --filter "name=agreemod-$BRANCH" -q)
           docker compose --project-name agreemod-$BRANCH down
           docker compose --project-name agreemod-$BRANCH up -d
