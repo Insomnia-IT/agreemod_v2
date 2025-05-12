@@ -94,7 +94,7 @@ jobs:
           docker compose --project-name agreemod-$BRANCH down
           docker compose --project-name agreemod-$BRANCH build
           docker compose --project-name agreemod-$BRANCH up -d
-          docker exec -it agreemod-$BRANCH-alembic-1 alembic upgrade head
+          docker exec agreemod-$BRANCH-alembic-1 alembic upgrade head
           docker update --restart always $(docker ps --filter "name=agreemod-$BRANCH" -q)
           docker compose --project-name agreemod-$BRANCH down
           docker compose --project-name agreemod-$BRANCH up -d
