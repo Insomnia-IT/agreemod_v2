@@ -2,9 +2,7 @@ name: CI/CD - main & dev
 
 on:
   push:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
     paths:
       - '.github/**'
       - 'Dockerfile'
@@ -20,6 +18,8 @@ on:
       - 'dictionaries/**'
       - 'rabbit/**'
       - 'updater/**'
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,19 +28,74 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        script: |
-          tmux new-session -d -s gh-actions-${{ github.ref_name }}
-          tmux a -t gh-actions-${{ github.ref_name }}
-          cd /deploy/agreemod-${{ github.ref_name }}/agreemod_v2
-          git pull origin ${{ github.ref_name }}
-          git checkout ${{ github.ref_name }}
-          docker compose --project-name agreemod-${{ github.ref_name }} build
-          docker compose --project-name agreemod-${{ github.ref_name }} down
-          docker compose --project-name agreemod-${{ github.ref_name }} up -d
-          docker update --restart always $(docker ps --filter "name=agreemod-${{ github.ref_name }}" -q)
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SRV_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SRV_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy via SSH
+      run: |
+        ssh ${{ secrets.SRV_USER_NAME }}@${{ secrets.SRV_HOST }} << 'EOF'
+          set -e
+          BRANCH="${{ github.ref_name }}"
+          DIR="/opt/insomnia-app/agreemod/$BRANCH"
+          REPO="https://github.com/${{ github.repository }}"
+
+          mkdir -p "$DIR"
+          cd "$DIR"
+
+          # Проверяем, существует ли директория и является ли она репозиторием Git
+          if [ ! -d "$DIR/agreemod_v2/.git" ]; then
+            # Если нет, то клонируем репозиторий
+            git clone -b alpatov_dev "$REPO" "$DIR/agreemod_v2"
+            cd "$DIR/agreemod_v2"
+          else
+            # Если да, то переходим в директорию и выполняем git pull
+            cd "$DIR/agreemod_v2"
+            git fetch origin alpatov_dev
+            git checkout alpatov_dev
+            git pull origin alpatov_dev
+          fi
+
+          cp env.example .env
+
+          if [ "$BRANCH" = "dev" ]; then
+            sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
+            sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
+            sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
+            sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
+            sed -i "s|\$POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_DEV }}|g" .env
+            sed -i "s|\$TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_DEV }}|g" .env
+            sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
+            sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_DEV }}|g" .env
+            sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
+            sed -i "s|\$CODA__API_KEY|${{ secrets.ENV_CODA__API_KEY }}|g" .env
+            sed -i "s|\$CODA__DOC_ID|${{ secrets.ENV_CODA__DOC_ID }}|g" .env
+            sed -i "s|\$NOTION__TOKEN|${{ secrets.ENV_NOTION__TOKEN }}|g" .env
+            sed -i "s|\$NOTION__WRITE_TOKEN|${{ secrets.ENV_NOTION__WRITE_TOKEN }}|g" .env
+          elif [ "$BRANCH" = "main" ]; then
+            sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
+            sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
+            sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env
+            sed -i "s|\$POSTGRES__PROXY|${{ secrets.ENV_POSTGRES__PROXY_MAIN }}|g" .env
+            sed -i "s|\$TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_MAIN }}|g" .env
+            sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_MAIN }}|g" .env
+            sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_MAIN }}|g" .env
+            sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
+            sed -i "s|\$CODA__API_KEY|${{ secrets.ENV_CODA__API_KEY }}|g" .env
+            sed -i "s|\$CODA__DOC_ID|${{ secrets.ENV_CODA__DOC_ID }}|g" .env
+            sed -i "s|\$NOTION__TOKEN|${{ secrets.ENV_NOTION__TOKEN }}|g" .env
+            sed -i "s|\$NOTION__WRITE_TOKEN|${{ secrets.ENV_NOTION__WRITE_TOKEN }}|g" .env            
+          fi
+
+          docker compose --project-name agreemod-$BRANCH down
+          docker compose --project-name agreemod-$BRANCH build
+          docker compose --project-name agreemod-$BRANCH up -d
+          docker exec agreemod-$BRANCH-alembic-1 alembic upgrade head
+          docker update --restart always $(docker ps --filter "name=agreemod-$BRANCH" -q)
+          docker compose --project-name agreemod-$BRANCH down
+          docker compose --project-name agreemod-$BRANCH up -d
+        EOF
