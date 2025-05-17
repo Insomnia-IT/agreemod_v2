@@ -60,9 +60,9 @@ class GristSync:
         # Добавляем фильтр по времени, если есть
         where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
         if table_name == 'Participations' and last_sync:
-            where_clause += " AND year = 2025"
+            where_clause += " AND (year == 2024 OR year == 2025)"
         elif table_name == 'Participations':
-            where_clause = "WHERE year = 2025"
+            where_clause = "WHERE (year == 2024 OR year == 2025)"
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -396,8 +396,7 @@ TABLES_CONFIG = [
                 comment, nocode_int_id, last_updated,
                 occupation, person_id, parent_id
             ) VALUES %s
-            ON CONFLICT (nocode_int_id) 
-            DO UPDATE SET
+            ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
                 last_name = EXCLUDED.last_name,
                 first_name = EXCLUDED.first_name,
@@ -445,7 +444,7 @@ TABLES_CONFIG = [
             'fields.phone': 'phone',
             'fields.is_vegan': 'diet',
             'fields.feed_type': 'feed',
-            'fields.printing_batch': 'batch',
+            'fields.batch': 'batch',
             'fields.role': 'role_code',
             'fields.comment': 'comment',
             'fields.id': 'nocode_int_id',
