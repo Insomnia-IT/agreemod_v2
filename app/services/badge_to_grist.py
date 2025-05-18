@@ -29,15 +29,17 @@ class GristBadgeWriter:
                         #"first_name": badge.first_name or "",
                         "gender": "Ж" if badge.gender == 'FEMALE' else "M" if badge.gender == 'MALE' else "др." if badge.gender == 'OTHER' else None,
                         "phone": badge.phone or "",
-                        "diet": "Без особенностей" if badge.diet == 'STANDARD' else "Веган" if badge.diet == 'VEGAN' else "Unknown",
+                        "diet": "Без особенностей" if badge.diet == 'STANDARD' else "Веган" if badge.diet == 'VEGAN' else "Без особенностей",
+                        #"diet": badge.diet if badge.diet else "Без особенностей",
                         "feed_type": "Бесплатно" if badge.feed == 'FREE' else "Платно" if badge.feed == 'PAID' else "Без питания",
-                        "batch": str(badge.batch) if badge.batch else "",
-                        "role": badge.role.name,
+                        #"feed_type": badge.feed if badge.feed else "Без питания",
+                        #"batch": str(badge.batch) if badge.batch else "",
+                        "role": badge.role,
                         "comment": badge.comment or "",
                         "position": badge.occupation,
-                        "person": str(badge.person.id) if badge.person else "",
-                        "parent": str(badge.parent.id) if badge.parent else "",
-                        "updated_at": badge.last_updated.isoformat() if badge.last_updated else "",
+                        "person": badge.person.nocode_int_id if badge.person else "",
+                        "parent": str(badge.parent.nocode_int_id) if badge.parent else "",
+                        #"updated_at": badge.last_updated.isoformat() if badge.last_updated else "",
                         #"uuid": str(badge.id),
                         #"directions": [str(d.id) for d in badge.directions] if badge.directions else []
                     }
@@ -54,11 +56,11 @@ class GristBadgeWriter:
                         raise Exception(f"Error fetching badges: {resp.status} - {error_text}")
                     records = await resp.json()
                     existing_badge = next((r for r in records.get('records', []) 
-                                        if r['fields'].get('UUID') == badge.id), None)
+                                        if UUID(r['fields'].get('UUID')) == badge.id), None)
                 logger.info(f"BADGE EXIST??? {existing_badge}")
                 if existing_badge:
                     # Update existing badge
-                    grist_data["records"][0]["id"] = existing_badge.id
+                    grist_data["records"][0]["id"] = existing_badge["id"]
                     logger.info(grist_data)
                     update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:

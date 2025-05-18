@@ -65,6 +65,8 @@ class FeederService:
     async def back_sync_badges(self, intake: BackSyncIntakeSchema):
         badges = intake.badges
         logger.info(badges)
+        #TODO: There is no reason to update badges in database here, we can pass them directly to grist
+        # and then just fetch them with grist_updater, it seems more correct
         if badges:
             # First update the badges in the database
             existing = await self.badges.update_feeder([x.data for x in badges])
@@ -90,9 +92,8 @@ class FeederService:
                 include_directions=True,
                 idIn=[b.data.id for b in badges if b.data.id]
             )
-            
-            # Pass the full badge models to Grist writer
             await grist_writer_v2(updated_badges)
+            # Pass the full badge models to Grist writer
         await self.session.commit()
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
