@@ -60,9 +60,9 @@ class GristSync:
         # Добавляем фильтр по времени, если есть
         where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
         if table_name == 'Participations' and last_sync:
-            where_clause += " AND (year == 2024 OR year == 2025)"
+            where_clause += " AND (year >= 2024)"
         elif table_name == 'Participations':
-            where_clause = "WHERE (year == 2024 OR year == 2025)"
+            where_clause = "WHERE (year >= 2024)"
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -394,7 +394,7 @@ TABLES_CONFIG = [
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, parent_id
+                occupation, person_id, parent_id, photo
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -410,7 +410,8 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 occupation = EXCLUDED.occupation,
                 person_id = EXCLUDED.person_id,
-                parent_id = EXCLUDED.parent_id
+                parent_id = EXCLUDED.parent_id,
+                photo = EXCLUDED.photo
         """,
         'additional_queries': [
             {
@@ -434,7 +435,7 @@ TABLES_CONFIG = [
             }
         ],
         'sql_query': "SELECT * FROM Badges_2025",
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -451,7 +452,8 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated',
             'fields.position': 'occupation',
             'fields.person': 'person_id',
-            'fields.parent': 'parent_id'
+            'fields.parent': 'parent_id',
+            'fields.photo_attach_id': 'photo'
         },
         'transformations': {
             #'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
@@ -459,6 +461,7 @@ TABLES_CONFIG = [
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.parent': lambda x, ctx: x if x !=0 else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
+            'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None
         },
         'dependencies': ['Teams']
     },
