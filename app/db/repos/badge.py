@@ -14,6 +14,7 @@ from app.models.direction import Direction
 from app.schemas.badge import BadgeFilterDTO
 from app.schemas.feeder.badge import Badge as FeederBadge
 
+
 # TODO: перенести в модуль database!?
 class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
 
@@ -47,7 +48,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             query = query.options(selectinload(BadgeAppORM.person))
         if include_directions:
             query = query.options(selectinload(BadgeAppORM.directions)).options(
-                selectinload(BadgeDirectionsAppORM.direction, )
+                selectinload(
+                    BadgeDirectionsAppORM.direction,
+                )
             )
         if include_parent:
             query = query.options(selectinload(BadgeAppORM.parent))
@@ -88,6 +91,28 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         if result is None:
             return None
         return result.to_model(include_person=True, include_directions=True, include_parent=True)
+
+    async def retrieve_many_by_ids(self, ids: list[str]):
+        results = await self.session.scalars(
+            select(BadgeAppORM, BadgeDirectionsAppORM)
+            .join(BadgeAppORM.directions, isouter=True)
+            .where(BadgeAppORM.id.in_(ids))
+            .options(selectinload(BadgeAppORM.parent))
+            .options(selectinload(BadgeAppORM.person))
+            .options(selectinload(BadgeAppORM.directions))
+            .options(selectinload(BadgeDirectionsAppORM.direction))
+        )
+        if not results:
+            return []
+        unique_results = results.unique()
+        return [
+            result.to_model(
+                include_person=True,
+                include_directions=True,
+                include_parent=True,
+            )
+            for result in unique_results
+        ]
 
     async def retrieve_many(
         self,

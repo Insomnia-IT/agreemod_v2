@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 
 from app.dependencies.service import get_feeder_service
@@ -33,10 +33,20 @@ async def sync(
 async def back_sync(
     username: Annotated[str, Depends(verify_credentials)],
     intake: BackSyncIntakeSchema,
+    background_tasks: BackgroundTasks,
     badges_service: FeederService = Depends(get_feeder_service),
     arrivals_service: FeederService = Depends(get_feeder_service),
-
+    badges_bg_service: FeederService = Depends(get_feeder_service),
+    arrivals_bg_service: FeederService = Depends(get_feeder_service),
 ):
-    await badges_service.back_sync_badges(intake)
-    await arrivals_service.back_sync_arrivals(intake)
-    return JSONResponse(status_code=200, content={"message": "OK"})
+    badges = await badges_service.back_sync_badges(intake)
+    to_update, to_delete = await arrivals_service.back_sync_arrivals(intake)
+    background_tasks.add_task(badges_bg_service.update_notion_badges, badges)
+    background_tasks.add_task(arrivals_bg_service.update_coda_arrivals, to_update, to_delete)
+    return JSONResponse(
+        status_code=200, content={"message": "синхронизация базы завершена, запущена синхронизация ноушена и коды"}
+    )
+
+    # await badges_service.back_sync_badges(intake)
+    # await arrivals_service.back_sync_arrivals(intake)
+    # return JSONResponse(status_code=200, content={"message": "OK"})

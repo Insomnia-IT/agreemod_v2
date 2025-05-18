@@ -34,6 +34,12 @@ class Badge(BaseModel):
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
 
+    @field_serializer("role", "feed", "gender")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.name
+
     @field_validator("gender", mode="before")
     @classmethod
     def convert_gender(cls, value: str):

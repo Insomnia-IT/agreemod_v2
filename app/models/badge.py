@@ -75,12 +75,20 @@ class Badge(DomainModel):
 
     @field_serializer("batch")
     def serialize_batch(self, value, _info):
-        return str(value)
+        return str(value) if value else None
 
     @staticmethod
     def get_default_file(color: BadgeColor):
         path_to_files = Path.cwd() / Path("media/image/faces_no_photo")
         return str(path_to_files / Path(f"{color.value}.png"))
+
+    @field_validator("batch", mode="before")
+    @classmethod
+    def convert_batch(cls, value):
+        if value == 'None' or value is None:
+            return None
+        else:
+            return int(value)
 
     @field_validator("role", mode="before")
     @classmethod
@@ -98,7 +106,14 @@ class Badge(DomainModel):
         try:
             return Gender[value]
         except KeyError:
-            return value
+            if value == 'М':
+                return Gender.MALE
+            elif value == 'Ж':
+                return Gender.FEMALE
+            elif value == 'др.':
+                return Gender.OTHER
+            else:
+                return value
 
     @field_validator("diet", mode="before")
     @classmethod
@@ -106,8 +121,8 @@ class Badge(DomainModel):
         if not value:
             return DietType.default()
         try:
-            return DietType[value.lower()]
-        except KeyError:
+            return DietType(value.lower())
+        except ValueError:
             return DietType.default()
 
     @model_validator(mode="after")
