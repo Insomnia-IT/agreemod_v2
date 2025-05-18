@@ -27,6 +27,9 @@ migrate:
 migrate-generate:
 	alembic revision --autogenerate --rev-id=`date '+%Y_%m_%d_%H%M'` -m "COMMENT"
 
+migrate-generate-docker:
+	docker compose exec -it alembic poetry run alembic revision --autogenerate --rev-id=`date '+%Y_%m_%d_%H%M'` -m "COMMENT"
+
 migrate-down:
 	docker compose exec -it alembic poetry run alembic downgrade -1
 

@@ -9,6 +9,7 @@ class FeedType(StrEnum):
     FREE = "Бесплатно"
     PAID = "Платно"
     NO = "Без питания"
+    
 
     @property
     def is_free(self) -> bool:

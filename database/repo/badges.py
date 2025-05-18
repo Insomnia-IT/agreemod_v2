@@ -19,18 +19,18 @@ class BadgeRepo:
         result = await self.session.execute(select(BadgeORM))
         return result.scalars().all()
 
-    async def get_badges_by_notion_ids(self, notion_ids: List[UUID]) -> List[BadgeORM]:
-        """Получить бейджи по списку notion_id."""
-        if not notion_ids:
+    async def get_badges_by_nocode_int_ids(self, nocode_int_ids: List[int]) -> List[BadgeORM]:
+        """Получить бейджи по списку nocode_int_id."""
+        if not nocode_int_ids:
             return []
 
-        notion_ids_str = [str(notion_id) for notion_id in notion_ids]
-        if not notion_ids_str:
+        nocode_int_ids_str = [str(nocode_int_id) for nocode_int_id in nocode_int_ids]
+        if not nocode_int_ids_str:
             return []
 
-        logger.info(f"notion_ids_str: {notion_ids_str}")
+        logger.info(f"nocode_int_ids_str: {nocode_int_ids_str}")
 
-        query = select(BadgeORM).where(BadgeORM.notion_id.in_(notion_ids_str))
+        query = select(BadgeORM).where(BadgeORM.nocode_int_id.in_(nocode_int_ids_str))
         logger.info(f"query: {query}")
 
         result = await self.session.execute(query)

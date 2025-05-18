@@ -24,13 +24,13 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
             await self.session.flush([new_direction])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
-            raise RepresentativeError(title=f"direction with {data.notion_id=} already exists")
+            raise RepresentativeError(title=f"direction with {data.nocode_int_id=} already exists")
         return new_direction
 
-    async def retrieve(self, notion_id, include_badges: bool = True) -> Direction:
+    async def retrieve(self, nocode_int_id, include_badges: bool = True) -> Direction:
         result = await self.session.scalar(
             select(DirectionAppORM, BadgeDirectionsAppORM)
-            .where(DirectionAppORM.notion_id == notion_id)
+            .where(DirectionAppORM.nocode_int_id == nocode_int_id)
             .options(selectinload(DirectionAppORM.badges))
             .options(selectinload(BadgeDirectionsAppORM.badge))
         )
@@ -43,8 +43,8 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
         await self.session.merge(orm)
         await self.session.flush([orm])
 
-    async def delete(self, notion_id):
-        await self.session.execute(delete(DirectionAppORM).where(DirectionAppORM.notion_id == notion_id))
+    async def delete(self, nocode_int_id):
+        await self.session.execute(delete(DirectionAppORM).where(DirectionAppORM.nocode_int_id == nocode_int_id))
 
     async def retrieve_all(self, from_date: datetime = None) -> list[Direction]:
         query = select(DirectionAppORM)

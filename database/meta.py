@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 PG_URL = (
     f"postgresql+asyncpg://{config.postgres.user}:{config.postgres.password}"
+    #TODO: Check what's going on here
     f"@{config.postgres.host}:{config.postgres.port}/{config.postgres.name}"
+    #f"@localhost:5432/{config.postgres.name}"
 )
 PG_URL_MIGRATIONS = PG_URL.replace("asyncpg", "psycopg2")
 

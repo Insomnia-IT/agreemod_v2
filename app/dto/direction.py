@@ -8,7 +8,7 @@ class DirectionDTO(BaseModel):
     id: UUID | None = None
     name: str | None = None
     type: DirectionType | None = None
-    notion_id: UUID
+    nocode_int_id: int
 
     @field_validator("type", mode="before")
     @classmethod

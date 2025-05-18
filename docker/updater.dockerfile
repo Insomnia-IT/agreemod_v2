@@ -1,17 +1,17 @@
 FROM python:3.11-slim-bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN pip3 install --upgrade pip poetry
+RUN pip3 install --upgrade pip poetry virtualenv
 
 WORKDIR /opt/app
 
-COPY updater updater
+COPY grist_updater grist_updater
 COPY database database
 COPY dictionaries dictionaries
 COPY rabbit rabbit
 
-COPY .env updater/poetry.lock updater/pyproject.toml ./
+COPY .env grist_updater/poetry.lock grist_updater/pyproject.toml ./
 
-RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi  --no-root
 
-ENTRYPOINT ["python", "-m", "updater.main_updater"]
+ENTRYPOINT ["python", "-m", "grist_updater.run_updater"]

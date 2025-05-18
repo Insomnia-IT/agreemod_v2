@@ -28,9 +28,9 @@ class BadgeORM(Base, BaseORM):
     nickname: Mapped[str] = Column(String)
     gender: Mapped[str] = Column(String)
     phone: Mapped[str] = Column(String)
-    parent_id: Mapped[uuid.UUID] = Column(
-        UUID(as_uuid=True),
-        ForeignKey("badge.notion_id", ondelete="CASCADE"),
+    parent_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("badge.nocode_int_id", ondelete="CASCADE"),
         nullable=True,
     )
     child: Mapped[bool] = Column(Boolean)
@@ -41,21 +41,21 @@ class BadgeORM(Base, BaseORM):
     occupation: Mapped[str] = Column(String)
     role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
     photo: Mapped[str] = Column(String)
-    person_id: Mapped[uuid.UUID] = Column(
-        UUID(as_uuid=True),
-        ForeignKey("person.notion_id"),
+    person_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("person.nocode_int_id"), nullable=True
     )
     comment: Mapped[str] = Column(String)
-    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True))
+    nocode_int_id: Mapped[int] = Column(Integer)
     last_updated: Mapped[time] = Column(TIMESTAMP)
 
     _unique_constraint_number = UniqueConstraint(number)
-    _unique_constraint_notion = UniqueConstraint(notion_id)
+    _unique_constraint_notion = UniqueConstraint(nocode_int_id)
 
 
 class AnonsORM(Base, BaseORM):
     __tablename__ = "anonymous_badges"
-    notion_id: Mapped[int] = Column(UUID(as_uuid=True), primary_key=True)
+    nocode_int_id: Mapped[int] = Column(Integer, primary_key=True)
     title: Mapped[str] = Column(String)
     subtitle: Mapped[str] = Column(String)
     batch: Mapped[str] = Column(String)

@@ -22,7 +22,7 @@ router_feeder = APIRouter()
     response_model=SyncResponseSchema,
 )
 async def sync(
-    username: Annotated[str, Depends(verify_credentials)],
+    #username: Annotated[str, Depends(verify_credentials)],
     from_date: datetime,
     service: FeederService = Depends(get_feeder_service),
 ):

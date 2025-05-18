@@ -16,20 +16,20 @@ class Direction(BaseModel):
 
 
 class DirectionResponse(BaseModel):
-    id: UUID = Field(..., validation_alias="notion_id")
+    id: UUID #= Field(..., validation_alias="notion_id")
     deleted: bool = False
     name: str
     first_year: int | None = None
     last_year: int | None = None
     type: DirectionType
-    notion_id: UUID
+    nocode_int_id: int
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):  # type: ignore
         if not strenum:
             return None
-        return strenum(value).name
+        return strenum(value).value
 
     @field_serializer("type")
     def serialize_enums(self, strenum: StrEnum, _info):
-        return strenum.name
+        return strenum.value

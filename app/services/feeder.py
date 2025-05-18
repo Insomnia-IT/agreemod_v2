@@ -66,7 +66,7 @@ class FeederService:
         self.participations = ParticipationRepo(session)
         self.persons = PersonRepo(session)
         self.logs = LogsRepo(session)
-        self.coda_writer = CodaWriter(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
+        #self.coda_writer = CodaWriter(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
 
     async def back_sync_badges(self, intake: BackSyncIntakeSchema):
         badges = intake.badges
@@ -213,11 +213,12 @@ class FeederService:
         wait=wait_exponential(multiplier=1, min=4, max=10),
     )
     async def sync(self, from_date: datetime):
-        get_badges = await self.badges.retrieve_many(include_parent=True, include_directions=True, from_date=from_date)
+        get_badges = await self.badges.retrieve_many(include_parent=True, from_date=from_date, include_directions=True, person_uuid=True) #include_infant=True
         badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]
-        get_arrivals = await self.arrivals.retrieve_all(from_date=from_date)
+        get_arrivals = await self.arrivals.retrieve_all(from_date=from_date, badge_uuid=True)
+        print(get_arrivals)
         arrivals = [ArrivalResponse.model_validate(x.model_dump()) for x in get_arrivals]
-        get_engagements = await self.participations.retrieve_all(from_date=from_date)
+        get_engagements = await self.participations.retrieve_all(from_date=from_date, uuid_ids=True)
         engagements = [EngagementResponse.model_validate(x.model_dump()) for x in get_engagements]
         get_persons = await self.persons.retrieve_all(from_date=from_date)
         persons = [PersonResponse.model_validate(x.model_dump()) for x in get_persons]

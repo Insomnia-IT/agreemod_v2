@@ -65,6 +65,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
         page_size: int = None,
         include_direction: bool = False,
         include_person: bool = False,
+        uuid_ids: bool = False,
         from_date: datetime = None,
     ) -> List[Participation]:
         results = await self.session.scalars(
@@ -77,7 +78,7 @@ class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
             )
         )
         return [
-            result.to_model(include_person=include_person, include_direction=include_direction) for result in results
+            result.to_model(include_person=include_person, include_direction=include_direction, uuid_ids=uuid_ids) for result in results
         ]
 
     async def create(self, data: Participation):

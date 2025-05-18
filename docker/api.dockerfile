@@ -13,7 +13,7 @@ COPY dictionaries dictionaries
 
 COPY .env app/poetry.lock app/pyproject.toml ./
 
-RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi --no-root
 
 EXPOSE 8000
 ENTRYPOINT ["python", "-m", "app.main"]

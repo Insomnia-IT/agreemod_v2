@@ -20,7 +20,7 @@ try:
     badge_colors = cur.fetchall()
     # cur.execute(f"SELECT code, diet FROM public.diet_type")
     # diet_types = cur.fetchall()
-    cur.execute(f"SELECT code, name FROM public.direction_type")
+    cur.execute(f"SELECT name, code FROM public.direction_type")
     direction_types = cur.fetchall()
     # cur.execute(f"SELECT code, feed FROM public.feed_type")
     # feed_types = cur.fetchall()
