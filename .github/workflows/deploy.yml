@@ -2,7 +2,7 @@ name: CI/CD - main & dev
 
 on:
   push:
-    branches: [devX, mainX]
+    branches: [dev, main]
     paths:
       - '.github/**'
       - 'Dockerfile'
