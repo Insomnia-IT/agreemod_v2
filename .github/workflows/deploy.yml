@@ -2,7 +2,7 @@ name: CI/CD - main & dev
 
 on:
   push:
-    branches: [dev, main]
+    branches: [devX, mainX]
     paths:
       - '.github/**'
       - 'Dockerfile'
@@ -63,6 +63,7 @@ jobs:
 
           if [ "$BRANCH" = "dev" ]; then
             sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
+            sed -i "s|\$API_PROXY|${{ secrets.ENV_API_PROXY_DEV }}|g" .env
             sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
             sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
             sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
@@ -77,6 +78,7 @@ jobs:
             sed -i "s|\$NOTION__WRITE_TOKEN|${{ secrets.ENV_NOTION__WRITE_TOKEN }}|g" .env
           elif [ "$BRANCH" = "main" ]; then
             sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
+            sed -i "s|\$API_PROXY|${{ secrets.ENV_API_PROXY_MAIN }}|g" .env
             sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
             sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
             sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env
