@@ -10,9 +10,9 @@ class ParticipationRoleORM(Base):
 
     code: Mapped[str] = Column(String, primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)
-    is_lead: Mapped[bool] = Column(Boolean, nullable=False)
-    is_team: Mapped[bool] = Column(Boolean, nullable=False)
+    is_lead: Mapped[bool] = Column(Boolean, nullable=True)
+    is_team: Mapped[bool] = Column(Boolean, nullable=True)
     is_free_feed: Mapped[bool] = Column(Boolean)
-    color: Mapped[str] = Column(String, ForeignKey("badge_color.code"), nullable=False)
-    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), nullable=False)
+    color: Mapped[str] = Column(String, ForeignKey("badge_color.code"), nullable=True)
+    notion_id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), nullable=True)
     comment: Mapped[str] = Column(String)

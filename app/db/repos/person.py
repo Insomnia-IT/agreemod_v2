@@ -16,15 +16,15 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
 
     def query(
         self,
-        notion_id: str = None,
+        nocode_int_id: int = None,
         limit: int = None,
         page: int = None,
         from_date: datetime = None,
         filters: PersonFiltersDTO = None,
     ):
         query = select(PersonAppORM)
-        if notion_id:
-            query = query.filter_by(notion_id=notion_id)
+        if nocode_int_id:
+            query = query.filter_by(nocode_int_id=nocode_int_id)
         if page and limit:
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
@@ -47,9 +47,9 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
 
         return query
 
-    async def retrieve(self, notion_id, filters: PersonFiltersDTO) -> Person:
+    async def retrieve(self, nocode_int_id, filters: PersonFiltersDTO) -> Person:
         filters.strict = True
-        result: PersonAppORM = await self.session.scalar(self.query(notion_id=notion_id, filters=filters))
+        result: PersonAppORM = await self.session.scalar(self.query(nocode_int_id=nocode_int_id, filters=filters))
         if result is None:
             return None
         return result.to_model()

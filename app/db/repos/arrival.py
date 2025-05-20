@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from enum import Enum
 
+from database.orm.badge import BadgeORM
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
@@ -12,7 +13,6 @@ from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
 from app.models.arrival import Arrival
 from app.schemas.feeder.arrival import Arrival as FeederArrival
-from database.orm.badge import BadgeORM
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
                     created.append(arrival_orm)
             elif arrival.get("deleted", False) is False:
                 arrival["badge"] = arrival["badge_id"]
-                badge = self.session(select(BadgeORM).where(BadgeORM.notion_id == arrival['badge']))
+                badge = await self.session.scalar(select(BadgeORM).where(BadgeORM.nocode_int_id == arrival['badge']))
                 if badge:
                     arrival_orm = ArrivalAppORM.to_orm(Arrival.model_validate(arrival))
                     arrival_orm.last_updated = datetime.now()
@@ -108,14 +108,16 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
         )
         return [x.to_model() for x in result]
 
-    async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None) -> list[Arrival]:
+    async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None, badge_uuid: bool = None) -> list[Arrival]:
         query = select(ArrivalAppORM)
         if page and page_size:
             offset = (page - 1) * page_size
             query = query.limit(page_size).offset(offset)
         if from_date:
             query = query.where(ArrivalAppORM.last_updated > from_date)
+        if badge_uuid:
+            query = query.options(selectinload(ArrivalAppORM.badge))
         results = await self.session.scalars(query)
         if not results:
             return []
-        return [result.to_model() for result in results]
+        return [result.to_model(include_badge=True) for result in results]

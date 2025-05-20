@@ -15,13 +15,13 @@ class Direction(DomainModel):
     last_year: int | None = None
     last_updated: datetime | None = None
 
-    notion_id: UUID
+    nocode_int_id: int
 
     badges: list[BadgeDTO] = Field(default_factory=list)
 
     model_config = ConfigDict(
         json_encoders={
-            DirectionType: lambda t: t.name,
+            DirectionType: lambda t: t.value,
         },
         use_enum_values=True,
     )

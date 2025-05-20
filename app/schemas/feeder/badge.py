@@ -9,6 +9,7 @@ from dictionaries.dictionaries import ParticipationRole
 from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
 from pydantic import BaseModel, Field, field_serializer, field_validator, model_validator
+from typing import Optional
 
 
 class Badge(BaseModel):
@@ -32,6 +33,12 @@ class Badge(BaseModel):
     comment: str | None = None
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
+
+    @field_serializer("role", "feed", "gender")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.name
 
     @field_validator("gender", mode="before")
     @classmethod
@@ -79,17 +86,17 @@ class BadgeResponse(BaseModel):
     last_name: str = ""
     gender: Gender | None
     phone: str = ""
-    infant: bool = Field(..., validation_alias="child")
-    vegan: bool = Field(..., validation_alias="diet")
+    infant: Optional[bool] = Field(..., validation_alias="child")
+    vegan: Optional[bool] = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
     number: str | None
     batch: str | None
     role: ParticipationRole
     position: str = Field(..., validation_alias="occupation")
     photo: str
-    person: UUID | None
+    person: int | UUID| None
     comment: str | None
-    notion_id: UUID
+    nocode_int_id: int
     directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
@@ -122,7 +129,10 @@ class BadgeResponse(BaseModel):
     @field_validator("directions", mode="before")
     @classmethod
     def list_directions(cls, values: list[dict]) -> list[str]:
-        return [x["notion_id"] for x in values]
+        if values:
+            return [x["id"] for x in values]
+        else:
+            return []
 
     @field_validator("name", "first_name", "last_name", "phone", mode="before")
     @classmethod

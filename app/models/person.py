@@ -23,10 +23,14 @@ class Person(DomainModel):
     email: str | None = None
     diet: DietType | None = Field(default_factory=DietType.default)
     comment: str | None = None
-    notion_id: UUID | None = None
+    nocode_int_id: int | None = None
     last_updated: datetime | None = None
 
     @field_validator("gender", mode="before")
     def convert_gender(cls, value: str):
-        if value not in [x.value for x in Gender]:
-            return Gender.OTHER.value
+        if value == '':
+            return None
+        try:
+            return Gender[value]
+        except KeyError:
+            return value

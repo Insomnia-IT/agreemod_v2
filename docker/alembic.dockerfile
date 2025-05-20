@@ -13,6 +13,6 @@ COPY updater updater
 
 COPY .env alembic.ini alembic/poetry.lock alembic/pyproject.toml ./
 
-RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi --no-root
 
 ENTRYPOINT ["/bin/bash"]

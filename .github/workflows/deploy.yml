@@ -45,24 +45,25 @@ jobs:
 
           mkdir -p "$DIR"
           cd "$DIR"
-
-          # Проверяем, существует ли директория и является ли она репозиторием Git
+          
+          # Проверяем, существует ли директория и является ли она репозиторием Git 
           if [ ! -d "$DIR/agreemod_v2/.git" ]; then
             # Если нет, то клонируем репозиторий
-            git clone -b $BRANCH "$REPO" "$DIR/agreemod_v2"
+            git clone -b "$BRANCH" "$REPO" "$DIR/agreemod_v2"
             cd "$DIR/agreemod_v2"
           else
             # Если да, то переходим в директорию и выполняем git pull
             cd "$DIR/agreemod_v2"
-            git fetch origin $BRANCH
-            git checkout $BRANCH
-            git pull origin $BRANCH
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
           fi
 
           cp env.example .env
 
           if [ "$BRANCH" = "dev" ]; then
             sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_DEV }}|g" .env
+            sed -i "s|\$API_PROXY|${{ secrets.ENV_API_PROXY_DEV }}|g" .env
             sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_DEV }}|g" .env
             sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_DEV }}|g" .env
             sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_DEV }}|g" .env
@@ -77,6 +78,7 @@ jobs:
             sed -i "s|\$NOTION__WRITE_TOKEN|${{ secrets.ENV_NOTION__WRITE_TOKEN }}|g" .env
           elif [ "$BRANCH" = "main" ]; then
             sed -i "s|\$API_PORT|${{ secrets.ENV_API_PORT_MAIN }}|g" .env
+            sed -i "s|\$API_PROXY|${{ secrets.ENV_API_PROXY_MAIN }}|g" .env
             sed -i "s|\$API_AUTH_USER|${{ secrets.ENV_API_AUTH_USER_MAIN }}|g" .env
             sed -i "s|\$API_AUTH_PASSWORD|${{ secrets.ENV_API_AUTH_PASSWORD_MAIN }}|g" .env
             sed -i "s|\$POSTGRES__PASSWORD|${{ secrets.ENV_POSTGRES__PASSWORD_MAIN }}|g" .env

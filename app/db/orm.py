@@ -21,7 +21,7 @@ from app.models.direction import Direction
 from app.models.logging import Logs
 from app.models.participation import Participation
 from app.models.person import Person
-
+from uuid import UUID
 
 class PersonAppORM(PersonORM):
     @classmethod
@@ -33,7 +33,7 @@ class PersonAppORM(PersonORM):
             first_name=person.first_name,
             nickname=person.nickname,
             other_names=person.other_names,
-            gender=person.gender.value if person.gender else Gender.OTHER.value,
+            gender=person.gender.value if person.gender else None,#Gender.OTHER.value,
             birth_date=person.birth_date,
             city=person.city,
             telegram=person.telegram,
@@ -41,7 +41,7 @@ class PersonAppORM(PersonORM):
             email=person.email,
             diet=person.diet.value if person.diet else DietType.STANDARD.value,
             comment=person.comment,
-            notion_id=person.notion_id.hex,
+            nocode_int_id=person.nocode_int_id,
             last_updated=person.last_updated,
         )
 
@@ -61,7 +61,7 @@ class PersonAppORM(PersonORM):
             email=self.email,
             diet=self.diet,
             comment=self.comment,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
         return person
@@ -78,7 +78,7 @@ class DirectionAppORM(DirectionORM):
             type=model.type.name,
             first_year=model.first_year,
             last_year=model.last_year,
-            notion_id=model.notion_id.hex,
+            nocode_int_id=model.nocode_int_id,
             last_updated=model.last_updated,
         )
 
@@ -89,7 +89,7 @@ class DirectionAppORM(DirectionORM):
             type=DirectionType[self.type].value,
             first_year=self.first_year,
             last_year=self.last_year,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
             badges=(
                 [BadgeDTO.model_validate(x.badge, from_attributes=True) for x in self.badges] if include_badges else []
@@ -112,7 +112,7 @@ class BadgeAppORM(BadgeORM):
             nickname=model.nickname,
             gender=model.gender,
             phone=model.phone,
-            parent_id=model.parent.id if model.parent else None,
+            parent_id=model.parent.nocode_int_id if model.parent else None, #TODO: Not sure about this
             child=model.child,
             diet=(
                 model.diet.name if model.diet else DietType.STANDARD.name
@@ -123,9 +123,9 @@ class BadgeAppORM(BadgeORM):
             role_code=model.role.name,  # if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
             photo=model.photo,
             occupation=model.occupation,
-            person_id=model.person.id if model.person else None,
+            person_id=model.person.id if type(model.person)==Person else model.person if type(model.person)==UUID else None,
             comment=model.comment,
-            notion_id=model.notion_id.hex if model.notion_id else None,
+            nocode_int_id=model.nocode_int_id if model.nocode_int_id else None,
         )
 
     def to_model(
@@ -133,8 +133,11 @@ class BadgeAppORM(BadgeORM):
         include_person: bool = False,
         include_directions: bool = False,
         include_parent: bool = False,
+        person_uuid: bool = False,
+
     ) -> Badge:
         return Badge(
+            #TODO: Add delete value
             id=self.id,
             name=self.name,
             last_name=self.last_name,
@@ -143,18 +146,16 @@ class BadgeAppORM(BadgeORM):
             gender=self.gender,
             phone=self.phone,
             parent=(
-                Parent.model_validate(self.parent, from_attributes=True)
-                if self.parent and include_parent
-                else self.parent_id
+                self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
             diet=DietType[self.diet].value if self.diet else None,
-            feed=FeedType[self.feed].value if self.feed else None,
+            feed=self.feed,
             number=self.number,
             batch=self.batch,
             role=ParticipationRole[self.role_code].value,
             photo=self.photo,
-            person=self.person.to_model() if self.person and include_person else self.person_id,
+            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid else self.person_id,
             directions=(
                 [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
@@ -162,7 +163,7 @@ class BadgeAppORM(BadgeORM):
             ),
             occupation=self.occupation,
             comment=self.comment,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
 
@@ -174,7 +175,7 @@ class ArrivalAppORM(ArrivalORM):
     def to_orm(cls, model: Arrival) -> Self:
         return cls(
             id=model.id,
-            badge_id=model.badge.id if isinstance(model.badge, Badge) else model.badge,
+            badge_id=model.badge.nocode_int_id if isinstance(model.badge, Badge) else model.badge,
             arrival_date=model.arrival_date,
             arrival_transport=model.arrival_transport.name,  # if isinstance(model.arrival_transport, TransportType) else model.arrival_transport,
             arrival_registered=model.arrival_registered.isoformat() if model.arrival_registered else None,
@@ -189,9 +190,10 @@ class ArrivalAppORM(ArrivalORM):
         )
 
     def to_model(self, include_badge: bool = False) -> Arrival:
+        #TODO: Add delete field here? From comment at least?
         return Arrival(
             id=self.id,
-            badge=(BadgeDTO.model_validate(self.badge, from_attributes=True) if include_badge else self.badge_id),
+            badge = (self.badge.id if include_badge else self.badge_id),
             arrival_date=self.arrival_date,
             arrival_transport=TransportType[self.arrival_transport].value if self.arrival_transport else None,
             arrival_registered=self.arrival_registered,
@@ -202,7 +204,7 @@ class ArrivalAppORM(ArrivalORM):
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
-            coda_index=self.coda_index,
+            nocode_int_id=self.nocode_int_id,
         )
 
 
@@ -219,22 +221,24 @@ class ParticipationAppORM(ParticipationORM):
             direction_id=model.direction.id,
             role_code=model.role.name,
             status_code=model.status.name,
-            notion_id=model.notion_id,
+            nocode_int_id=model.nocode_int_id,
             last_updated=model.last_updated,
         )
 
-    def to_model(self, include_person: bool = False, include_direction: bool = False) -> Participation:
+    def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
         return Participation(
             year=self.year,
-            person=self.person.to_model() if include_person else self.person_id,
+            person=self.person.to_model() if include_person else self.person.id if uuid_ids else self.person_id,
             direction=(
                 DirectionDTO.model_validate(self.direction, from_attributes=True)
                 if include_direction
+                else self.direction.id if uuid_ids
                 else self.direction_id
             ),
-            role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
+            #role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
+            role=ParticipationRole[self.role_code].value if self.role_code else None,
             status=ParticipationStatus[self.status_code].value if self.status_code else None,
-            notion_id=self.notion_id,
+            nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
         )
 

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -14,13 +14,13 @@ class BadgeDirectionsORM(Base):
     """
 
     __tablename__ = "badge_directions"
-    badge_id: Mapped[uuid.UUID] = Column(
-        UUID(as_uuid=True),
-        ForeignKey("badge.id", onupdate="CASCADE", ondelete="CASCADE"),
+    badge_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("badge.nocode_int_id", onupdate="CASCADE", ondelete="CASCADE"),
         primary_key=True,
     )
-    direction_id: Mapped[uuid.UUID] = Column(
-        UUID(as_uuid=True),
-        ForeignKey("direction.notion_id", onupdate="CASCADE"),
+    direction_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("direction.nocode_int_id", onupdate="CASCADE"),
         primary_key=True,
     )

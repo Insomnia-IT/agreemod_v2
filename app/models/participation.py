@@ -11,11 +11,11 @@ from app.models.person import Person
 
 class Participation(DomainModel):
     year: int
-    person: Person | UUID
-    direction: DirectionDTO | UUID
+    person: Person | int | UUID
+    direction: DirectionDTO | int | UUID
     role: ParticipationRole
-    status: ParticipationStatus
-    notion_id: UUID | None = None
+    status: ParticipationStatus | None
+    nocode_int_id: int | None = None
     last_updated: datetime = None
 
     model_config = ConfigDict(
