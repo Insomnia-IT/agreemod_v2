@@ -49,14 +49,14 @@ jobs:
           # Проверяем, существует ли директория и является ли она репозиторием Git
           if [ ! -d "$DIR/agreemod_v2/.git" ]; then
             # Если нет, то клонируем репозиторий
-            git clone -b alpatov_dev "$REPO" "$DIR/agreemod_v2"
+            git clone -b $BRANCH "$REPO" "$DIR/agreemod_v2"
             cd "$DIR/agreemod_v2"
           else
             # Если да, то переходим в директорию и выполняем git pull
             cd "$DIR/agreemod_v2"
-            git fetch origin alpatov_dev
-            git checkout alpatov_dev
-            git pull origin alpatov_dev
+            git fetch origin $BRANCH
+            git checkout $BRANCH
+            git pull origin $BRANCH
           fi
 
           cp env.example .env
