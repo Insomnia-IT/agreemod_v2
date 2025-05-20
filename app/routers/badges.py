@@ -17,7 +17,6 @@ from app.models.arrival import Arrival
 from app.models.badge import Badge
 from app.schemas.badge import BadgeFilterDTO
 from app.services.badge import BadgeService
-from app.services.badge_to_notion import notion_writer
 from app.utils.verify_credentials import verify_credentials
 
 
@@ -148,19 +147,3 @@ async def get_anons(
         )
     else:
         raise HTTPException(status_code=404, detail="Архив не найден")
-
-
-def start_async_task():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(notion_writer())
-    loop.close()
-
-
-@router.post("/start-sync-db-to-notion/")
-async def start_sync_db_to_notion(
-    username: Annotated[str, Depends(verify_credentials)],
-    background_tasks: BackgroundTasks,
-):
-    background_tasks.add_task(start_async_task)
-    return {"message": "Task started"}
