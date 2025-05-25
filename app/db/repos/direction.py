@@ -1,4 +1,6 @@
 import logging
+from typing import List
+from uuid import UUID
 
 from datetime import datetime
 
@@ -52,3 +54,19 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
             query = query.where(DirectionAppORM.last_updated > from_date)
         result = await self.session.scalars(query)
         return [x.to_model() for x in result]
+
+    def query(
+        self,
+        idIn: List[UUID] = None,
+        include_badges: bool = False,
+    ):
+        query = select(DirectionAppORM)
+        if idIn:
+            query = query.where(DirectionAppORM.id.in_(idIn))
+        if include_badges:
+            query = query.options(selectinload(DirectionAppORM.badges)).options(selectinload(BadgeDirectionsAppORM.badge))
+        return query
+
+    async def retrieve_many(self, idIn: List[UUID] = None, include_badges: bool = False) -> list[Direction]:
+        result = await self.session.scalars(self.query(idIn=idIn, include_badges=include_badges))
+        return [x.to_model(include_badges=include_badges) for x in result]
