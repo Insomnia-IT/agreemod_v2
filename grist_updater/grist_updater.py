@@ -12,12 +12,19 @@ from uuid import UUID
 import json
 from pathlib import Path
 
+# Special constant to indicate record should be skipped
+SKIP_RECORD = object()
+
+#TODO: constant for record deletion
+DELETE_RECORD = object()
+
 class GristSync:
     def __init__(self, state_file='sync_state.json'):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
+        self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
         self.state_file = Path(state_file)
         self.last_sync = self._load_sync_state()
 
@@ -117,10 +124,14 @@ class GristSync:
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
-             p['id']: p['fields'].get('code', None)
+             p['id']: {
+                 "code": p['fields'].get('code'),
+                 "name": p['fields'].get('A'),
+                 "to_list": p['fields'].get('to_list', True),
+                 "comment": p['fields'].get('B')
+             }
             for p in participations
         }
-        print(self.status_mapping)
 
         roles = await self.fetch_grist_table('Roles')
         self.roles_mapping = {
@@ -129,8 +140,24 @@ class GristSync:
                 "name":p['fields']['Name']}
             for p in roles
         }
+
+        # Fetch arrival types
+        arrival_types = await self.fetch_grist_table('Arrival_type')
+        self.arrival_mapping = {
+            p['id']: {
+                "code":p['fields']['code'],
+                "name":p['fields']['title']}
+            for p in arrival_types
+        }
+        print(self.arrival_mapping)
+
         try:
             await self._insert_roles()
+        except Exception:
+            pass
+
+        try:
+            await self._insert_participation_statuses()
         except Exception:
             pass
 
@@ -146,6 +173,37 @@ class GristSync:
                     template="(%s, %s)"
                 )
                 conn.commit()
+        finally:
+            conn.close()
+
+    async def _insert_participation_statuses(self):
+        """Вставка статусов участия в PostgreSQL"""
+        conn = self.get_pg_connection()
+        try:
+            with conn.cursor() as cursor:
+                for status_id, status in self.status_mapping.items():
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT INTO participation_status (code, name, to_list, comment)
+                            VALUES (%s, %s, %s, %s)
+                            ON CONFLICT (code) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                to_list = EXCLUDED.to_list,
+                                comment = EXCLUDED.comment
+                            """,
+                            (
+                                status.get('code'),
+                                status.get('name'),
+                                status.get('to_list', True),  # Default to True if not specified
+                                status.get('comment')
+                            )
+                        )
+                        conn.commit()
+                    except Exception as e:
+                        print(f"Error inserting status {status_id}: {e}")
+                        conn.rollback()
+                        continue
         finally:
             conn.close()
 
@@ -186,14 +244,24 @@ class GristSync:
             "status_mapping": self.status_mapping,
             "roles_mapping": self.roles_mapping,
             "badges_map": self.badges_map,
+            'arrivals_mapping': self.arrival_mapping,
             "roles": self.roles
         }
 
         # Преобразование данных
-        transformed = [
-            self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
-            for record in records
-        ]
+        transformed = []
+        for record in records:
+            try:
+                result = self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
+                if result is not SKIP_RECORD:
+                    transformed.append(result)
+            except Exception as e:
+                print(f"Error transforming record: {e}")
+                continue
+
+        if not transformed:
+            return
+        print(transformed)
 
         # Вставка в PostgreSQL
         conn = self.get_pg_connection()
@@ -252,6 +320,9 @@ class GristSync:
             if transformations and grist_field in transformations:
                 # Передаем контекст в функцию преобразования
                 value = transformations[grist_field](value, context)
+                # If any field transformation returns SKIP_RECORD, skip the entire record
+                if value is SKIP_RECORD:
+                    return SKIP_RECORD
             
             transformed.append(value)
         return tuple(transformed)
@@ -330,7 +401,7 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None),
             'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
         },
@@ -458,8 +529,9 @@ TABLES_CONFIG = [
         'transformations': {
             #'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.parent': lambda x, ctx: x if x !=0 else None,
+            'fields.parent': lambda x, ctx: x if x !=0 else None, 
             'fields.person': lambda x, ctx: x if x != 0 else None,
             'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None
         },
@@ -498,11 +570,13 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-
-            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
+            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None)
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None),
+            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else SKIP_RECORD,
+            'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None,
+            'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None
         },
         'dependencies': []
     }
