@@ -43,21 +43,30 @@ class Badge(BaseModel):
     @field_validator("gender", mode="before")
     @classmethod
     def convert_gender(cls, value: str):
-        if not value:
+        if value == '':
             return None
-        return Gender[value].value
+        try:
+            return Gender[value]
+        except KeyError:
+            return value
 
     @field_validator("feed", mode="before")
     @classmethod
     def convert_feed(cls, value: str):
-        if not value:
+        if not value or value=='':
             return FeedType.NO.value
-        return FeedType[value].value
+        try:
+            return FeedType[value].value
+        except KeyError:
+            return value
 
     @field_validator("role", mode="before")
     @classmethod
     def convert_role(cls, value: str):
-        return ParticipationRole[value].value
+        try:
+            return ParticipationRole[value].value
+        except KeyError:
+            return value
 
     @field_validator("diet", mode="before")
     @classmethod

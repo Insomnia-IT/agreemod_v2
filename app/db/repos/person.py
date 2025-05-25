@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from uuid import UUID
 
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
@@ -17,6 +18,7 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
     def query(
         self,
         nocode_int_id: int = None,
+        idIn: List[UUID] = None,
         limit: int = None,
         page: int = None,
         from_date: datetime = None,
@@ -25,6 +27,8 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
         query = select(PersonAppORM)
         if nocode_int_id:
             query = query.filter_by(nocode_int_id=nocode_int_id)
+        if idIn:
+            query = query.where(PersonAppORM.id.in_(idIn))
         if page and limit:
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
@@ -83,6 +87,6 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
     async def delete(self, id):
         await self.session.execute(delete(PersonAppORM).where(PersonAppORM.id == id))
 
-    async def retrieve_many(self, filters: PersonFiltersDTO, page: int, page_size: int) -> list[Person]:
-        result = await self.session.scalars(self.query(filters=filters, page=page, limit=page_size))
+    async def retrieve_many(self, idIn: List[UUID] = None, filters: PersonFiltersDTO = None, page: int = None, page_size: int = None) -> list[Person]:
+        result = await self.session.scalars(self.query(idIn=idIn, filters=filters, page=page, limit=page_size))
         return [x.to_model() for x in result]
