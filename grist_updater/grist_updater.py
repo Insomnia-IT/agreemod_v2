@@ -459,7 +459,7 @@ TABLES_CONFIG = [
         'dependencies': []
     },
     {
-        'grist_table': 'Badges_2025',
+        'grist_table': 'Badges_2025_copy2',#'Badges_2025',
         'insert_query': """
             INSERT INTO badge (
                 id, name, last_name, first_name, gender, 
@@ -538,7 +538,7 @@ TABLES_CONFIG = [
         'dependencies': ['Teams']
     },
     {
-        'grist_table': 'Arrivals_2025',
+        'grist_table': 'Arivals_2025_copy2',#'Arrivals_2025',
         'insert_query': """
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
@@ -553,12 +553,13 @@ TABLES_CONFIG = [
                 departure_transport = EXCLUDED.departure_transport,
                 last_updated = EXCLUDED.last_updated,
                 status = EXCLUDED.status,
-                badge_id = EXCLUDED.badge_id
+                badge_id = EXCLUDED.badge_id,
+                id = EXCLUDED.id
         """,
         'sql_query': "SELECT * FROM Arrivals_2025",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
-            'uuid': 'id',
+            'fields.UUID': 'id',
             'fields.arrival_date': 'arrival_date',
             'fields.arrival_transport': 'arrival_transport',
             'fields.departure_date': 'departure_date',
@@ -569,7 +570,7 @@ TABLES_CONFIG = [
             'fields.id': 'nocode_int_id',
         },
         'transformations': {
-            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
             'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
