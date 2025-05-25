@@ -177,53 +177,6 @@ class FeederService:
 
         #await self.session.commit()
 
-    async def back_sync(self, intake: BackSyncIntakeSchema):
-        async with BackgroungInterlock("back_sync"):
-            arrivals = intake.arrivals
-            badges = intake.badges
-            if badges:
-                existing = await self.badges.update_feeder([x.data for x in badges])
-                for e, b in zip(existing, badges):
-                    actor = await self.badges.retrieve(b.actor_badge)
-                    dt = b.date.replace(tzinfo=None)
-                    await self.logs.add_log(
-                        Logs(
-                            author=actor.name if actor else "ANON",
-                            table_name="badge",
-                            row_id=b.data.id if e else None,
-                            operation="MERGE" if e else "INSERT" if e is not None else "DELETE",
-                            timestamp=dt,
-                            new_data=serialize(b.data.model_dump() if e is not None else {}),
-                        )
-                    )
-                )
-            badges_uuid = [i.actor_badge for i in badges]
-            await grist_badges_writera(badges_uuid)
-            await grist_badges_writera(badges_uuid)
-
-        if arrivals:
-            created, deleted = await self.arrivals.update_feeder([x.data for x in arrivals])
-            for e, a in zip(created, arrivals):
-                actor = await self.badges.retrieve(a.actor_badge)
-                dt = a.date.replace(tzinfo=None)
-                await self.logs.add_log(
-                    Logs(
-                        author=actor.name if actor else "ANON",
-                        table_name="arrival",
-                        row_id=a.data.id if e and e.coda_index is not None else None,
-                        operation="MERGE" if e and e.coda_index is not None else "INSERT" if e is not None else "DELETE",
-                        timestamp=dt,
-                        new_data=serialize(a.data.model_dump() if e is not None else {}),
-                    )
-                    if e:
-                        coda_index = await self.coda_writer.update_arrival(self.arrivals, a.data)
-                        e.coda_index = coda_index
-                        await self.session.merge(e)
-                for d in deleted:
-                    self.coda_writer.delete_arrival(d)
-
-            await self.session.commit()
-
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=4, max=10),
