@@ -6,7 +6,7 @@ authors = [
     {name = "Egor Alpatov",email = "egroker1@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     "aiofiles (==23.2.1)",
     "aiogram (==3.8.0)",
@@ -98,7 +98,8 @@ dependencies = [
     "uvicorn (==0.27.1)",
     "venusian (==3.1.0)",
     "virtualenv (==20.28.1)",
-    "yarl (==1.9.4)"
+    "yarl (==1.9.4)",
+    "aio-pika (>=9.5.5,<10.0.0)"
 ]
 
 

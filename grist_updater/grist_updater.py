@@ -8,15 +8,33 @@ from typing import Dict, List, Optional
 import json
 import uuid
 from uuid import UUID
-
-import json
+import aio_pika
 from pathlib import Path
+import logging
+import os
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
+    datefmt="%Y.%m.%d %H:%M:%S",
+)
+
+# Set RabbitMQ related loggers to WARNING level
+logging.getLogger("aio_pika").setLevel(logging.WARNING)
+logging.getLogger("aiormq").setLevel(logging.WARNING)
+logging.getLogger("connection").setLevel(logging.WARNING)
+logging.getLogger("channel").setLevel(logging.WARNING)
+logging.getLogger("exchange").setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
 
 # Special constant to indicate record should be skipped
 SKIP_RECORD = object()
 
 #TODO: constant for record deletion
 DELETE_RECORD = object()
+RESTORE_RECORD = object()
 
 class GristSync:
     def __init__(self, state_file='sync_state.json'):
@@ -27,6 +45,7 @@ class GristSync:
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
         self.state_file = Path(state_file)
         self.last_sync = self._load_sync_state()
+        self.rabbitmq_publisher = None
 
     def _load_sync_state(self) -> Dict[str, float]:
         try:
@@ -220,6 +239,47 @@ class GristSync:
             visit(table)
         return ordered
 
+    async def init_rabbitmq(self):
+        """Initialize RabbitMQ publisher"""
+        if not self.rabbitmq_publisher:
+            try:
+                rabbitmq_host = os.getenv('RABBITMQ__HOST', 'rabbitmq')
+                rabbitmq_user = os.getenv('RABBITMQ__USER', 'guest')
+                rabbitmq_password = os.getenv('RABBITMQ__PASSWORD', 'guest')
+                rabbitmq_port = os.getenv('RABBITMQ__QUEUE_PORT', '5672')
+                rabbitmq_url = f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}/"
+                
+                self.rabbitmq_publisher = await aio_pika.connect_robust(
+                    rabbitmq_url,
+                    timeout=30,
+                    reconnect_interval=5
+                )
+                logger.info("Successfully connected to RabbitMQ")
+            except Exception as e:
+                logger.error(f"Failed to connect to RabbitMQ: {e}")
+                raise
+
+    async def close_rabbitmq(self):
+        """Close RabbitMQ connection"""
+        if self.rabbitmq_publisher:
+            await self.rabbitmq_publisher.close()
+
+    async def publish_delete_message(self, table_name: str, record_id: int):
+        """Publish delete message to RabbitMQ"""
+        if not self.rabbitmq_publisher:
+            await self.init_rabbitmq()
+
+        channel = await self.rabbitmq_publisher.channel()
+        message = {
+            "table_name": table_name,
+            "id": record_id
+        }
+        await channel.default_exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key="delete_records"
+        )
+        logger.info(f"Published delete message for record {record_id} in table {table_name}")
+
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
@@ -241,8 +301,14 @@ class GristSync:
         for record in records:
             try:
                 result = self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
-                if result is not SKIP_RECORD:
-                    transformed.append(result)
+                if result is SKIP_RECORD:
+                    continue
+                elif result is DELETE_RECORD:
+                    # Send delete message to RabbitMQ
+                    record_id = self._get_nested_value(record, 'fields.id')
+                    await self.publish_delete_message(config['grist_table'], record_id)
+                    continue
+                transformed.append(result)
             except Exception as e:
                 print(f"Error transforming record: {e}")
                 continue
@@ -315,6 +381,8 @@ class GristSync:
                 # If any field transformation returns SKIP_RECORD, skip the entire record
                 if value is SKIP_RECORD:
                     return SKIP_RECORD
+                elif value is DELETE_RECORD:
+                    return DELETE_RECORD
             
             transformed.append(value)
         return tuple(transformed)
@@ -393,12 +461,13 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.year': lambda x, ctx: x if isinstance(x, int) else SKIP_RECORD,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else None,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.year': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD, #SKIP_RECORD,
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD,
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code',None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else SKIP_RECORD,
-            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else SKIP_RECORD,
+            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
+            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
+            'fields.to_delete': lambda x, ctx: RESTORE_RECORD if x else False,
         },
         'dependencies': ['People', 'Teams']
     },
@@ -533,7 +602,7 @@ TABLES_CONFIG = [
         'dependencies': ['Teams']
     },
     {
-        'grist_table': 'Arivals_2025_copy2',#'Arrivals_2025',
+        'grist_table': 'Arivals_2025_copy2', #'Arrivals_2025',
         'insert_query': """
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
@@ -551,7 +620,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT * FROM Arrivals_2025_copy2", #Arrivals_2025
+        'sql_query': "SELECT * FROM Arivals_2025_copy2", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
