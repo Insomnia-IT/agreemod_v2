@@ -53,7 +53,7 @@ class PersonAppORM(PersonORM):
             first_name=self.first_name,
             nickname=self.nickname,
             other_names=self.other_names,
-            gender=self.gender,
+            gender=self.gender if self.gender in [g.value for g in Gender] else Gender.OTHER.value,
             birth_date=self.birth_date,
             city=self.city,
             telegram=self.telegram,
@@ -155,7 +155,7 @@ class BadgeAppORM(BadgeORM):
             batch=self.batch,
             role=ParticipationRole[self.role_code].value,
             photo=self.photo,
-            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid else self.person_id,
+            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid and self.person else self.person_id if self.person_id else None,
             directions=(
                 [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
@@ -228,7 +228,7 @@ class ParticipationAppORM(ParticipationORM):
     def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
         return Participation(
             year=self.year,
-            person=self.person.to_model() if include_person else self.person.id if uuid_ids else self.person_id,
+            person=self.person.to_model() if include_person else self.person.id if uuid_ids and self.person else self.person_id if self.person_id else None,
             direction=(
                 DirectionDTO.model_validate(self.direction, from_attributes=True)
                 if include_direction

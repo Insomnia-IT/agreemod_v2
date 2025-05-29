@@ -66,10 +66,6 @@ class GristSync:
         
         # Добавляем фильтр по времени, если есть
         where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
-        if table_name == 'Participations' and last_sync:
-            where_clause += " AND (year >= 2024)"
-        elif table_name == 'Participations':
-            where_clause = "WHERE (year >= 2024)"
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -228,14 +224,6 @@ class GristSync:
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
         records = records.get('records')
-
-        if config['grist_table'] == 'Participations':
-            records = [
-                record for record in records
-                if record['fields'].get('person', 0) != 0 
-                and record['fields'].get('team', 0) != 0
-                and record['fields'].get('role_old') != ''
-            ]
         
         if not records:
             return
@@ -261,7 +249,6 @@ class GristSync:
 
         if not transformed:
             return
-        print(transformed)
 
         # Вставка в PostgreSQL
         conn = self.get_pg_connection()
@@ -286,15 +273,20 @@ class GristSync:
                         for record in records:
                             # Получаем nocode_int_id бейджа и team_list
                             badge_nocode_id = self._get_nested_value(record, 'fields.id')
-                            team_list_raw = self._get_nested_value(record, 'fields.team_list') or []
+                            team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
 
                             if isinstance(team_list_raw, str):
-                                team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                                # Handle empty string case
+                                if not team_list_raw.strip('[]'):
+                                    team_list = []
+                                else:
+                                    team_list = list(map(int, team_list_raw.strip('[]').split(',')))
                             else:
                                 team_list = team_list_raw
 
                             # Преобразуем список в строку формата PostgreSQL ARRAY
                             team_list_str = "{" + ",".join(map(str, team_list)) + "}"
+                            print(team_list_str)
 
                             # Выполняем запрос для текущего бейджа
                             cursor.execute(
@@ -401,9 +393,12 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None),
+            'fields.year': lambda x, ctx: x if isinstance(x, int) else SKIP_RECORD,
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else None,
             'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else SKIP_RECORD,
+            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else SKIP_RECORD,
         },
         'dependencies': ['People', 'Teams']
     },
@@ -454,7 +449,7 @@ TABLES_CONFIG = [
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else []
+            'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else [],
         },
         'dependencies': []
     },
@@ -505,7 +500,7 @@ TABLES_CONFIG = [
                 }
             }
         ],
-        'sql_query': "SELECT * FROM Badges_2025",
+        'sql_query': "SELECT * FROM Badges_2025_copy2", #Badges_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -556,7 +551,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT * FROM Arrivals_2025",
+        'sql_query': "SELECT * FROM Arrivals_2025_copy2", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
