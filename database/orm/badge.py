@@ -47,6 +47,7 @@ class BadgeORM(Base, BaseORM):
     )
     comment: Mapped[str] = Column(String)
     nocode_int_id: Mapped[int] = Column(Integer)
+    deleted: Mapped[bool] = Column(Boolean, nullable=True)
     last_updated: Mapped[time] = Column(TIMESTAMP)
 
     _unique_constraint_number = UniqueConstraint(number)
