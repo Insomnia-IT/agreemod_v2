@@ -20,7 +20,6 @@ from app.db.repos.participation import ParticipationRepo
 from app.db.repos.person import PersonRepo
 from app.models.logging import Logs
 from app.models.badge import Badge
-from app.models.badge import Badge
 from app.schemas.feeder.arrival import ArrivalResponse
 from app.schemas.feeder.badge import BadgeResponse
 from app.schemas.feeder.directions import DirectionResponse
@@ -33,6 +32,7 @@ from app.dto.direction import DirectionDTO
 from app.services.badge_to_grist import grist_badges_writer
 from app.services.arrivals_to_grist import grist_arrivals_writer
 from app.dto.direction import DirectionDTO
+from dictionaries import FeedType
 
 logger = logging.getLogger(__name__)
 
@@ -118,55 +118,13 @@ class FeederService:
                 #    badge_data['parent'] = parent_map.get(str(badge_data['parent']))
                 if badge_data.get('directions'):
                     badge_data['directions'] = [direction_map.get(str(d)) for d in badge_data['directions'] if direction_map.get(str(d))]
+                if badge_data.get("feed"):
+                    badge_data['feed'] = FeedType(badge_data['feed']).value
                 enriched_badges.append(Badge.model_validate(badge_data))
             
             # Pass enriched badges to Grist writer
             await grist_badges_writer(enriched_badges)
-        #await self.session.commit()
-            # Extract all IDs of linked entities from intake badges
-            person_ids = []
-            #parent_ids = []
-            direction_ids = []
-            
-            for badge in badges:
-                if badge.data.person:
-                    person_ids.append(badge.data.person)
-                #if badge.data.parent:
-                #    parent_ids.append(badge.data.parent)
-                if badge.data.directions:
-                    direction_ids.extend(badge.data.directions)
-            
-            # Get all linked entities from database
-            persons = await self.persons.retrieve_many(idIn=person_ids) if person_ids else []
-            #parents = await self.badges.retrieve_many(idIn=parent_ids) if parent_ids else []
-            directions = await self.directions.retrieve_many(idIn=direction_ids) if direction_ids else []
-            print(persons)
-            print(directions)
-            
-            # Create a mapping of IDs to entities for quick lookup
-            person_map = {str(p.id): p for p in persons}
-            #parent_map = {str(p.id): p for p in parents}
-            direction_map = {str(d.id): DirectionDTO(
-                id=d.id,
-                name=d.name,
-                type=d.type,
-                nocode_int_id=d.nocode_int_id
-            ) for d in directions}
-            # Enrich badges with their linked entities
-            enriched_badges = []
-            for badge in badges:
-                badge_data = badge.data.model_dump()
-                if badge_data.get('person'):
-                    badge_data['person'] = person_map.get(str(badge_data['person']))
-                #if badge_data.get('parent'):
-                #    badge_data['parent'] = parent_map.get(str(badge_data['parent']))
-                if badge_data.get('directions'):
-                    badge_data['directions'] = [direction_map.get(str(d)) for d in badge_data['directions'] if direction_map.get(str(d))]
-                enriched_badges.append(Badge.model_validate(badge_data))
-            
-            # Pass enriched badges to Grist writer
-            await grist_badges_writer(enriched_badges)
-        #await self.session.commit()
+
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
         update_arrivals = []

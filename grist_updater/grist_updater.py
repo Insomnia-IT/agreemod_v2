@@ -278,7 +278,7 @@ class GristSync:
             aio_pika.Message(body=json.dumps(message).encode()),
             routing_key="delete_records"
         )
-        logger.info(f"Published delete message for record {record_id} in table {table_name}")
+        #logger.info(f"Published delete message for record {record_id} in table {table_name}")
 
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""

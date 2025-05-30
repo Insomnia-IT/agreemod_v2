@@ -4,7 +4,8 @@ from uuid import UUID
 
 import aiohttp
 from app.config import config
-from app.models.badge import Badge
+#from app.models.badge import Badge
+from app.schemas.feeder.badge import Badge
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +40,10 @@ class GristBadgeWriter:
                         "position": badge.occupation,
                         "person": badge.person.nocode_int_id if badge.person else "",
                         "parent": str(badge.parent.nocode_int_id) if badge.parent else "",
-                        "directions_ref": ["L"] + [d.nocode_int_id for d in badge.directions] if badge.directions else []
+                        "directions_ref": ["L"] + [d.nocode_int_id for d in badge.directions] if badge.directions else None
                     }
                 }]
             }
-            print(badge)
-            print(grist_data)
 
             # Check if badge exists in Grist
             url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy2/records"
@@ -87,6 +86,8 @@ async def grist_badges_writer(badges: List[Badge]):
     try:
         writer = GristBadgeWriter()
         for badge in badges:
+            await writer.update_badge(badge)
+            # TODO: Somehow Grist doesn't allow me to make first entry correct, so we have to do it twice
             await writer.update_badge(badge)
         logger.info("Finished syncing badges to Grist")
     except Exception as e:

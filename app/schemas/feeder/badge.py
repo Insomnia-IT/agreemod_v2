@@ -38,7 +38,7 @@ class Badge(BaseModel):
     def serialize_enums(self, strenum: StrEnum, _info):
         if not strenum:
             return None
-        return strenum.name
+        return strenum.value
 
     @field_validator("gender", mode="before")
     @classmethod
