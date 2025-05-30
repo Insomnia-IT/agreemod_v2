@@ -70,8 +70,40 @@ services:
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
+      - POSTGRES__HOST=postgres
+      - POSTGRES__PORT=${POSTGRES__PORT}
+      - POSTGRES__USER=${POSTGRES__USER}
+      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
+      - POSTGRES__NAME=${POSTGRES__NAME}
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  restore_consumer:
+    build:
+      dockerfile: docker/restorer.dockerfile
+      context: ./
+    environment:
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USER=guest
+      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__QUEUE_PORT=5672
+      - RABBITMQ__WEB_PORT=15672
+      - GRIST__SERVER=${GRIST__SERVER}
+      - GRIST__DOC_ID=${GRIST__DOC_ID}
+      - GRIST__API_KEY=${GRIST__API_KEY}
+      - POSTGRES__HOST=postgres
+      - POSTGRES__PORT=${POSTGRES__PORT}
+      - POSTGRES__USER=${POSTGRES__USER}
+      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
+      - POSTGRES__NAME=${POSTGRES__NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     restart: unless-stopped
 

@@ -28,7 +28,7 @@ logging.getLogger("exchange").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-class DeleteMessageConsumer:
+class RestoreMessageConsumer:
     def __init__(self, rabbitmq_url):
         self.rabbitmq_url = rabbitmq_url
         self.connection = None
@@ -60,7 +60,7 @@ class DeleteMessageConsumer:
                     reconnect_interval=5
                 )
                 self.channel = await self.connection.channel()
-                self.queue = await self.channel.declare_queue("delete_records", durable=True)
+                self.queue = await self.channel.declare_queue("restore_records", durable=True)
                 logger.info("Successfully connected to RabbitMQ")
                 return
             except Exception as e:
@@ -74,7 +74,7 @@ class DeleteMessageConsumer:
             await self.connection.close()
 
     async def process_message(self, message: aio_pika.IncomingMessage):
-        """Process incoming delete message"""
+        """Process incoming restore message"""
         if self._processing:
             # If we're already processing a message, reject this one and requeue
             await message.nack(requeue=True)
@@ -91,7 +91,7 @@ class DeleteMessageConsumer:
                     logger.error(f"Invalid message format: {body}")
                     return
 
-                # Update Grist record with to_delete timestamp
+                # Update Grist record to clear to_delete field
                 url = f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/{table_name}/records"
                 headers = {"Authorization": f"Bearer {self.grist_api_key}"}
                 
@@ -99,7 +99,7 @@ class DeleteMessageConsumer:
                     "records": [{
                         "id": record_id,
                         "fields": {
-                            "to_delete": datetime.now().timestamp()
+                            "to_delete": None
                         }
                     }]
                 }
@@ -110,7 +110,7 @@ class DeleteMessageConsumer:
                             error = await resp.text()
                             logger.error(f"Failed to update Grist record: {error}")
                             return
-                        logger.info(f"Successfully marked record {record_id} for deletion in {table_name}")
+                        logger.info(f"Successfully cleared to_delete field for record {record_id} in {table_name}")
 
                 # Update PostgreSQL record
                 conn = self.get_pg_connection()
@@ -118,11 +118,11 @@ class DeleteMessageConsumer:
                     with conn.cursor() as cursor:
                         current_time = datetime.now()
                         cursor.execute(
-                            f"UPDATE {grist_to_postgres_map[table_name]} SET deleted = TRUE, last_updated = %s WHERE nocode_int_id = %s",
+                            f"UPDATE {grist_to_postgres_map[table_name]} SET deleted = FALSE, last_updated = %s WHERE nocode_int_id = %s",
                             (current_time, record_id)
                         )
                         conn.commit()
-                        logger.info(f"Successfully marked record {record_id} as deleted in PostgreSQL {grist_to_postgres_map[table_name]}")
+                        logger.info(f"Successfully restored record {record_id} in PostgreSQL {grist_to_postgres_map[table_name]}")
                 except Exception as e:
                     logger.error(f"Failed to update PostgreSQL record: {e}")
                     conn.rollback()
@@ -139,13 +139,13 @@ class DeleteMessageConsumer:
 
     async def start_consuming(self):
         """Start consuming messages"""
-        print("Starting to consume delete messages")
+        print("Starting to consume restore messages")
         while self._running:
             try:
                 await self.connect()
                 await self.queue.consume(self.process_message)
-                logger.info("Started consuming delete messages")
-                print("Completed initialization of consuming delete messages")
+                logger.info("Started consuming restore messages")
+                print("Completed initialization of consuming restore messages")
                 
                 # Keep the connection alive
                 while self._running and self.connection and not self.connection.is_closed:
@@ -167,7 +167,7 @@ async def main():
     rabbitmq_port = os.getenv('RABBITMQ__QUEUE_PORT', '5672')
     rabbitmq_url = f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}/"
 
-    consumer = DeleteMessageConsumer(rabbitmq_url)
+    consumer = RestoreMessageConsumer(rabbitmq_url)
     
     try:
         await consumer.start_consuming()

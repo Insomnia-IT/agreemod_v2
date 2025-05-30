@@ -280,6 +280,22 @@ class GristSync:
         )
         #logger.info(f"Published delete message for record {record_id} in table {table_name}")
 
+    async def publish_restore_message(self, table_name: str, record_id: int):
+        """Publish restore message to RabbitMQ"""
+        if not self.rabbitmq_publisher:
+            await self.init_rabbitmq()
+
+        channel = await self.rabbitmq_publisher.channel()
+        message = {
+            "table_name": table_name,
+            "id": record_id
+        }
+        await channel.default_exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key="restore_records"
+        )
+        #logger.info(f"Published restore message for record {record_id} in table {table_name}")
+
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
@@ -300,15 +316,25 @@ class GristSync:
         transformed = []
         for record in records:
             try:
+                deleted = self._get_nested_value(record, 'fields.to_delete')
+                record_id = self._get_nested_value(record, 'fields.id')
                 result = self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
-                if result is SKIP_RECORD:
-                    continue
-                elif result is DELETE_RECORD:
-                    # Send delete message to RabbitMQ
-                    record_id = self._get_nested_value(record, 'fields.id')
-                    await self.publish_delete_message(config['grist_table'], record_id)
-                    continue
-                transformed.append(result)
+                if deleted is None:
+                    if result is SKIP_RECORD:
+                        continue
+                    elif result is DELETE_RECORD:
+                        # Send delete message to RabbitMQ
+                        await self.publish_delete_message(config['grist_table'], record_id)
+                        continue
+                    else:
+                        transformed.append(result)
+                if deleted:
+                    if result is SKIP_RECORD or result is DELETE_RECORD:
+                        continue
+                    # Publish restore message
+                    else:
+                        await self.publish_restore_message(config['grist_table'], record_id)
+                        continue
             except Exception as e:
                 print(f"Error transforming record: {e}")
                 continue
@@ -467,7 +493,6 @@ TABLES_CONFIG = [
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
             'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
-            'fields.to_delete': lambda x, ctx: RESTORE_RECORD if x else False,
         },
         'dependencies': ['People', 'Teams']
     },
