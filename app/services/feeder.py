@@ -110,6 +110,8 @@ class FeederService:
             enriched_badges = []
             for badge in badges:
                 badge_data = badge.data.model_dump()
+                # Track which fields were present in the original data
+                present_fields = set(badge.data.model_fields_set)
                 if badge_data.get('person'):
                     badge_data['person'] = person_map.get(str(badge_data['person']))
                 #if badge_data.get('parent'):
@@ -118,7 +120,8 @@ class FeederService:
                     badge_data['directions'] = [direction_map.get(str(d)) for d in badge_data['directions'] if direction_map.get(str(d))]
                 if badge_data.get("feed"):
                     badge_data['feed'] = FeedType(badge_data['feed']).value
-                enriched_badges.append(Badge.model_validate(badge_data))
+                badge_obj = Badge.model_construct(**badge_data)
+                enriched_badges.append((badge_obj, present_fields))  # Store as a tuple of (badge, present_fields)
             
             # Pass enriched badges to Grist writer
             await grist_badges_writer(enriched_badges)
@@ -129,7 +132,12 @@ class FeederService:
         delete_arrivals = []
         arrivals = intake.arrivals
         if arrivals:
-            await grist_arrivals_writer(arrivals)
+            # Create list of tuples (arrival, present_fields)
+            enriched_arrivals = []
+            for arrival in arrivals:
+                present_fields = set(arrival.data.model_fields_set)
+                enriched_arrivals.append((arrival, present_fields))
+            await grist_arrivals_writer(enriched_arrivals)
 
         #await self.session.commit()
 

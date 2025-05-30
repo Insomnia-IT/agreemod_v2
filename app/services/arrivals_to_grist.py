@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 from datetime import datetime
 
@@ -43,8 +43,9 @@ class GristArrivalWriter:
             logger.error(f"Error finding badge in Grist: {e}")
             raise
 
-    async def update_arrival(self, arrival: ArrivalWithMetadata):
+    async def update_arrival(self, arrival_tuple: Tuple[ArrivalWithMetadata, set]):
         """Update or create a arrival in Grist"""
+        arrival, present_fields = arrival_tuple
         logger.info(f"Working on arrival:{arrival}")
         try:
             # Find corresponding badge ID in Grist
@@ -54,17 +55,25 @@ class GristArrivalWriter:
                 raise Exception(f"Badge not found in Grist for arrival {arrival.data.id}")
 
             # Prepare the arrival data for Grist
+            fields = {}
+            
+            # Only include fields that were present in the original data
+            if 'status' in present_fields:
+                fields["status"] = arrival.data.status.value if arrival.data.status else None
+            if 'arrival_date' in present_fields:
+                fields["arrival_date"] = self._date_to_timestamp(arrival.data.arrival_date)
+            if 'arrival_transport' in present_fields:
+                fields["arrival_transport"] = arrival.data.arrival_transport.value if arrival.data.arrival_transport else None
+            if 'departure_date' in present_fields:
+                fields["departure_date"] = self._date_to_timestamp(arrival.data.departure_date)
+            if 'departure_transport' in present_fields:
+                fields["departure_transport"] = arrival.data.departure_transport.value if arrival.data.departure_transport else None
+            if 'badge_id' in present_fields:
+                fields["badge"] = corresponding_badge_id
+
             grist_data = {
                 "records": [{
-                    #"id": arrival.nocode_int_id,
-                    "fields": {
-                        "status": arrival.data.status.value if arrival.data.status else None,
-                        'arrival_date': self._date_to_timestamp(arrival.data.arrival_date),
-                        'arrival_transport': arrival.data.arrival_transport.value if arrival.data.arrival_transport else None,
-                        'departure_date': self._date_to_timestamp(arrival.data.departure_date),
-                        'departure_transport': arrival.data.departure_transport.value if arrival.data.departure_transport else None,
-                        'badge': corresponding_badge_id
-                    }
+                    "fields": fields
                 }]
             }
             print(arrival)
@@ -84,6 +93,7 @@ class GristArrivalWriter:
                 if existing_arrival:
                     # Update existing arrival
                     grist_data["records"][0]["id"] = existing_arrival["id"]
+                    logger.info(f"Updating existing arrival")
                     logger.info(grist_data)
                     update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arivals_2025_copy2/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
@@ -94,6 +104,7 @@ class GristArrivalWriter:
                 else:
                     # Create new arrival
                     grist_data["records"][0]['fields']['UUID'] = str(arrival.data.id)
+                    logger.info(f"Creating new arrival")
                     async with session.post(url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()
@@ -105,13 +116,13 @@ class GristArrivalWriter:
             logger.error(f"Error syncing arrival to Grist: {e}")
             raise
 
-async def grist_arrivals_writer(arrivals: List[ArrivalWithMetadata]):
+async def grist_arrivals_writer(arrivals: List[Tuple[ArrivalWithMetadata, set]]):
     """Sync multiple arrivals to Grist"""
-    logger.info(f"Working on arrival:{arrivals}")
+    logger.info(f"Working on arrivals:{arrivals}")
     try:
         writer = GristArrivalWriter()
-        for arrival in arrivals:
-            await writer.update_arrival(arrival)
+        for arrival_tuple in arrivals:
+            await writer.update_arrival(arrival_tuple)
         logger.info("Finished syncing arrivals to Grist")
     except Exception as e:
         logger.critical(f"Error syncing arrivals to Grist: {e}")
