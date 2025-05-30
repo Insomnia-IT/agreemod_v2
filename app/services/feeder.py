@@ -96,8 +96,6 @@ class FeederService:
             persons = await self.persons.retrieve_many(idIn=person_ids) if person_ids else []
             #parents = await self.badges.retrieve_many(idIn=parent_ids) if parent_ids else []
             directions = await self.directions.retrieve_many(idIn=direction_ids) if direction_ids else []
-            print(persons)
-            print(directions)
             
             # Create a mapping of IDs to entities for quick lookup
             person_map = {str(p.id): p for p in persons}

@@ -63,6 +63,7 @@ class PersonAppORM(PersonORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
         return person
 
@@ -94,6 +95,7 @@ class DirectionAppORM(DirectionORM):
             badges=(
                 [BadgeDTO.model_validate(x.badge, from_attributes=True) for x in self.badges] if include_badges else []
             ),
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -165,6 +167,7 @@ class BadgeAppORM(BadgeORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -205,6 +208,7 @@ class ArrivalAppORM(ArrivalORM):
             comment=self.comment,
             last_updated=self.last_updated,
             nocode_int_id=self.nocode_int_id,
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -227,6 +231,7 @@ class ParticipationAppORM(ParticipationORM):
 
     def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
         return Participation(
+            id=self.id,
             year=self.year,
             person=self.person.to_model() if include_person else self.person.id if uuid_ids and self.person else self.person_id if self.person_id else None,
             direction=(
@@ -235,11 +240,11 @@ class ParticipationAppORM(ParticipationORM):
                 else self.direction.id if uuid_ids
                 else self.direction_id
             ),
-            #role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
             role=ParticipationRole[self.role_code].value if self.role_code else None,
             status=ParticipationStatus[self.status_code].value if self.status_code else None,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
 
 
