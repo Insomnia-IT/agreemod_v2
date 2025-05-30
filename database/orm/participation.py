@@ -1,7 +1,7 @@
 from datetime import time
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -39,6 +39,7 @@ class ParticipationORM(Base, BaseORM):
         String, ForeignKey("participation_status.code"), nullable=True
     )  # req fk
     nocode_int_id: Mapped[int] = Column(Integer)  # opt
+    deleted: Mapped[bool] = Column(Boolean, nullable=True)
     last_updated: Mapped[time] = Column(TIMESTAMP)
 
 
