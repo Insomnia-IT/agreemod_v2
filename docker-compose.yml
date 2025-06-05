@@ -11,9 +11,9 @@ services:
     volumes:
       - .docker-volumes/postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES__USER}
-      POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
-      POSTGRES_DB: ${POSTGRES__NAME}
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB=${POSTGRES__NAME}
 #      POSTGRES_HOST_AUTH_METHOD: trust #couldn't setup stuff on Win without it
 #      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     healthcheck:
@@ -28,6 +28,12 @@ services:
     build:
       dockerfile: docker/alembic.dockerfile
       context: ./
+    environment:
+      - POSTGRES__HOST
+      - POSTGRES__PORT
+      - POSTGRES__USER
+      - POSTGRES__PASSWORD
+      - POSTGRES__NAME
     volumes:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
       - ./database:${VOLUME_MOUNT_PREFIX}/database
@@ -70,11 +76,12 @@ services:
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
-      - POSTGRES__HOST=postgres
-      - POSTGRES__PORT=${POSTGRES__PORT}
-      - POSTGRES__USER=${POSTGRES__USER}
-      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
-      - POSTGRES__NAME=${POSTGRES__NAME}
+
+      - POSTGRES__HOST
+      - POSTGRES__PORT
+      - POSTGRES__USER
+      - POSTGRES__PASSWORD
+      - POSTGRES__NAME
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -95,11 +102,12 @@ services:
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
-      - POSTGRES__HOST=postgres
-      - POSTGRES__PORT=${POSTGRES__PORT}
-      - POSTGRES__USER=${POSTGRES__USER}
-      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
-      - POSTGRES__NAME=${POSTGRES__NAME}
+
+      - POSTGRES__HOST
+      - POSTGRES__PORT
+      - POSTGRES__USER
+      - POSTGRES__PASSWORD
+      - POSTGRES__NAME
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -114,6 +122,12 @@ services:
       context: ./
     ports:
       - ${API_PROXY}:${API_PORT}
+    environment:
+      - POSTGRES__HOST
+      - POSTGRES__PORT
+      - POSTGRES__USER
+      - POSTGRES__PASSWORD
+      - POSTGRES__NAME
     volumes:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
       - ./database:${VOLUME_MOUNT_PREFIX}/database
@@ -135,6 +149,12 @@ services:
       - RABBITMQ__PASSWORD=guest
       - RABBITMQ__QUEUE_PORT=5672
       - RABBITMQ__WEB_PORT=15672
+
+      - POSTGRES__HOST
+      - POSTGRES__PORT
+      - POSTGRES__USER
+      - POSTGRES__PASSWORD
+      - POSTGRES__NAME
     volumes:
       - ./grist_updater:${VOLUME_MOUNT_PREFIX}/grist_updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
