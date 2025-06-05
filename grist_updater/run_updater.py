@@ -18,7 +18,8 @@ async def sync_loop():
             print("--- Цикл завершен. Ожидание 30 секунд ---")
             await asyncio.sleep(30)
     except Exception as e:
-        logger.error(f"Error in sync loop: {e}")
+        logger.error("Error in sync loop", exc_info=True)
+        raise e
     finally:
         await sync.close_rabbitmq()
 

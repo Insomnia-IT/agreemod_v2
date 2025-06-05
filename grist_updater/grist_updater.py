@@ -84,7 +84,8 @@ class GristSync:
         last_sync = self.last_sync.get(table_name)
         
         # Добавляем фильтр по времени, если есть
-        where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
+        where_clause = ""
+        where_clause = f"WHERE {table_name}.updated_at >= {last_sync}" if last_sync else ""
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -397,20 +398,34 @@ class GristSync:
         context: Dict  # Добавляем контекст
     ) -> tuple:
         """Преобразование структуры записи с контекстом"""
+        # First apply all transformations to all fields that have them
+        #print(f"Record before: {record}")
+        for grist_field, transform_func in transformations.items():
+            value = self._get_nested_value(record, grist_field)
+            transformed_value = transform_func(value, context)
+            
+            # If any field transformation returns SKIP_RECORD or DELETE_RECORD, return immediately
+            if transformed_value is SKIP_RECORD:
+                return SKIP_RECORD
+            elif transformed_value is DELETE_RECORD:
+                return DELETE_RECORD
+            
+            # Update the record with transformed value, maintaining the nested structure
+            keys = grist_field.split('.')
+            current = record
+            for key in keys[:-1]:
+                if key not in current:
+                    current[key] = {}
+                current = current[key]
+            current[keys[-1]] = transformed_value
+
+        # Then create the final tuple only for fields in mapping
+        #print(f"Record after: {record}")
         transformed = []
         for grist_field, pg_field in mapping.items():
             value = self._get_nested_value(record, grist_field)
-            
-            if transformations and grist_field in transformations:
-                # Передаем контекст в функцию преобразования
-                value = transformations[grist_field](value, context)
-                # If any field transformation returns SKIP_RECORD, skip the entire record
-                if value is SKIP_RECORD:
-                    return SKIP_RECORD
-                elif value is DELETE_RECORD:
-                    return DELETE_RECORD
-            
             transformed.append(value)
+            
         return tuple(transformed)
 
     @staticmethod
@@ -454,6 +469,8 @@ TABLES_CONFIG = [
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.last_year': lambda x, ctx: x if type(x) is not dict else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.team_name': lambda x, ctx: x if x else DELETE_RECORD,
+            'fields.type_of_team': lambda x, ctx: x if x else None,
         },
         'dependencies': []
     },
@@ -473,7 +490,7 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 nocode_int_id = EXCLUDED.nocode_int_id
         """,
-        'sql_query': "SELECT * FROM Participations",
+        'sql_query': "SELECT Participations.*, People.name as people_table_name, Teams.team_name as team_table_name FROM Participations LEFT JOIN People ON Participations.person = People.id LEFT JOIN Teams ON Participations.team = Teams.id",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
@@ -484,6 +501,8 @@ TABLES_CONFIG = [
             'fields.team': 'direction_id',
             'fields.updated_at': 'last_updated',
             'fields.id': 'nocode_int_id',
+#            'fields.people_table_name': 'people_table_name',
+#            'fields.team_table_name': 'team_table_name',
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
@@ -493,6 +512,8 @@ TABLES_CONFIG = [
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
             'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
+            'fields.people_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD,
+            'fields.team_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD,
         },
         'dependencies': ['People', 'Teams']
     },
@@ -540,10 +561,11 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated'
         },
         'transformations': {
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD,
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else [],
+            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\\"').replace("'", "\\'") + "}" if x else None,
         },
         'dependencies': []
     },
@@ -554,7 +576,7 @@ TABLES_CONFIG = [
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, parent_id, photo
+                occupation, person_id, parent_id, photo, child
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -571,7 +593,8 @@ TABLES_CONFIG = [
                 occupation = EXCLUDED.occupation,
                 person_id = EXCLUDED.person_id,
                 parent_id = EXCLUDED.parent_id,
-                photo = EXCLUDED.photo
+                photo = EXCLUDED.photo,
+                child = EXCLUDED.child
         """,
         'additional_queries': [
             {
@@ -595,7 +618,7 @@ TABLES_CONFIG = [
             }
         ],
         'sql_query': "SELECT * FROM Badges_2025_copy2", #Badges_2025
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -603,7 +626,7 @@ TABLES_CONFIG = [
             'fields.first_name': 'first_name',
             'fields.gender': 'gender',
             'fields.phone': 'phone',
-            'fields.is_vegan': 'diet',
+            'fields.diet': 'diet',
             'fields.feed_type': 'feed',
             'fields.batch': 'batch',
             'fields.role': 'role_code',
@@ -613,16 +636,19 @@ TABLES_CONFIG = [
             'fields.position': 'occupation',
             'fields.person': 'person_id',
             'fields.parent': 'parent_id',
-            'fields.photo_attach_id': 'photo'
+            'fields.photo_attach_id': 'photo',
+            'fields.infant': 'child'
         },
         'transformations': {
-            #'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD,
+            'fields.diet': lambda x, ctx: x if x else DELETE_RECORD,
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD, # ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
             'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.parent': lambda x, ctx: x if x !=0 else None, 
             'fields.person': lambda x, ctx: x if x != 0 else None,
-            'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None
+            'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
+            'fields.infant': lambda x, ctx: bool(x) if x else None
         },
         'dependencies': ['Teams']
     },
@@ -660,11 +686,11 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
-            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else SKIP_RECORD,
+            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD,
+            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None),
-            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else SKIP_RECORD,
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None).get('code', None) != None else DELETE_RECORD,
+            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD,
             'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None,
             'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None
         },
