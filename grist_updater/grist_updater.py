@@ -3,7 +3,6 @@ import aiohttp
 import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime
-from grist_updater.config import config as app_config
 from typing import Dict, List, Optional
 import json
 import uuid
@@ -35,6 +34,8 @@ SKIP_RECORD = object()
 #TODO: constant for record deletion
 DELETE_RECORD = object()
 RESTORE_RECORD = object()
+
+from .config import config as app_config
 
 class GristSync:
     def __init__(self, state_file='sync_state.json'):
