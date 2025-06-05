@@ -7,14 +7,14 @@ from database.config import config
 
 logger = logging.getLogger(__name__)
 
+conn = psycopg2.connect(
+    database="agreemod",
+    user=config.postgres.user,
+    password=config.postgres.password,
+    host=config.postgres.host,
+    port=config.postgres.port,
+)
 try:
-    conn = psycopg2.connect(
-        database="agreemod",
-        user=config.postgres.user,
-        password=config.postgres.password,
-        host=config.postgres.host,
-        port=config.postgres.port,
-    )
     cur = conn.cursor()
     cur.execute(f"SELECT code, color FROM public.badge_color")
     badge_colors = cur.fetchall()
