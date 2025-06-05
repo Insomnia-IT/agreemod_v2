@@ -15,7 +15,7 @@ class TransportType(StrEnum):
     UNDEFINED = "Не определен"
     SELF = "Своим ходом"
     BUS = "На автобусе"
-    CAR = "На своей машине"
+    CAR = "На машине"
     TRANSFER = "Трансфер от фестиваля"
     MOVE = "Смена направления"
     
