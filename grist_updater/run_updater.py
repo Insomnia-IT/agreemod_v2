@@ -1,4 +1,4 @@
-from grist_updater.grist_updater import GristSync, TABLES_CONFIG
+from .grist_updater import GristSync, TABLES_CONFIG
 import asyncio
 import logging
 from dotenv import load_dotenv
