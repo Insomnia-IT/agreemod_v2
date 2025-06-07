@@ -27,7 +27,7 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    nocode_int_id: Mapped[int] = Column(String)
+    nocode_int_id: Mapped[int] = Column(Integer)
     badge_id: Mapped[int] = Column(
         Integer, ForeignKey("badge.nocode_int_id", ondelete="CASCADE"), nullable=False
     )

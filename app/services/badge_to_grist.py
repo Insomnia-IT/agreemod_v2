@@ -6,6 +6,7 @@ import aiohttp
 from app.config import config
 #from app.models.badge import Badge
 from app.schemas.feeder.badge import Badge
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,12 @@ class GristBadgeWriter:
         self.doc_id = config.grist.doc_id
         self.api_key = config.grist.api_key
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
+
+    def _date_to_timestamp(self, date_obj):
+        """Convert datetime.date to Unix timestamp"""
+        if not date_obj:
+            return None
+        return int(datetime.combine(date_obj, datetime.min.time()).timestamp())
 
     async def update_badge(self, badge_tuple: Tuple[Badge, set]):
         """Update or create a badge in Grist"""
@@ -32,7 +39,7 @@ class GristBadgeWriter:
             if 'first_name' in present_fields:
                 fields["first_name"] = badge.first_name
             if 'gender' in present_fields:
-                fields["gender"] = badge.gender.value if badge.gender else None
+                fields["gender"] = badge.gender if badge.gender else None
             if 'phone' in present_fields:
                 fields["phone"] = badge.phone
             if 'diet' in present_fields:
@@ -42,7 +49,7 @@ class GristBadgeWriter:
             if 'child' in present_fields:
                 fields["infant"] = badge.child
             if 'role' in present_fields:
-                fields["role"] = badge.role.value
+                fields["role"] = badge.role
             if 'comment' in present_fields:
                 fields["comment"] = badge.comment
             if 'occupation' in present_fields:
@@ -53,6 +60,13 @@ class GristBadgeWriter:
                 fields["parent"] = str(badge.parent.nocode_int_id) if badge.parent else ""
             if 'directions' in present_fields:
                 fields["directions_ref"] = ["L"] + [d.nocode_int_id for d in badge.directions] if badge.directions else None
+            if 'deleted' in present_fields and badge.deleted:
+                fields["to_delete"] = self._date_to_timestamp(datetime.now())
+                fields["delete_reason"] = f"FEEDER: deleted"
+            elif 'deleted' in present_fields and badge.deleted == False:
+                fields["to_delete"] = None
+                fields["delete_reason"] = None
+            fields["status"] = "Из Кормителя"
 
             grist_data = {
                 "records": [{
@@ -61,7 +75,7 @@ class GristBadgeWriter:
             }
 
             # Check if badge exists in Grist
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy2/records"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -76,7 +90,7 @@ class GristBadgeWriter:
                     logger.info(f"Updating existing badge")
                     grist_data["records"][0]["id"] = existing_badge["id"]
                     logger.info(grist_data)
-                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy2/records"
+                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()

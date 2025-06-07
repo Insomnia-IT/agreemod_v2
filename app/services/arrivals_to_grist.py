@@ -26,7 +26,7 @@ class GristArrivalWriter:
     async def find_badge_id_by_uuid(self, badge_uuid: UUID) -> Optional[int]:
         """Find badge ID in Grist by its UUID"""
         try:
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy2/records"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -70,6 +70,12 @@ class GristArrivalWriter:
                 fields["departure_transport"] = arrival.data.departure_transport.value if arrival.data.departure_transport else None
             if 'badge_id' in present_fields:
                 fields["badge"] = corresponding_badge_id
+            if 'deleted' in present_fields and arrival.data.deleted:
+                fields["to_delete"] = self._date_to_timestamp(datetime.now())
+                fields["delete_reason"] = f"FEEDER: deleted"
+            elif 'deleted' in present_fields and arrival.data.deleted == False:
+                fields["to_delete"] = None
+                fields["delete_reason"] = None
 
             grist_data = {
                 "records": [{
@@ -80,7 +86,7 @@ class GristArrivalWriter:
             print(grist_data)
 
             # Check if arrival exists in Grist
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arivals_2025_copy2/records"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025_copy/records"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -95,7 +101,7 @@ class GristArrivalWriter:
                     grist_data["records"][0]["id"] = existing_arrival["id"]
                     logger.info(f"Updating existing arrival")
                     logger.info(grist_data)
-                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arivals_2025_copy2/records"
+                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025_copy/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()

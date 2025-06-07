@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime
 from grist_updater.config import config as app_config
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import json
 import uuid
 from uuid import UUID
@@ -32,8 +32,13 @@ logger = logging.getLogger(__name__)
 # Special constant to indicate record should be skipped
 SKIP_RECORD = object()
 
-#TODO: constant for record deletion
-DELETE_RECORD = object()
+class DELETE_RECORD:
+    def __init__(self, reason: Optional[str] = None):
+        self.reason = reason
+
+    def __str__(self) -> str:
+        return f"{self.reason})"
+
 RESTORE_RECORD = object()
 
 class GristSync:
@@ -265,7 +270,7 @@ class GristSync:
         if self.rabbitmq_publisher:
             await self.rabbitmq_publisher.close()
 
-    async def publish_delete_message(self, table_name: str, record_id: int):
+    async def publish_delete_message(self, table_name: str, record_id: int, reason: Optional[str] = None):
         """Publish delete message to RabbitMQ"""
         if not self.rabbitmq_publisher:
             await self.init_rabbitmq()
@@ -273,7 +278,8 @@ class GristSync:
         channel = await self.rabbitmq_publisher.channel()
         message = {
             "table_name": table_name,
-            "id": record_id
+            "id": record_id,
+            "reason": reason
         }
         await channel.default_exchange.publish(
             aio_pika.Message(body=json.dumps(message).encode()),
@@ -323,14 +329,14 @@ class GristSync:
                 if deleted is None:
                     if result is SKIP_RECORD:
                         continue
-                    elif result is DELETE_RECORD:
-                        # Send delete message to RabbitMQ
-                        await self.publish_delete_message(config['grist_table'], record_id)
+                    elif isinstance(result, DELETE_RECORD):
+                        # Send delete message to RabbitMQ with reason
+                        await self.publish_delete_message(config['grist_table'], record_id, result.reason)
                         continue
                     else:
                         transformed.append(result)
                 if deleted:
-                    if result is SKIP_RECORD or result is DELETE_RECORD:
+                    if result is SKIP_RECORD or isinstance(result, DELETE_RECORD):
                         continue
                     # Publish restore message
                     else:
@@ -364,28 +370,43 @@ class GristSync:
                 with conn.cursor() as cursor:
                     for query_config in config['additional_queries']:
                         for record in records:
-                            # Получаем nocode_int_id бейджа и team_list
-                            badge_nocode_id = self._get_nested_value(record, 'fields.id')
-                            team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
+                            if query_config['type'] == 'directions':
+                                # Получаем nocode_int_id бейджа и team_list
+                                badge_nocode_id = self._get_nested_value(record, 'fields.id')
+                                team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
 
-                            if isinstance(team_list_raw, str):
-                                # Handle empty string case
-                                if not team_list_raw.strip('[]'):
-                                    team_list = []
+                                if isinstance(team_list_raw, str):
+                                    # Handle empty string case
+                                    if not team_list_raw.strip('[]'):
+                                        team_list = []
+                                    else:
+                                        team_list = list(map(int, team_list_raw.strip('[]').split(',')))
                                 else:
-                                    team_list = list(map(int, team_list_raw.strip('[]').split(',')))
-                            else:
-                                team_list = team_list_raw
+                                    team_list = team_list_raw
 
-                            # Преобразуем список в строку формата PostgreSQL ARRAY
-                            team_list_str = "{" + ",".join(map(str, team_list)) + "}"
-                            print(team_list_str)
+                                # Преобразуем список в строку формата PostgreSQL ARRAY
+                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"
+                                #print(team_list_str)
 
-                            # Выполняем запрос для текущего бейджа
-                            cursor.execute(
-                                query_config['insert_query'],
-                                (badge_nocode_id, team_list_str, badge_nocode_id)
-                            )
+                                # Выполняем запрос для текущего бейджа
+                                cursor.execute(
+                                    query_config['insert_query'],
+                                    (badge_nocode_id, team_list_str, badge_nocode_id)
+                                )
+                            elif query_config['type'] == 'parent':
+                                # Get badge ID and parent ID
+                                badge_nocode_id = self._get_nested_value(record, 'fields.id')
+                                parent_id = self._get_nested_value(record, 'fields.parent')
+                                
+                                # Apply transformation if exists
+                                if 'transformations' in query_config and 'fields.parent' in query_config['transformations']:
+                                    parent_id = query_config['transformations']['fields.parent'](parent_id, context)
+                                
+                                if parent_id is not None:
+                                    cursor.execute(
+                                        query_config['insert_query'],
+                                        (badge_nocode_id, parent_id)
+                                    )
                     conn.commit()
             finally:
                 conn.close()
@@ -407,8 +428,8 @@ class GristSync:
             # If any field transformation returns SKIP_RECORD or DELETE_RECORD, return immediately
             if transformed_value is SKIP_RECORD:
                 return SKIP_RECORD
-            elif transformed_value is DELETE_RECORD:
-                return DELETE_RECORD
+            elif isinstance(transformed_value, DELETE_RECORD):
+                return transformed_value
             
             # Update the record with transformed value, maintaining the nested structure
             keys = grist_field.split('.')
@@ -469,7 +490,7 @@ TABLES_CONFIG = [
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.last_year': lambda x, ctx: x if type(x) is not dict else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.team_name': lambda x, ctx: x if x else DELETE_RECORD,
+            'fields.team_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty team_name'),
             'fields.type_of_team': lambda x, ctx: x if x else None,
         },
         'dependencies': []
@@ -506,14 +527,14 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.year': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD, #SKIP_RECORD,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code',None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD,
+            'fields.year': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Invalid or empty year'),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status mapping'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code',None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role mapping'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
-            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD,
-            'fields.people_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD,
-            'fields.team_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD,
+            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD(reason='Invalid person ID'),
+            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD(reason='Invalid team ID'),
+            'fields.people_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Person is Invalid and marked for delete'),
+            'fields.team_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Team is Invalid and marked for delete'),
         },
         'dependencies': ['People', 'Teams']
     },
@@ -561,7 +582,7 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated'
         },
         'transformations': {
-            'fields.name': lambda x, ctx: x if x else DELETE_RECORD,
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
@@ -570,13 +591,13 @@ TABLES_CONFIG = [
         'dependencies': []
     },
     {
-        'grist_table': 'Badges_2025_copy2',#'Badges_2025',
+        'grist_table': 'Badges_2025_copy',#'Badges_2025',
         'insert_query': """
             INSERT INTO badge (
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, parent_id, photo, child
+                occupation, person_id, photo, child
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -592,12 +613,12 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 occupation = EXCLUDED.occupation,
                 person_id = EXCLUDED.person_id,
-                parent_id = EXCLUDED.parent_id,
                 photo = EXCLUDED.photo,
                 child = EXCLUDED.child
         """,
         'additional_queries': [
             {
+                'type': 'directions',
                 'insert_query': """
                     -- Удаляем старые связи
                     DELETE FROM badge_directions
@@ -611,14 +632,28 @@ TABLES_CONFIG = [
                     CROSS JOIN badge b
                     WHERE b.nocode_int_id = %s;
                 """,
-                'fields': ['fields.id', 'fields.team_list'],
+                'fields': ['fields.id', 'fields.directions_ref'],
                 'transformations': {
-                    'fields.team_list': lambda x, ctx: x if isinstance(x, list) else [],
+                    'fields.directions_ref': lambda x, ctx: x if isinstance(x, list) else [],
+                }
+            },
+            {
+                'type': 'parent',
+                'insert_query': """
+                    UPDATE badge b
+                    SET parent_id = p.nocode_int_id
+                    FROM badge p
+                    WHERE b.nocode_int_id = %s
+                    AND p.nocode_int_id = %s;
+                """,
+                'fields': ['fields.id', 'fields.parent'],
+                'transformations': {
+                    'fields.parent': lambda x, ctx: x if x != 0 else None,
                 }
             }
         ],
-        'sql_query': "SELECT * FROM Badges_2025_copy2", #Badges_2025
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'sql_query': "SELECT * FROM Badges_2025_copy", #Badges_2025
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -635,17 +670,17 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated',
             'fields.position': 'occupation',
             'fields.person': 'person_id',
-            'fields.parent': 'parent_id',
             'fields.photo_attach_id': 'photo',
             'fields.infant': 'child'
         },
         'transformations': {
-            'fields.name': lambda x, ctx: x if x else DELETE_RECORD,
-            'fields.diet': lambda x, ctx: x if x else DELETE_RECORD,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD, # ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if ("FEEDER" in x) else x,
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
+            'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
+            'fields.feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty feed type'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role'),
             'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.parent': lambda x, ctx: x if x !=0 else None, 
             'fields.person': lambda x, ctx: x if x != 0 else None,
             'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
             'fields.infant': lambda x, ctx: bool(x) if x else None
@@ -653,7 +688,7 @@ TABLES_CONFIG = [
         'dependencies': ['Teams']
     },
     {
-        'grist_table': 'Arivals_2025_copy2', #'Arrivals_2025',
+        'grist_table': 'Arrivals_2025_copy', #'Arrivals_2025',
         'insert_query': """
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
@@ -671,7 +706,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT * FROM Arivals_2025_copy2", #Arrivals_2025
+        'sql_query': "SELECT Arrivals_2025_copy.*, Badges_2025_copy.name as badge_name, Badges_2025_copy.role as badge_role, Badges_2025_copy.diet as badge_diet, Badges_2025_copy.feed_type as badge_feed_type FROM Arrivals_2025_copy LEFT JOIN Badges_2025_copy ON Arrivals_2025_copy.badge=Badges_2025_copy.id", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -685,14 +720,19 @@ TABLES_CONFIG = [
             'fields.id': 'nocode_int_id',
         },
         'transformations': {
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if ("FEEDER" in x) else x,
+            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
+            'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD,
-            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD,
+            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid arrival date'),
+            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid departure date'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None).get('code', None) != None else DELETE_RECORD,
-            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD,
-            'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None,
-            'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None), #x if isinstance(x, int) else None
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None).get('code', None) != None else DELETE_RECORD(reason='Invalid status'),
+            'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
+            'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
         },
         'dependencies': []
     }
