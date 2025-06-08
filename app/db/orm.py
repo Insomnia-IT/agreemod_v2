@@ -87,7 +87,7 @@ class DirectionAppORM(DirectionORM):
         return Direction(
             id=self.id,
             name=self.name,
-            type=DirectionType[self.type].value,
+            type=DirectionType[self.type].value if self.type else None,
             first_year=self.first_year,
             last_year=self.last_year,
             nocode_int_id=self.nocode_int_id,
