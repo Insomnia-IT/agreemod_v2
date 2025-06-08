@@ -94,16 +94,27 @@ class DeleteMessageConsumer:
                 # Update Grist record with to_delete timestamp
                 url = f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/{table_name}/records"
                 headers = {"Authorization": f"Bearer {self.grist_api_key}"}
-                
-                update_data = {
-                    "records": [{
-                        "id": record_id,
-                        "fields": {
-                            "to_delete": datetime.now().timestamp(),
-                            "delete_reason": body.get('reason', None)
-                        }
-                    }]
-                }
+                update_data = None
+
+                if table_name == "Badges_2025_copy" or table_name == "Arrivals_2025_copy":
+                    update_data = {
+                        "records": [{
+                            "id": record_id,
+                            "fields": {
+                                "to_delete": None,
+                                "delete_reason": None
+                            }
+                        }]
+                    }
+                else:
+                    update_data = {
+                        "records": [{
+                            "id": record_id,
+                            "fields": {
+                                "to_delete": None,
+                            }
+                        }]
+                    }
 
                 async with aiohttp.ClientSession() as session:
                     async with session.patch(url, headers=headers, json=update_data) as resp:
