@@ -597,7 +597,7 @@ TABLES_CONFIG = [
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, photo, child
+                occupation, person_id, photo, child, number
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -614,7 +614,8 @@ TABLES_CONFIG = [
                 occupation = EXCLUDED.occupation,
                 person_id = EXCLUDED.person_id,
                 photo = EXCLUDED.photo,
-                child = EXCLUDED.child
+                child = EXCLUDED.child,
+                number = EXCLUDED.number
         """,
         'additional_queries': [
             {
@@ -653,7 +654,7 @@ TABLES_CONFIG = [
             }
         ],
         'sql_query': "SELECT * FROM Badges_2025_copy", #Badges_2025
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -671,7 +672,8 @@ TABLES_CONFIG = [
             'fields.position': 'occupation',
             'fields.person': 'person_id',
             'fields.photo_attach_id': 'photo',
-            'fields.infant': 'child'
+            'fields.infant': 'child',
+            'fields.number': 'number'
         },
         'transformations': {
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if ("FEEDER" in x) else x,

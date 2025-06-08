@@ -151,7 +151,7 @@ class BadgeAppORM(BadgeORM):
                 self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
-            diet=DietType[self.diet].value if self.diet else None,
+            diet = self.diet if self.diet else None,
             feed=self.feed,
             number=self.number,
             batch=self.batch,

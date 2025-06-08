@@ -121,7 +121,7 @@ class BadgeResponse(BaseModel):
     @field_validator("vegan", mode="before")
     @classmethod
     def convert_vegan(cls, value: str):
-        if value == "VEGAN":
+        if value == "Веган":
             return True
         return False
 

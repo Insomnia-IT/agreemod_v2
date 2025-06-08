@@ -42,6 +42,11 @@ class Badge(DomainModel):
 
     @computed_field
     @property
+    def vegan(self) -> bool:
+        return self.diet == DietType.VEGAN
+
+    @computed_field
+    @property
     def color(self) -> BadgeColor:
         match self.role:
             case ParticipationRole.ORGANIZER:
@@ -122,10 +127,10 @@ class Badge(DomainModel):
         if not value:
             return DietType.default()
         try:
-            return DietType(value.lower())
+            return DietType(value)
         except ValueError:
             return DietType.default()
-
+        
     @model_validator(mode="after")
     def set_default_photo(self) -> str:
         if not self.photo:
