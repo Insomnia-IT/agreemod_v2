@@ -90,7 +90,7 @@ class GristSync:
         
         # Добавляем фильтр по времени, если есть
         where_clause = ""
-        where_clause = f"WHERE {table_name}.updated_at >= {last_sync}" if last_sync else ""
+        where_clause = f"WHERE {table_name}.updated_at >= {last_sync-300}" if last_sync else ""
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -343,7 +343,7 @@ class GristSync:
                         await self.publish_restore_message(config['grist_table'], record_id)
                         continue
             except Exception as e:
-                print(f"Error transforming record: {e}")
+                #print(f"Error transforming record {record}: {e}")
                 continue
 
         if not transformed:
@@ -423,7 +423,10 @@ class GristSync:
         #print(f"Record before: {record}")
         for grist_field, transform_func in transformations.items():
             value = self._get_nested_value(record, grist_field)
-            transformed_value = transform_func(value, context)
+            try:
+                transformed_value = transform_func(value, context)
+            except Exception as e:
+                print(f"Error transforming field '{grist_field}' with value '{value}': {str(e)}")
             
             # If any field transformation returns SKIP_RECORD or DELETE_RECORD, return immediately
             if transformed_value is SKIP_RECORD:
@@ -676,11 +679,11 @@ TABLES_CONFIG = [
             'fields.number': 'number'
         },
         'transformations': {
-            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if ("FEEDER" in x) else x,
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
             'fields.feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty feed type'),
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid status')) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status'),
             'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
@@ -722,17 +725,17 @@ TABLES_CONFIG = [
             'fields.id': 'nocode_int_id',
         },
         'transformations': {
-            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if ("FEEDER" in x) else x,
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
             'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
-            'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if x!=0 and ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid arrival date'),
             'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid departure date'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None).get('code', None) != None else DELETE_RECORD(reason='Invalid status'),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid status')) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status'),
             'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
             'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
         },
