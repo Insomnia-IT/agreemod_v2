@@ -101,8 +101,8 @@ class DeleteMessageConsumer:
                         "records": [{
                             "id": record_id,
                             "fields": {
-                                "to_delete": None,
-                                "delete_reason": None
+                                "to_delete": datetime.now().timestamp(),
+                                "delete_reason": body.get('reason', None)
                             }
                         }]
                     }
@@ -111,7 +111,7 @@ class DeleteMessageConsumer:
                         "records": [{
                             "id": record_id,
                             "fields": {
-                                "to_delete": None,
+                                "to_delete": datetime.now().timestamp(),
                             }
                         }]
                     }
