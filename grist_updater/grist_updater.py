@@ -683,7 +683,7 @@ TABLES_CONFIG = [
             'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
             'fields.feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty feed type'),
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid status')) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid role')) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role'),
             'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
@@ -734,7 +734,7 @@ TABLES_CONFIG = [
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid arrival date'),
             'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid departure date'),
-            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid status')) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status'),
             'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
             'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
