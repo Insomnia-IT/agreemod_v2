@@ -72,6 +72,8 @@ jobs:
             sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_DEV }}|g" .env
             sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_DEV }}|g" .env
             sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_DEV }}|g" .env
+            sed -i "s|\$RABBITMQ__QUEUE_PORT|${{ secrets.ENV_RABBITMQ__QUEUE_PORT_DEV }}|g" .env
+            sed -i "s|\$RABBITMQ__WEB_PORT|${{ secrets.ENV_RABBITMQ__WEB_PORT_DEV }}|g" .env
             sed -i "s|\$CODA__API_KEY|${{ secrets.ENV_CODA__API_KEY }}|g" .env
             sed -i "s|\$CODA__DOC_ID|${{ secrets.ENV_CODA__DOC_ID }}|g" .env
             sed -i "s|\$NOTION__TOKEN|${{ secrets.ENV_NOTION__TOKEN }}|g" .env
@@ -86,6 +88,8 @@ jobs:
             sed -i "s|\$TELEBOT_TOKEN|${{ secrets.ENV_TELEBOT_TOKEN_MAIN }}|g" .env
             sed -i "s|\$GRIST__SERVER|${{ secrets.ENV_GRIST__SERVER_MAIN }}|g" .env
             sed -i "s|\$GRIST__DOC_ID|${{ secrets.ENV_GRIST__DOC_ID_MAIN }}|g" .env
+            sed -i "s|\$RABBITMQ__QUEUE_PORT|${{ secrets.ENV_RABBITMQ__QUEUE_PORT_MAIN }}|g" .env
+            sed -i "s|\$RABBITMQ__WEB_PORT|${{ secrets.ENV_RABBITMQ__WEB_PORT_MAIN }}|g" .env
             sed -i "s|\$GRIST__API_KEY|${{ secrets.ENV_GRIST__API_KEY_MAIN }}|g" .env
             sed -i "s|\$CODA__API_KEY|${{ secrets.ENV_CODA__API_KEY }}|g" .env
             sed -i "s|\$CODA__DOC_ID|${{ secrets.ENV_CODA__DOC_ID }}|g" .env

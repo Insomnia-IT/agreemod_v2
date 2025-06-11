@@ -65,8 +65,8 @@ services:
       - RABBITMQ__HOST=rabbitmq
       - RABBITMQ__USER=guest
       - RABBITMQ__PASSWORD=guest
-      - RABBITMQ__QUEUE_PORT=5672
-      - RABBITMQ__WEB_PORT=15672
+      - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
+      - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
@@ -90,8 +90,8 @@ services:
       - RABBITMQ__HOST=rabbitmq
       - RABBITMQ__USER=guest
       - RABBITMQ__PASSWORD=guest
-      - RABBITMQ__QUEUE_PORT=5672
-      - RABBITMQ__WEB_PORT=15672
+      - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
+      - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
@@ -133,8 +133,8 @@ services:
       - RABBITMQ__HOST=rabbitmq
       - RABBITMQ__USER=guest
       - RABBITMQ__PASSWORD=guest
-      - RABBITMQ__QUEUE_PORT=5672
-      - RABBITMQ__WEB_PORT=15672
+      - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
+      - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
     volumes:
       - ./grist_updater:${VOLUME_MOUNT_PREFIX}/grist_updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
