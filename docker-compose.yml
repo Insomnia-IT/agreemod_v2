@@ -14,6 +14,8 @@ services:
       POSTGRES_USER: ${POSTGRES__USER}
       POSTGRES_PASSWORD: ${POSTGRES__PASSWORD}
       POSTGRES_DB: ${POSTGRES__NAME}
+#      POSTGRES_HOST_AUTH_METHOD: trust #couldn't setup stuff on Win without it
+#      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     healthcheck:
       test: pg_isready -d db_prod -U postgres
       interval: 30s
@@ -51,8 +53,59 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
-#    ports:
-#      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
+    ports:
+      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
+      - ${RABBITMQ__QUEUE_PORT}:${RABBITMQ__QUEUE_PORT}
+
+  delete_consumer:
+    build:
+      dockerfile: docker/deleter.dockerfile
+      context: ./
+    environment:
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USER=guest
+      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__QUEUE_PORT=5672
+      - RABBITMQ__WEB_PORT=15672
+      - GRIST__SERVER=${GRIST__SERVER}
+      - GRIST__DOC_ID=${GRIST__DOC_ID}
+      - GRIST__API_KEY=${GRIST__API_KEY}
+      - POSTGRES__HOST=postgres
+      - POSTGRES__PORT=${POSTGRES__PORT}
+      - POSTGRES__USER=${POSTGRES__USER}
+      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
+      - POSTGRES__NAME=${POSTGRES__NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  restore_consumer:
+    build:
+      dockerfile: docker/restorer.dockerfile
+      context: ./
+    environment:
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USER=guest
+      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__QUEUE_PORT=5672
+      - RABBITMQ__WEB_PORT=15672
+      - GRIST__SERVER=${GRIST__SERVER}
+      - GRIST__DOC_ID=${GRIST__DOC_ID}
+      - GRIST__API_KEY=${GRIST__API_KEY}
+      - POSTGRES__HOST=postgres
+      - POSTGRES__PORT=${POSTGRES__PORT}
+      - POSTGRES__USER=${POSTGRES__USER}
+      - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
+      - POSTGRES__NAME=${POSTGRES__NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   agreemod:
     platform: linux/amd64
@@ -76,6 +129,12 @@ services:
     build:
       dockerfile: docker/updater.dockerfile
       context: ./
+    environment:
+      - RABBITMQ__HOST=rabbitmq
+      - RABBITMQ__USER=guest
+      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__QUEUE_PORT=5672
+      - RABBITMQ__WEB_PORT=15672
     volumes:
       - ./grist_updater:${VOLUME_MOUNT_PREFIX}/grist_updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
@@ -83,6 +142,8 @@ services:
       - ./rabbit:${VOLUME_MOUNT_PREFIX}/rabbit
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   bot:

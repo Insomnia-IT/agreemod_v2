@@ -17,6 +17,7 @@ class Participation(DomainModel):
     status: ParticipationStatus | None
     nocode_int_id: int | None = None
     last_updated: datetime = None
+    deleted: bool | None = False
 
     model_config = ConfigDict(
         json_encoders={ParticipationRole: lambda t: t.name, ParticipationStatus: lambda p: p.name}, use_enum_values=True

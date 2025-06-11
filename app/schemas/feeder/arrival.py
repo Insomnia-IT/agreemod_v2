@@ -20,12 +20,18 @@ class Arrival(BaseModel):
     @field_validator("status", mode="before")
     @classmethod
     def convert_status(cls, value: str):
-        return ParticipationStatus[value].value
+        try:
+            return ParticipationStatus[value].value
+        except KeyError:
+            return value
 
     @field_validator("arrival_transport", "departure_transport", mode="before")
     @classmethod
     def convert_transport(cls, value: str):
-        return TransportType[value].value
+        try:
+            return TransportType[value].value
+        except KeyError:
+            return value
 
 
 class ArrivalWithMetadata(BaseModel):

@@ -38,26 +38,35 @@ class Badge(BaseModel):
     def serialize_enums(self, strenum: StrEnum, _info):
         if not strenum:
             return None
-        return strenum.name
+        return strenum.value
 
     @field_validator("gender", mode="before")
     @classmethod
     def convert_gender(cls, value: str):
-        if not value:
+        if value == '':
             return None
-        return Gender[value].value
+        try:
+            return Gender[value]
+        except KeyError:
+            return value
 
     @field_validator("feed", mode="before")
     @classmethod
     def convert_feed(cls, value: str):
-        if not value:
+        if not value or value=='':
             return FeedType.NO.value
-        return FeedType[value].value
+        try:
+            return FeedType[value].value
+        except KeyError:
+            return value
 
     @field_validator("role", mode="before")
     @classmethod
     def convert_role(cls, value: str):
-        return ParticipationRole[value].value
+        try:
+            return ParticipationRole[value].value
+        except KeyError:
+            return value
 
     @field_validator("diet", mode="before")
     @classmethod
@@ -112,7 +121,7 @@ class BadgeResponse(BaseModel):
     @field_validator("vegan", mode="before")
     @classmethod
     def convert_vegan(cls, value: str):
-        if value == "VEGAN":
+        if value == "Веган":
             return True
         return False
 

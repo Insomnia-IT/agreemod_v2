@@ -38,7 +38,12 @@ class PersonResponse(BaseModel):
 
     @field_validator("other_names", mode="before")
     def convert_to_str(cls, values: list[str]):
-        return ", ".join(values)
+        if values is None:
+            return None
+        if len(values)>1:  
+            return ", ".join(values)
+        else: 
+            return values[0]
 
     @field_validator("vegan", mode="before")
     def convert_non_vegan(cls, value: bool):

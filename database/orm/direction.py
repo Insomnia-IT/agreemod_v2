@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, UniqueConstraint, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -25,11 +25,12 @@ class DirectionORM(Base, BaseORM):
     type: Mapped[str] = Column(
         String,
         ForeignKey("direction_type.name"),
-        nullable=False,
+        nullable=True,
     )
     first_year: Mapped[int] = Column(Integer)
     last_year: Mapped[int] = Column(Integer)
     nocode_int_id: Mapped[int] = Column(Integer)
+    deleted: Mapped[bool] = Column(Boolean, nullable=True)
     last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
     _unique_constraint = UniqueConstraint(nocode_int_id)

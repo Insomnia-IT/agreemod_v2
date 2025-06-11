@@ -4,13 +4,42 @@ import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime
 from grist_updater.config import config as app_config
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import json
 import uuid
 from uuid import UUID
-
-import json
+import aio_pika
 from pathlib import Path
+import logging
+import os
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
+    datefmt="%Y.%m.%d %H:%M:%S",
+)
+
+# Set RabbitMQ related loggers to WARNING level
+logging.getLogger("aio_pika").setLevel(logging.WARNING)
+logging.getLogger("aiormq").setLevel(logging.WARNING)
+logging.getLogger("connection").setLevel(logging.WARNING)
+logging.getLogger("channel").setLevel(logging.WARNING)
+logging.getLogger("exchange").setLevel(logging.WARNING)
+
+logger = logging.getLogger(__name__)
+
+# Special constant to indicate record should be skipped
+SKIP_RECORD = object()
+
+class DELETE_RECORD:
+    def __init__(self, reason: Optional[str] = None):
+        self.reason = reason
+
+    def __str__(self) -> str:
+        return f"{self.reason})"
+
+RESTORE_RECORD = object()
 
 class GristSync:
     def __init__(self, state_file='sync_state.json'):
@@ -18,8 +47,10 @@ class GristSync:
         self.roles: List[str] = []
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
+        self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
         self.state_file = Path(state_file)
         self.last_sync = self._load_sync_state()
+        self.rabbitmq_publisher = None
 
     def _load_sync_state(self) -> Dict[str, float]:
         try:
@@ -58,11 +89,8 @@ class GristSync:
         last_sync = self.last_sync.get(table_name)
         
         # Добавляем фильтр по времени, если есть
-        where_clause = f"WHERE updated_at >= {last_sync}" if last_sync else ""
-        if table_name == 'Participations' and last_sync:
-            where_clause += " AND (year >= 2024)"
-        elif table_name == 'Participations':
-            where_clause = "WHERE (year >= 2024)"
+        where_clause = ""
+        where_clause = f"WHERE {table_name}.updated_at >= {last_sync-300}" if last_sync else ""
         full_query = f"{base_query} {where_clause}"
         print(full_query)
         
@@ -117,10 +145,14 @@ class GristSync:
         # 2. Получение статусов из таблицы Participations
         participations = await self.fetch_grist_table('Participation_statuses')
         self.status_mapping = {
-             p['id']: p['fields'].get('code', None)
+             p['id']: {
+                 "code": p['fields'].get('code'),
+                 "name": p['fields'].get('A'),
+                 "to_list": p['fields'].get('to_list', True),
+                 "comment": p['fields'].get('B')
+             }
             for p in participations
         }
-        print(self.status_mapping)
 
         roles = await self.fetch_grist_table('Roles')
         self.roles_mapping = {
@@ -129,8 +161,24 @@ class GristSync:
                 "name":p['fields']['Name']}
             for p in roles
         }
+
+        # Fetch arrival types
+        arrival_types = await self.fetch_grist_table('Arrival_type')
+        self.arrival_mapping = {
+            p['id']: {
+                "code":p['fields']['code'],
+                "name":p['fields']['title']}
+            for p in arrival_types
+        }
+        print(self.arrival_mapping)
+
         try:
             await self._insert_roles()
+        except Exception:
+            pass
+
+        try:
+            await self._insert_participation_statuses()
         except Exception:
             pass
 
@@ -146,6 +194,37 @@ class GristSync:
                     template="(%s, %s)"
                 )
                 conn.commit()
+        finally:
+            conn.close()
+
+    async def _insert_participation_statuses(self):
+        """Вставка статусов участия в PostgreSQL"""
+        conn = self.get_pg_connection()
+        try:
+            with conn.cursor() as cursor:
+                for status_id, status in self.status_mapping.items():
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT INTO participation_status (code, name, to_list, comment)
+                            VALUES (%s, %s, %s, %s)
+                            ON CONFLICT (code) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                to_list = EXCLUDED.to_list,
+                                comment = EXCLUDED.comment
+                            """,
+                            (
+                                status.get('code'),
+                                status.get('name'),
+                                status.get('to_list', True),  # Default to True if not specified
+                                status.get('comment')
+                            )
+                        )
+                        conn.commit()
+                    except Exception as e:
+                        print(f"Error inserting status {status_id}: {e}")
+                        conn.rollback()
+                        continue
         finally:
             conn.close()
 
@@ -166,18 +245,68 @@ class GristSync:
             visit(table)
         return ordered
 
+    async def init_rabbitmq(self):
+        """Initialize RabbitMQ publisher"""
+        if not self.rabbitmq_publisher:
+            try:
+                rabbitmq_host = os.getenv('RABBITMQ__HOST', 'rabbitmq')
+                rabbitmq_user = os.getenv('RABBITMQ__USER', 'guest')
+                rabbitmq_password = os.getenv('RABBITMQ__PASSWORD', 'guest')
+                rabbitmq_port = os.getenv('RABBITMQ__QUEUE_PORT', '5672')
+                rabbitmq_url = f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}/"
+                
+                self.rabbitmq_publisher = await aio_pika.connect_robust(
+                    rabbitmq_url,
+                    timeout=30,
+                    reconnect_interval=5
+                )
+                logger.info("Successfully connected to RabbitMQ")
+            except Exception as e:
+                logger.error(f"Failed to connect to RabbitMQ: {e}")
+                raise
+
+    async def close_rabbitmq(self):
+        """Close RabbitMQ connection"""
+        if self.rabbitmq_publisher:
+            await self.rabbitmq_publisher.close()
+
+    async def publish_delete_message(self, table_name: str, record_id: int, reason: Optional[str] = None):
+        """Publish delete message to RabbitMQ"""
+        if not self.rabbitmq_publisher:
+            await self.init_rabbitmq()
+
+        channel = await self.rabbitmq_publisher.channel()
+        message = {
+            "table_name": table_name,
+            "id": record_id,
+            "reason": reason
+        }
+        await channel.default_exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key="delete_records"
+        )
+        #logger.info(f"Published delete message for record {record_id} in table {table_name}")
+
+    async def publish_restore_message(self, table_name: str, record_id: int):
+        """Publish restore message to RabbitMQ"""
+        if not self.rabbitmq_publisher:
+            await self.init_rabbitmq()
+
+        channel = await self.rabbitmq_publisher.channel()
+        message = {
+            "table_name": table_name,
+            "id": record_id
+        }
+        await channel.default_exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key="restore_records"
+        )
+        #logger.info(f"Published restore message for record {record_id} in table {table_name}")
+
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
         records = records.get('records')
-
-        if config['grist_table'] == 'Participations':
-            records = [
-                record for record in records
-                if record['fields'].get('person', 0) != 0 
-                and record['fields'].get('team', 0) != 0
-                and record['fields'].get('role_old') != ''
-            ]
         
         if not records:
             return
@@ -186,14 +315,39 @@ class GristSync:
             "status_mapping": self.status_mapping,
             "roles_mapping": self.roles_mapping,
             "badges_map": self.badges_map,
+            'arrivals_mapping': self.arrival_mapping,
             "roles": self.roles
         }
 
         # Преобразование данных
-        transformed = [
-            self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
-            for record in records
-        ]
+        transformed = []
+        for record in records:
+            try:
+                deleted = self._get_nested_value(record, 'fields.to_delete')
+                record_id = self._get_nested_value(record, 'fields.id')
+                result = self._transform_record(record, config['field_mapping'], config.get('transformations'), context)
+                if deleted is None:
+                    if result is SKIP_RECORD:
+                        continue
+                    elif isinstance(result, DELETE_RECORD):
+                        # Send delete message to RabbitMQ with reason
+                        await self.publish_delete_message(config['grist_table'], record_id, result.reason)
+                        continue
+                    else:
+                        transformed.append(result)
+                if deleted:
+                    if result is SKIP_RECORD or isinstance(result, DELETE_RECORD):
+                        continue
+                    # Publish restore message
+                    else:
+                        await self.publish_restore_message(config['grist_table'], record_id)
+                        continue
+            except Exception as e:
+                #print(f"Error transforming record {record}: {e}")
+                continue
+
+        if not transformed:
+            return
 
         # Вставка в PostgreSQL
         conn = self.get_pg_connection()
@@ -216,23 +370,43 @@ class GristSync:
                 with conn.cursor() as cursor:
                     for query_config in config['additional_queries']:
                         for record in records:
-                            # Получаем nocode_int_id бейджа и team_list
-                            badge_nocode_id = self._get_nested_value(record, 'fields.id')
-                            team_list_raw = self._get_nested_value(record, 'fields.team_list') or []
+                            if query_config['type'] == 'directions':
+                                # Получаем nocode_int_id бейджа и team_list
+                                badge_nocode_id = self._get_nested_value(record, 'fields.id')
+                                team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
 
-                            if isinstance(team_list_raw, str):
-                                team_list = list(map(int, team_list_raw.strip('[]').split(',')))
-                            else:
-                                team_list = team_list_raw
+                                if isinstance(team_list_raw, str):
+                                    # Handle empty string case
+                                    if not team_list_raw.strip('[]'):
+                                        team_list = []
+                                    else:
+                                        team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                                else:
+                                    team_list = team_list_raw
 
-                            # Преобразуем список в строку формата PostgreSQL ARRAY
-                            team_list_str = "{" + ",".join(map(str, team_list)) + "}"
+                                # Преобразуем список в строку формата PostgreSQL ARRAY
+                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"
+                                #print(team_list_str)
 
-                            # Выполняем запрос для текущего бейджа
-                            cursor.execute(
-                                query_config['insert_query'],
-                                (badge_nocode_id, team_list_str, badge_nocode_id)
-                            )
+                                # Выполняем запрос для текущего бейджа
+                                cursor.execute(
+                                    query_config['insert_query'],
+                                    (badge_nocode_id, team_list_str, badge_nocode_id)
+                                )
+                            elif query_config['type'] == 'parent':
+                                # Get badge ID and parent ID
+                                badge_nocode_id = self._get_nested_value(record, 'fields.id')
+                                parent_id = self._get_nested_value(record, 'fields.parent')
+                                
+                                # Apply transformation if exists
+                                if 'transformations' in query_config and 'fields.parent' in query_config['transformations']:
+                                    parent_id = query_config['transformations']['fields.parent'](parent_id, context)
+                                
+                                if parent_id is not None:
+                                    cursor.execute(
+                                        query_config['insert_query'],
+                                        (badge_nocode_id, parent_id)
+                                    )
                     conn.commit()
             finally:
                 conn.close()
@@ -245,15 +419,37 @@ class GristSync:
         context: Dict  # Добавляем контекст
     ) -> tuple:
         """Преобразование структуры записи с контекстом"""
+        # First apply all transformations to all fields that have them
+        #print(f"Record before: {record}")
+        for grist_field, transform_func in transformations.items():
+            value = self._get_nested_value(record, grist_field)
+            try:
+                transformed_value = transform_func(value, context)
+            except Exception as e:
+                print(f"Error transforming field '{grist_field}' with value '{value}': {str(e)}")
+            
+            # If any field transformation returns SKIP_RECORD or DELETE_RECORD, return immediately
+            if transformed_value is SKIP_RECORD:
+                return SKIP_RECORD
+            elif isinstance(transformed_value, DELETE_RECORD):
+                return transformed_value
+            
+            # Update the record with transformed value, maintaining the nested structure
+            keys = grist_field.split('.')
+            current = record
+            for key in keys[:-1]:
+                if key not in current:
+                    current[key] = {}
+                current = current[key]
+            current[keys[-1]] = transformed_value
+
+        # Then create the final tuple only for fields in mapping
+        #print(f"Record after: {record}")
         transformed = []
         for grist_field, pg_field in mapping.items():
             value = self._get_nested_value(record, grist_field)
-            
-            if transformations and grist_field in transformations:
-                # Передаем контекст в функцию преобразования
-                value = transformations[grist_field](value, context)
-            
             transformed.append(value)
+            
         return tuple(transformed)
 
     @staticmethod
@@ -297,6 +493,8 @@ TABLES_CONFIG = [
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.last_year': lambda x, ctx: x if type(x) is not dict else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.team_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty team_name'),
+            'fields.type_of_team': lambda x, ctx: x if x else None,
         },
         'dependencies': []
     },
@@ -316,7 +514,7 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 nocode_int_id = EXCLUDED.nocode_int_id
         """,
-        'sql_query': "SELECT * FROM Participations",
+        'sql_query': "SELECT Participations.*, People.name as people_table_name, Teams.team_name as team_table_name FROM Participations LEFT JOIN People ON Participations.person = People.id LEFT JOIN Teams ON Participations.team = Teams.id",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'uuid': 'id',
@@ -327,12 +525,19 @@ TABLES_CONFIG = [
             'fields.team': 'direction_id',
             'fields.updated_at': 'last_updated',
             'fields.id': 'nocode_int_id',
+#            'fields.people_table_name': 'people_table_name',
+#            'fields.team_table_name': 'team_table_name',
         },
         'transformations': {
             'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None),
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.year': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Invalid or empty year'),
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', None) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status mapping'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code',None) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role mapping'),
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD(reason='Invalid person ID'),
+            'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD(reason='Invalid team ID'),
+            'fields.people_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Person is Invalid and marked for delete'),
+            'fields.team_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Team is Invalid and marked for delete'),
         },
         'dependencies': ['People', 'Teams']
     },
@@ -380,21 +585,22 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated'
         },
         'transformations': {
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.other_names': lambda x, ctx: [x] if isinstance(x, str) else x if x else []
+            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\\"').replace("'", "\\'") + "}" if x else None,
         },
         'dependencies': []
     },
     {
-        'grist_table': 'Badges_2025',
+        'grist_table': 'Badges_2025',#'Badges_2025',
         'insert_query': """
             INSERT INTO badge (
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, parent_id, photo
+                occupation, person_id, photo, child, number
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -410,11 +616,13 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 occupation = EXCLUDED.occupation,
                 person_id = EXCLUDED.person_id,
-                parent_id = EXCLUDED.parent_id,
-                photo = EXCLUDED.photo
+                photo = EXCLUDED.photo,
+                child = EXCLUDED.child,
+                number = EXCLUDED.number
         """,
         'additional_queries': [
             {
+                'type': 'directions',
                 'insert_query': """
                     -- Удаляем старые связи
                     DELETE FROM badge_directions
@@ -428,14 +636,28 @@ TABLES_CONFIG = [
                     CROSS JOIN badge b
                     WHERE b.nocode_int_id = %s;
                 """,
-                'fields': ['fields.id', 'fields.team_list'],
+                'fields': ['fields.id', 'fields.directions_ref'],
                 'transformations': {
-                    'fields.team_list': lambda x, ctx: x if isinstance(x, list) else [],
+                    'fields.directions_ref': lambda x, ctx: x if isinstance(x, list) else [],
+                }
+            },
+            {
+                'type': 'parent',
+                'insert_query': """
+                    UPDATE badge b
+                    SET parent_id = p.nocode_int_id
+                    FROM badge p
+                    WHERE b.nocode_int_id = %s
+                    AND p.nocode_int_id = %s;
+                """,
+                'fields': ['fields.id', 'fields.parent'],
+                'transformations': {
+                    'fields.parent': lambda x, ctx: x if x != 0 else None,
                 }
             }
         ],
-        'sql_query': "SELECT * FROM Badges_2025",
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'sql_query': "SELECT * FROM Badges_2025", #Badges_2025
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -443,7 +665,7 @@ TABLES_CONFIG = [
             'fields.first_name': 'first_name',
             'fields.gender': 'gender',
             'fields.phone': 'phone',
-            'fields.is_vegan': 'diet',
+            'fields.diet': 'diet',
             'fields.feed_type': 'feed',
             'fields.batch': 'batch',
             'fields.role': 'role_code',
@@ -452,21 +674,26 @@ TABLES_CONFIG = [
             'fields.updated_at': 'last_updated',
             'fields.position': 'occupation',
             'fields.person': 'person_id',
-            'fields.parent': 'parent_id',
-            'fields.photo_attach_id': 'photo'
+            'fields.photo_attach_id': 'photo',
+            'fields.infant': 'child',
+            'fields.number': 'number'
         },
         'transformations': {
-            #'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, ctx['roles_mapping'].get(4, {})).get('code', 'VOLUNTEER'),
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
+            'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
+            'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
+            'fields.feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty feed type'),
+            'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid role')) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role'),
+            'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
-            'fields.parent': lambda x, ctx: x if x !=0 else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
-            'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None
+            'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
+            'fields.infant': lambda x, ctx: bool(x) if x else None
         },
         'dependencies': ['Teams']
     },
     {
-        'grist_table': 'Arrivals_2025',
+        'grist_table': 'Arrivals_2025', #'Arrivals_2025',
         'insert_query': """
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
@@ -481,12 +708,13 @@ TABLES_CONFIG = [
                 departure_transport = EXCLUDED.departure_transport,
                 last_updated = EXCLUDED.last_updated,
                 status = EXCLUDED.status,
-                badge_id = EXCLUDED.badge_id
+                badge_id = EXCLUDED.badge_id,
+                id = EXCLUDED.id
         """,
-        'sql_query': "SELECT * FROM Arrivals_2025",
+        'sql_query': "SELECT Arrivals_2025.*, Badges_2025.name as badge_name, Badges_2025.role as badge_role, Badges_2025.diet as badge_diet, Badges_2025.feed_type as badge_feed_type FROM Arrivals_2025 LEFT JOIN Badges_2025 ON Arrivals_2025.badge=Badges_2025.id", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
-            'uuid': 'id',
+            'fields.UUID': 'id',
             'fields.arrival_date': 'arrival_date',
             'fields.arrival_transport': 'arrival_transport',
             'fields.departure_date': 'departure_date',
@@ -497,12 +725,19 @@ TABLES_CONFIG = [
             'fields.id': 'nocode_int_id',
         },
         'transformations': {
-            'uuid': lambda x, ctx: str(uuid.uuid4()) if not x else x,
-
-            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
-            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None)
+            'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
+            'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
+            'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if x!=0 and ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
+            'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid arrival date'),
+            'fields.departure_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else DELETE_RECORD(reason='Invalid departure date'),
+            'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
+            'fields.status': lambda x, ctx: ctx['status_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid status')) if ctx['status_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid status'),
+            'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
+            'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
         },
         'dependencies': []
     }

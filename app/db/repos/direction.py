@@ -1,8 +1,10 @@
 import logging
+from typing import List
+from uuid import UUID
 
 from datetime import datetime
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -49,6 +51,22 @@ class DirectionRepo(BaseSqlaRepo[DirectionAppORM]):
     async def retrieve_all(self, from_date: datetime = None) -> list[Direction]:
         query = select(DirectionAppORM)
         if from_date:
-            query = query.where(DirectionAppORM.last_updated > from_date)
+            query = query.where(or_(DirectionAppORM.last_updated > from_date, DirectionAppORM.last_updated.is_(None)))
         result = await self.session.scalars(query)
         return [x.to_model() for x in result]
+
+    def query(
+        self,
+        idIn: List[UUID] = None,
+        include_badges: bool = False,
+    ):
+        query = select(DirectionAppORM)
+        if idIn:
+            query = query.where(DirectionAppORM.id.in_(idIn))
+        if include_badges:
+            query = query.options(selectinload(DirectionAppORM.badges)).options(selectinload(BadgeDirectionsAppORM.badge))
+        return query
+
+    async def retrieve_many(self, idIn: List[UUID] = None, include_badges: bool = False) -> list[Direction]:
+        result = await self.session.scalars(self.query(idIn=idIn, include_badges=include_badges))
+        return [x.to_model(include_badges=include_badges) for x in result]

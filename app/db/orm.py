@@ -53,7 +53,7 @@ class PersonAppORM(PersonORM):
             first_name=self.first_name,
             nickname=self.nickname,
             other_names=self.other_names,
-            gender=self.gender,
+            gender=self.gender if self.gender in [g.value for g in Gender] else Gender.OTHER.value,
             birth_date=self.birth_date,
             city=self.city,
             telegram=self.telegram,
@@ -63,6 +63,7 @@ class PersonAppORM(PersonORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
         return person
 
@@ -86,7 +87,7 @@ class DirectionAppORM(DirectionORM):
         return Direction(
             id=self.id,
             name=self.name,
-            type=DirectionType[self.type].value,
+            type=DirectionType[self.type].value if self.type else None,
             first_year=self.first_year,
             last_year=self.last_year,
             nocode_int_id=self.nocode_int_id,
@@ -94,6 +95,7 @@ class DirectionAppORM(DirectionORM):
             badges=(
                 [BadgeDTO.model_validate(x.badge, from_attributes=True) for x in self.badges] if include_badges else []
             ),
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -149,13 +151,13 @@ class BadgeAppORM(BadgeORM):
                 self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
-            diet=DietType[self.diet].value if self.diet else None,
+            diet = self.diet if self.diet else None,
             feed=self.feed,
             number=self.number,
             batch=self.batch,
             role=ParticipationRole[self.role_code].value,
             photo=self.photo,
-            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid else self.person_id,
+            person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid and self.person else self.person_id if self.person_id else None,
             directions=(
                 [DirectionDTO.model_validate(x.direction, from_attributes=True) for x in self.directions]
                 if include_directions
@@ -165,6 +167,7 @@ class BadgeAppORM(BadgeORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -205,6 +208,7 @@ class ArrivalAppORM(ArrivalORM):
             comment=self.comment,
             last_updated=self.last_updated,
             nocode_int_id=self.nocode_int_id,
+            deleted=self.deleted if self.deleted else False
         )
 
 
@@ -227,19 +231,20 @@ class ParticipationAppORM(ParticipationORM):
 
     def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
         return Participation(
+            id=self.id,
             year=self.year,
-            person=self.person.to_model() if include_person else self.person.id if uuid_ids else self.person_id,
+            person=self.person.to_model() if include_person else self.person.id if uuid_ids and self.person else self.person_id if self.person_id else None,
             direction=(
                 DirectionDTO.model_validate(self.direction, from_attributes=True)
                 if include_direction
                 else self.direction.id if uuid_ids
                 else self.direction_id
             ),
-            #role=ParticipationRole[self.role_code].value.capitalize() if self.role_code else None,
             role=ParticipationRole[self.role_code].value if self.role_code else None,
             status=ParticipationStatus[self.status_code].value if self.status_code else None,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
+            deleted=self.deleted if self.deleted else False
         )
 
 

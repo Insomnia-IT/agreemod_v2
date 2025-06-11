@@ -1,4 +1,6 @@
 import logging
+from typing import List
+from uuid import UUID
 
 from datetime import datetime
 from enum import Enum
@@ -96,17 +98,24 @@ class ArrivalRepo(BaseSqlaRepo[ArrivalAppORM]):
     async def delete(self, id):
         await self.session.execute(delete(ArrivalAppORM).where(ArrivalAppORM.id == id))
 
-    async def retrieve_many(self, filters: dict = None) -> list[Arrival]:
-        result = await self.session.scalars(
-            select(ArrivalAppORM)
-            .filter_by(**filters)
-            .options(
-                selectinload(
-                    ArrivalAppORM.badge,
-                )
-            )
-        )
-        return [x.to_model() for x in result]
+    def query(
+        self,
+        idIn: List[UUID] = None,
+        filters: dict = None,
+        include_badge: bool = False,
+    ):
+        query = select(ArrivalAppORM)
+        if idIn:
+            query = query.where(ArrivalAppORM.id.in_(idIn))
+        if filters:
+            query = query.filter_by(**filters)
+        if include_badge:
+            query = query.options(selectinload(ArrivalAppORM.badge))
+        return query
+
+    async def retrieve_many(self, idIn: List[UUID] = None, filters: dict = None, include_badge: bool = False) -> list[Arrival]:
+        result = await self.session.scalars(self.query(idIn=idIn, filters=filters, include_badge=include_badge))
+        return [x.to_model(include_badge=include_badge) for x in result]
 
     async def retrieve_all(self, page: int = None, page_size: int = None, from_date: datetime = None, badge_uuid: bool = None) -> list[Arrival]:
         query = select(ArrivalAppORM)

@@ -14,6 +14,7 @@ class Direction(DomainModel):
     first_year: int | None = None
     last_year: int | None = None
     last_updated: datetime | None = None
+    deleted: bool | None = False
 
     nocode_int_id: int
 

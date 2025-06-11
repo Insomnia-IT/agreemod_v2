@@ -35,9 +35,15 @@ class Badge(DomainModel):
     comment: str | None = None
     occupation: str
     nocode_int_id: int | None = None
+    deleted: bool | None = False
 
     last_updated: datetime | None = None
     directions: list[DirectionDTO] | None = Field(default_factory=list)
+
+    @computed_field
+    @property
+    def vegan(self) -> bool:
+        return self.diet == DietType.VEGAN
 
     @computed_field
     @property
@@ -121,10 +127,10 @@ class Badge(DomainModel):
         if not value:
             return DietType.default()
         try:
-            return DietType(value.lower())
+            return DietType(value)
         except ValueError:
             return DietType.default()
-
+        
     @model_validator(mode="after")
     def set_default_photo(self) -> str:
         if not self.photo:

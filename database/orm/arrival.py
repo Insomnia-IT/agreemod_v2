@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, time
 
-from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, Date, ForeignKey, Integer, String, UniqueConstraint, Boolean
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped
 
@@ -27,7 +27,7 @@ class ArrivalORM(Base, BaseORM):
 
     __tablename__ = "arrival"
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    nocode_int_id: Mapped[int] = Column(String)
+    nocode_int_id: Mapped[int] = Column(Integer)
     badge_id: Mapped[int] = Column(
         Integer, ForeignKey("badge.nocode_int_id", ondelete="CASCADE"), nullable=False
     )
@@ -41,6 +41,7 @@ class ArrivalORM(Base, BaseORM):
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
     last_updated: Mapped[time] = Column(TIMESTAMP)
+    deleted: Mapped[bool] = Column(Boolean, nullable=True)
 
     _unique_constraint_nocode = UniqueConstraint(nocode_int_id)
 
