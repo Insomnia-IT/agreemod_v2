@@ -75,7 +75,7 @@ class GristBadgeWriter:
             }
 
             # Check if badge exists in Grist
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -90,7 +90,7 @@ class GristBadgeWriter:
                     logger.info(f"Updating existing badge")
                     grist_data["records"][0]["id"] = existing_badge["id"]
                     logger.info(grist_data)
-                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
+                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()
