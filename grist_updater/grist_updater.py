@@ -12,6 +12,7 @@ import aio_pika
 from pathlib import Path
 import logging
 import os
+from dictionaries import Gender
 
 # Configure logging
 logging.basicConfig(
@@ -691,7 +692,8 @@ TABLES_CONFIG = [
             'fields.person': lambda x, ctx: x if x != 0 else None,
             'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
             'fields.infant': lambda x, ctx: bool(x) if x else None,
-            'fields.ticket': lambda x, ctx: bool(x) if x else None
+            'fields.ticket': lambda x, ctx: bool(x) if x else None,
+            'fields.gender': lambda x, ctx: x if x in [g.value for g in Gender] and isinstance(x, str) else None if x is None or x==0 or x=="" else DELETE_RECORD(reason='Invalid gender value')
         },
         'dependencies': ['Teams']
     },
