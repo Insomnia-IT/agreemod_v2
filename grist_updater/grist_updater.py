@@ -600,7 +600,7 @@ TABLES_CONFIG = [
                 id, name, last_name, first_name, gender, 
                 phone, diet, feed, batch, role_code,
                 comment, nocode_int_id, last_updated,
-                occupation, person_id, photo, child, number
+                occupation, person_id, photo, child, number, ticket
             ) VALUES %s
             ON CONFLICT (nocode_int_id) DO UPDATE SET
                 name = EXCLUDED.name,
@@ -618,7 +618,8 @@ TABLES_CONFIG = [
                 person_id = EXCLUDED.person_id,
                 photo = EXCLUDED.photo,
                 child = EXCLUDED.child,
-                number = EXCLUDED.number
+                number = EXCLUDED.number,
+                ticket = EXCLUDED.ticket
         """,
         'additional_queries': [
             {
@@ -657,7 +658,7 @@ TABLES_CONFIG = [
             }
         ],
         'sql_query': "SELECT * FROM Badges_2025", #Badges_2025
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
             'fields.name': 'name',
@@ -676,7 +677,8 @@ TABLES_CONFIG = [
             'fields.person': 'person_id',
             'fields.photo_attach_id': 'photo',
             'fields.infant': 'child',
-            'fields.number': 'number'
+            'fields.number': 'number',
+            'fields.ticket': 'ticket'
         },
         'transformations': {
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
@@ -688,7 +690,8 @@ TABLES_CONFIG = [
             'fields.updated_at': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') if x else None,
             'fields.person': lambda x, ctx: x if x != 0 else None,
             'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
-            'fields.infant': lambda x, ctx: bool(x) if x else None
+            'fields.infant': lambda x, ctx: bool(x) if x else None,
+            'fields.ticket': lambda x, ctx: bool(x) if x else None
         },
         'dependencies': ['Teams']
     },

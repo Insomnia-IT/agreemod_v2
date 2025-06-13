@@ -128,6 +128,7 @@ class BadgeAppORM(BadgeORM):
             person_id=model.person.id if type(model.person)==Person else model.person if type(model.person)==UUID else None,
             comment=model.comment,
             nocode_int_id=model.nocode_int_id if model.nocode_int_id else None,
+            ticket=model.ticket if model.ticket else None
         )
 
     def to_model(
@@ -167,7 +168,8 @@ class BadgeAppORM(BadgeORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
-            deleted=self.deleted if self.deleted else False
+            deleted=self.deleted if self.deleted else False,
+            ticket = self.ticket
         )
 
 

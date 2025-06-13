@@ -49,6 +49,7 @@ class BadgeORM(Base, BaseORM):
     nocode_int_id: Mapped[int] = Column(Integer)
     deleted: Mapped[bool] = Column(Boolean, nullable=True)
     last_updated: Mapped[time] = Column(TIMESTAMP)
+    ticket: Mapped[bool] = Column(Boolean, nullable=True)
 
     _unique_constraint_number = UniqueConstraint(number)
     _unique_constraint_notion = UniqueConstraint(nocode_int_id)

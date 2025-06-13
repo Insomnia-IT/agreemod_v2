@@ -36,6 +36,7 @@ class Badge(DomainModel):
     occupation: str
     nocode_int_id: int | None = None
     deleted: bool | None = False
+    ticket: bool | None
 
     last_updated: datetime | None = None
     directions: list[DirectionDTO] | None = Field(default_factory=list)
