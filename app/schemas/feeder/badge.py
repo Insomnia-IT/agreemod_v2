@@ -106,6 +106,7 @@ class BadgeResponse(BaseModel):
     person: int | UUID| None
     comment: str | None
     nocode_int_id: int
+    ticket: bool | None
     directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
