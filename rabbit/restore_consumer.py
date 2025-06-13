@@ -61,7 +61,7 @@ class RestoreMessageConsumer:
                 )
                 self.channel = await self.connection.channel()
                 self.queue = await self.channel.declare_queue("restore_records", durable=True)
-                logger.info("Successfully connected to RabbitMQ")
+                logger.info(f"Successfully connected to RabbitMQ on {self.rabbitmq_url}")
                 return
             except Exception as e:
                 logger.error(f"Failed to connect to RabbitMQ: {e}")

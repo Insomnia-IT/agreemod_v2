@@ -43,7 +43,7 @@ services:
   rabbitmq:
     image: rabbitmq:3.13.2-management
     platform: linux/amd64
-    hostname: rabbitmq
+    hostname: ${RABBITMQ__DEFAULT_HOST}
     restart: always
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ__DEFAULT_USER}
@@ -54,23 +54,23 @@ services:
       timeout: 30s
       retries: 3
     ports:
-      - ${RABBITMQ__WEB_PORT}:${RABBITMQ__WEB_PORT}
-      - ${RABBITMQ__QUEUE_PORT}:${RABBITMQ__QUEUE_PORT}
+      - ${RABBITMQ__WEB_PORT}:15672
+      - ${RABBITMQ__QUEUE_PORT}:5672
 
   delete_consumer:
     build:
       dockerfile: docker/deleter.dockerfile
       context: ./
     environment:
-      - RABBITMQ__HOST=rabbitmq
-      - RABBITMQ__USER=guest
-      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__HOST=${RABBITMQ__DEFAULT_HOST}
+      - RABBITMQ__USER=${RABBITMQ__DEFAULT_USER}
+      - RABBITMQ__PASSWORD=${RABBITMQ__DEFAULT_PASS}
       - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
       - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
-      - POSTGRES__HOST=postgres
+      - POSTGRES__HOST=${POSTGRES__HOST}
       - POSTGRES__PORT=${POSTGRES__PORT}
       - POSTGRES__USER=${POSTGRES__USER}
       - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
@@ -87,15 +87,15 @@ services:
       dockerfile: docker/restorer.dockerfile
       context: ./
     environment:
-      - RABBITMQ__HOST=rabbitmq
-      - RABBITMQ__USER=guest
-      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__HOST=${RABBITMQ__DEFAULT_HOST}
+      - RABBITMQ__USER=${RABBITMQ__DEFAULT_USER}
+      - RABBITMQ__PASSWORD=${RABBITMQ__DEFAULT_PASS}
       - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
       - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
       - GRIST__SERVER=${GRIST__SERVER}
       - GRIST__DOC_ID=${GRIST__DOC_ID}
       - GRIST__API_KEY=${GRIST__API_KEY}
-      - POSTGRES__HOST=postgres
+      - POSTGRES__HOST=${POSTGRES__HOST}
       - POSTGRES__PORT=${POSTGRES__PORT}
       - POSTGRES__USER=${POSTGRES__USER}
       - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
@@ -130,9 +130,9 @@ services:
       dockerfile: docker/updater.dockerfile
       context: ./
     environment:
-      - RABBITMQ__HOST=rabbitmq
-      - RABBITMQ__USER=guest
-      - RABBITMQ__PASSWORD=guest
+      - RABBITMQ__HOST=${RABBITMQ__DEFAULT_HOST}
+      - RABBITMQ__USER=${RABBITMQ__DEFAULT_USER}
+      - RABBITMQ__PASSWORD=${RABBITMQ__DEFAULT_PASS}
       - RABBITMQ__QUEUE_PORT=${RABBITMQ__QUEUE_PORT}
       - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
     volumes:
