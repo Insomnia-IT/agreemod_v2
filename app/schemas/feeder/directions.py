@@ -21,15 +21,20 @@ class DirectionResponse(BaseModel):
     name: str
     first_year: int | None = None
     last_year: int | None = None
-    type: DirectionType
+    type: DirectionType | None
     nocode_int_id: int
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):  # type: ignore
         if not strenum:
             return None
+        if value is None:
+            return None
         return strenum(value).value
 
     @field_serializer("type")
     def serialize_enums(self, strenum: StrEnum, _info):
-        return strenum.value
+        if strenum is not None:
+            return strenum.value
+        else:
+            return None

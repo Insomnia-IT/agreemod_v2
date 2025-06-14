@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 
 from app.dependencies.service import get_feeder_service
@@ -35,7 +35,6 @@ async def back_sync(
     intake: BackSyncIntakeSchema,
     badges_service: FeederService = Depends(get_feeder_service),
     arrivals_service: FeederService = Depends(get_feeder_service),
-
 ):
     await badges_service.back_sync_badges(intake)
     await arrivals_service.back_sync_arrivals(intake)

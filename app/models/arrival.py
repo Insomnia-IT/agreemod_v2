@@ -23,6 +23,8 @@ class Arrival(DomainModel):
     extra_data: dict | None = None
     comment: str | None = None
     last_updated: datetime | None = None
+    deleted: bool | None = False
+    nocode_int_id: int | None = None
     #TODO: What should we do with coda index?
     coda_index: str | None = None
 
