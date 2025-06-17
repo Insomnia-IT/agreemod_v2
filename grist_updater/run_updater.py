@@ -14,7 +14,7 @@ async def sync_loop():
     try:
         while True:
             print("\n--- Начало цикла синхронизации ---")
-            await main_cycle(sync)
+            await sync_cycle_with_retry(sync)
             sync._save_sync_state()
             print("--- Цикл завершен. Ожидание 30 секунд ---")
             await asyncio.sleep(30)
@@ -23,6 +23,24 @@ async def sync_loop():
         raise e
     finally:
         await sync.close_rabbitmq()
+
+async def sync_cycle_with_retry(sync, max_retries=3):
+    """Attempt to run the entire sync cycle with retries and exponential backoff"""
+    retry_count = 0
+    while retry_count < max_retries:
+        try:
+            await main_cycle(sync)
+            return  # Success, exit the function
+        except Exception as e:
+            retry_count += 1
+            if retry_count == max_retries:
+                logger.error(f"Failed to complete sync cycle after {max_retries} attempts", exc_info=True)
+                raise  # Re-raise the last exception after all retries are exhausted
+            
+            # Calculate delay with exponential backoff and jitter
+            delay = min(300, (2 * retry_count) + random.uniform(0, 1))
+            logger.warning(f"Error in sync cycle, attempt {retry_count}/{max_retries}. Retrying in {delay:.2f} seconds...")
+            await asyncio.sleep(delay)
 
 async def sync_table_with_retry(sync, config, max_retries=5):
     """Attempt to sync a table with retries and exponential backoff"""
