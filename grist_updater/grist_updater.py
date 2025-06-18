@@ -380,7 +380,6 @@ class GristSync:
                                 # Получаем nocode_int_id бейджа и team_list
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
                                 team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
-                                logger.info(team_list_raw)
 
                                 if isinstance(team_list_raw, str):
                                     # Handle empty string case
@@ -388,12 +387,17 @@ class GristSync:
                                         team_list = []
                                     else:
                                         team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                                elif isinstance(team_list_raw, dict):
+                                    continue
                                 else:
                                     team_list = team_list_raw
 
+                                # Apply transformation if exists
+                                if 'transformations' in query_config and 'fields.directions_ref' in query_config['transformations']:
+                                    team_list_raw = query_config['transformations']['fields.directions_ref'](team_list_raw, context)
+
                                 # Преобразуем список в строку формата PostgreSQL ARRAY
-                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"
-                                #print(team_list_str)
+                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"                  
 
                                 # Выполняем запрос для текущего бейджа
                                 cursor.execute(
