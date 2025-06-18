@@ -468,6 +468,8 @@ class GristSync:
             value = value.get(key, None)
             if value is None:
                 break
+        if isinstance(value,dict):
+            logger.error(f"In {data} on {path} transformed the dict {value}")
         return value
 
 TABLES_CONFIG = [
