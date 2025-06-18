@@ -38,13 +38,17 @@ class PostgresConfig(BaseModel):
 
 
 class RabbitMQ(BaseModel):
-    host: str = "localhost"
+    host: str = "rabbitmq"
     user: str = "guest"
     password: str = "guest"
     web_port: int = 15672
     queue_port: int = 5672
     telegram_queue: str = "telegram"
     # link = f'amqp://guest:guest@localhost/' # TODO: make link right here
+
+    @property
+    def url(self) -> str:
+        return f"amqp://{self.user}:{self.password}@{self.host}:{self.queue_port}/"
 
 
 class Config(BaseSettings):
