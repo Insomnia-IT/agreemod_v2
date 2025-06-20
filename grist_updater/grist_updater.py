@@ -701,7 +701,7 @@ TABLES_CONFIG = [
             'fields.last_name': lambda x, ctx: x if isinstance(x, str) else None,
             'fields.batch': lambda x, ctx: x if isinstance(x, int) else None,
             'fields.updated_at': lambda x, ctx: datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S'),
-            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, UUID) else None,
+            'fields.person': lambda x, ctx: x if x != 0 and isinstance(x, int) else None,
             'fields.photo_attach_id': lambda x, ctx: f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/attachments/{x}/download" if x else None,
             'fields.infant': lambda x, ctx: bool(x) if x else None,
             'fields.ticket': lambda x, ctx: bool(x) if x else None,
