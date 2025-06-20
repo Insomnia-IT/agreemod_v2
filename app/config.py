@@ -48,7 +48,7 @@ class RabbitMQ(BaseModel):
 
 
 class Config(BaseSettings):
-    TITLE: str = "Notion API & Integrations"
+    TITLE: str = "Grist API & Integrations"
     DESCRIPTION: str = ""
 
     DEBUG: bool = False

@@ -1,9 +1,9 @@
 import logging
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from fastapi.responses import JSONResponse
 
 from app.dependencies.service import get_feeder_service
@@ -23,10 +23,10 @@ router_feeder = APIRouter()
 )
 async def sync(
     #username: Annotated[str, Depends(verify_credentials)],
-    from_date: datetime,
+    from_date: datetime = Query(..., description="Дата и время в формате UTC (например, 2024-07-01T12:00:00Z). Обязательно указывать в UTC (MSK-3)!"),
     service: FeederService = Depends(get_feeder_service),
 ):
-    return await service.sync(from_date)
+    return await service.sync(from_date + timedelta(hours=3))
 
 
 @router_feeder.post("/feeder/back-sync", summary="API для синхронизации с кормителем")
