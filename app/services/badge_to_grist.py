@@ -84,7 +84,7 @@ class GristBadgeWriter:
                         raise Exception(f"Error fetching badges: {resp.status} - {error_text}")
                     records = await resp.json()
                     existing_badge = next((r for r in records.get('records', []) 
-                                        if UUID(r['fields'].get('UUID')) == UUID(badge.id)), None)
+                                        if UUID(str(r['fields'].get('UUID'))) == UUID(badge.id)), None)
                 if existing_badge:
                     # Update existing badge
                     logger.info(f"Updating existing badge")
