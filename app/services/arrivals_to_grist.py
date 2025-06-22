@@ -95,7 +95,7 @@ class GristArrivalWriter:
                         raise Exception(f"Error fetching arrivals: {resp.status} - {error_text}")
                     records = await resp.json()
                     existing_arrival = next((r for r in records.get('records', []) 
-                                        if UUID(r['fields'].get('UUID')) == arrival.data.id), None)
+                                        if UUID(str(r['fields'].get('UUID'))) == arrival.data.id), None)
                 if existing_arrival:
                     # Update existing arrival
                     grist_data["records"][0]["id"] = existing_arrival["id"]
