@@ -35,7 +35,7 @@ class GristArrivalWriter:
                         raise Exception(f"Error fetching badges: {resp.status} - {error_text}")
                     records = await resp.json()
                     badge_record = next((r for r in records.get('records', []) 
-                                      if UUID(r['fields'].get('UUID')) == badge_uuid), None)
+                                      if UUID(str(r['fields'].get('UUID'))) == badge_uuid), None)
                     if badge_record:
                         return badge_record['id']
                     return None
