@@ -48,11 +48,13 @@ class GristArrivalWriter:
         arrival, present_fields = arrival_tuple
         logger.info(f"Working on arrival:{arrival}")
         try:
+            corresponding_badge_id = None
             # Find corresponding badge ID in Grist
-            corresponding_badge_id = await self.find_badge_id_by_uuid(arrival.data.badge_id) if arrival.data.badge_id else None
-            if not corresponding_badge_id:
-                logger.error(f"Could not find corresponding badge in Grist for arrival {arrival.data.id}")
-                raise Exception(f"Badge not found in Grist for arrival {arrival.data.id}")
+            if arrival.data.badge_id:
+                corresponding_badge_id = await self.find_badge_id_by_uuid(arrival.data.badge_id) if arrival.data.badge_id else None
+                if not corresponding_badge_id:
+                    logger.error(f"Could not find corresponding badge in Grist for arrival {arrival.data.id}")
+                    raise Exception(f"Badge not found in Grist for arrival {arrival.data.id}")
 
             # Prepare the arrival data for Grist
             fields = {}
