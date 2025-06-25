@@ -1,7 +1,10 @@
 import logging
+import asyncio
 from typing import List, Optional, Tuple
 from uuid import UUID
 from datetime import datetime
+import json
+import urllib.parse
 
 import aiohttp
 from app.config import config
@@ -24,9 +27,12 @@ class GristArrivalWriter:
         return int(datetime.combine(date_obj, datetime.min.time()).timestamp())
 
     async def find_badge_id_by_uuid(self, badge_uuid: UUID) -> Optional[int]:
-        """Find badge ID in Grist by its UUID"""
+        """Find badge ID in Grist by its UUID (no dashes)"""
         try:
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records"
+            uuid_no_dashes = str(badge_uuid).replace('-', '')
+            filter_obj = {"UUID": [uuid_no_dashes]}
+            filter_param = urllib.parse.quote(json.dumps(filter_obj))
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -34,8 +40,7 @@ class GristArrivalWriter:
                         logger.error(f"Error fetching badges: {resp.status} - {error_text}")
                         raise Exception(f"Error fetching badges: {resp.status} - {error_text}")
                     records = await resp.json()
-                    badge_record = next((r for r in records.get('records', []) 
-                                      if UUID(str(r['fields'].get('UUID'))) == badge_uuid), None)
+                    badge_record = records.get('records', [None])[0] if records.get('records') else None
                     if badge_record:
                         return badge_record['id']
                     return None
@@ -47,6 +52,8 @@ class GristArrivalWriter:
         """Update or create a arrival in Grist"""
         arrival, present_fields = arrival_tuple
         logger.info(f"Working on arrival:{arrival}")
+        if arrival.data.id is None:
+            return False
         try:
             corresponding_badge_id = None
             # Find corresponding badge ID in Grist
@@ -88,7 +95,9 @@ class GristArrivalWriter:
             print(grist_data)
 
             # Check if arrival exists in Grist
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025/records"
+            filter_obj = {"UUID": [str(arrival.data.id)]}
+            filter_param = urllib.parse.quote(json.dumps(filter_obj))
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -96,8 +105,7 @@ class GristArrivalWriter:
                         logger.error(f"Error fetching arrivals: {resp.status} - {error_text}")
                         raise Exception(f"Error fetching arrivals: {resp.status} - {error_text}")
                     records = await resp.json()
-                    existing_arrival = next((r for r in records.get('records', []) 
-                                        if UUID(str(r['fields'].get('UUID'))) == arrival.data.id), None)
+                    existing_arrival = records.get('records', [None])[0] if records.get('records') else None
                 if existing_arrival:
                     # Update existing arrival
                     grist_data["records"][0]["id"] = existing_arrival["id"]
@@ -126,11 +134,15 @@ class GristArrivalWriter:
 
 async def grist_arrivals_writer(arrivals: List[Tuple[ArrivalWithMetadata, set]]):
     """Sync multiple arrivals to Grist"""
-    logger.info(f"Working on arrivals:{arrivals}")
+    logger.info(f"Working on {len(arrivals)} arrivals")
     try:
         writer = GristArrivalWriter()
-        for arrival_tuple in arrivals:
-            await writer.update_arrival(arrival_tuple)
+        batch_size = 1
+        for i in range(0, len(arrivals), batch_size):
+        #for i in range(0, 10, batch_size):
+            batch = arrivals[i:i+batch_size]
+            tasks = [writer.update_arrival(arrival_tuple) for arrival_tuple in batch]
+            await asyncio.gather(*tasks)
         logger.info("Finished syncing arrivals to Grist")
     except Exception as e:
         logger.critical(f"Error syncing arrivals to Grist: {e}")
