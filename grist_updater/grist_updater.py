@@ -749,7 +749,7 @@ TABLES_CONFIG = [
             'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
             'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
-            'fields.badge_feed_type': lambda x, ctx: x if x in FeedType._value2member_map else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_feed_type': lambda x, ctx: x if x in FeedType._value2member_map_ else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if x!=0 and ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if not isinstance(x, dict) and x else DELETE_RECORD(reason='Invalid arrival date'),
