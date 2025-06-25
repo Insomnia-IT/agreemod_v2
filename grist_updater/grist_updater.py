@@ -12,7 +12,7 @@ import aio_pika
 from pathlib import Path
 import logging
 import os
-from dictionaries import Gender
+from dictionaries import Gender, FeedType
 
 # Configure logging
 logging.basicConfig(
@@ -695,7 +695,7 @@ TABLES_CONFIG = [
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.name': lambda x, ctx: x if x and isinstance(x, str) else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
-            'fields.feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty feed type'),
+            'fields.feed_type': lambda x, ctx: x if x in FeedType._value2member_map_ else DELETE_RECORD(reason='Empty or invalid feed type'),
             'fields.role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', DELETE_RECORD(reason='Invalid role')) if ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Invalid role'),
             'fields.first_name': lambda x, ctx: x if isinstance(x, str) else None,
             'fields.last_name': lambda x, ctx: x if isinstance(x, str) else None,
@@ -730,7 +730,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT Arrivals_2025.*, Badges_2025.name as badge_name, Badges_2025.role as badge_role, Badges_2025.diet as badge_diet, Badges_2025.feed_type as badge_feed_type FROM Arrivals_2025 LEFT JOIN Badges_2025 ON Arrivals_2025.badge=Badges_2025.id", #Arrivals_2025
+        'sql_query': "SELECT Arrivals_2025_copy.*, Badges_2025_copy.name as badge_name, Badges_2025_copy.role as badge_role, Badges_2025_copy.diet as badge_diet, Badges_2025_copy.feed_type as badge_feed_type, Badges_2025_copy.delete_reason as badge_delete_reson FROM Arrivals_2025_copy LEFT JOIN Badges_2025_copy ON Arrivals_2025_copy.badge=Badges_2025_copy.id", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -744,11 +744,12 @@ TABLES_CONFIG = [
             'fields.id': 'nocode_int_id',
         },
         'transformations': {
+            'fields.badge_delete_reson': lambda x, ctx: DELETE_RECORD(reason='Badge marked for delete') if isinstance(x, str) and ("FEEDER" in x) else None,
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
             'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
-            'fields.badge_feed_type': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
+            'fields.badge_feed_type': lambda x, ctx: x if x in FeedType._value2member_map else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.badge_role': lambda x, ctx: ctx['roles_mapping'].get(x, None).get('code', None) if x!=0 and ctx['roles_mapping'].get(x, None) != None else DELETE_RECORD(reason='Badge marked for delete'),
             'fields.UUID': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.arrival_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if not isinstance(x, dict) and x else DELETE_RECORD(reason='Invalid arrival date'),
