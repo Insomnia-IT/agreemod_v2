@@ -95,7 +95,8 @@ class GristArrivalWriter:
             print(grist_data)
 
             # Check if arrival exists in Grist
-            filter_obj = {"UUID": [str(arrival.data.id)]}
+            uuid_no_dashes = str(arrival.data.id).replace('-', '')
+            filter_obj = {"UUID": [uuid_no_dashes]}
             filter_param = urllib.parse.quote(json.dumps(filter_obj))
             url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
@@ -119,7 +120,7 @@ class GristArrivalWriter:
                             raise Exception(f"Error updating arrival: {resp.status} - {error_text}")
                 else:
                     # Create new arrival
-                    grist_data["records"][0]['fields']['UUID'] = str(arrival.data.id)
+                    grist_data["records"][0]['fields']['UUID'] = uuid_no_dashes
                     logger.info(f"Creating new arrival")
                     async with session.post(url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
