@@ -32,7 +32,7 @@ from app.dto.direction import DirectionDTO
 from app.services.badge_to_grist import grist_badges_writer
 from app.services.arrivals_to_grist import grist_arrivals_writer
 from app.dto.direction import DirectionDTO
-from dictionaries import FeedType
+from dictionaries import FeedType, DietType
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +120,8 @@ class FeederService:
                     badge_data['directions'] = [direction_map.get(str(d)) for d in badge_data['directions'] if direction_map.get(str(d))]
                 if badge_data.get("feed"):
                     badge_data['feed'] = FeedType(badge_data['feed']).value
+                if badge_data.get('vegan'):
+                    badge_data['diet'] = DietType.STANDARD.value if badge_data.get('vegan') else DietType.VEGAN.value
                 badge_obj = Badge.model_construct(**badge_data)
                 enriched_badges.append((badge_obj, present_fields))  # Store as a tuple of (badge, present_fields)
             
