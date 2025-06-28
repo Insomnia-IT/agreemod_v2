@@ -95,7 +95,7 @@ class BadgeResponse(BaseModel):
     last_name: str = ""
     gender: Gender | None
     phone: str = ""
-    infant: Optional[bool] = Field(..., validation_alias="child")
+    infant: bool = Field(False, validation_alias="child")
     vegan: Optional[bool] = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
     number: str | None
@@ -150,3 +150,10 @@ class BadgeResponse(BaseModel):
         if value:
             return value
         return ""
+
+    @field_validator("infant", mode="before")
+    @classmethod
+    def convert_infant(cls, value):
+        if value is None:
+            return False
+        return value
