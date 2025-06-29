@@ -108,6 +108,39 @@ class GristArrivalWriter:
                     records = await resp.json()
                     existing_arrival = records.get('records', [None])[0] if records.get('records') else None
                 if existing_arrival:
+                    # Check if 'to_delete' is set in Grist
+                    if existing_arrival["fields"].get("to_delete") is not None:
+                        logger.info(f"Updating existing arrival with restored data from postgres")
+                        from database.meta import async_session
+                        from app.db.repos.arrival import ArrivalRepo
+                        async with async_session() as db_session:
+                            repo = ArrivalRepo(db_session)
+                            db_arrival = await repo.retrieve(id=arrival.data.id, include_badge=True)
+                            if db_arrival:
+                                # Overlay present fields from input arrival onto db_arrival
+                                for field in present_fields:
+                                    if hasattr(arrival.data, field):
+                                        setattr(db_arrival, field, getattr(arrival.data, field))
+                                # Map all fields from db_arrival to fields for Grist
+                                fields = {
+                                    "status": db_arrival.status.value if db_arrival.status else None,
+                                    "arrival_date": self._date_to_timestamp(db_arrival.arrival_date) if db_arrival.arrival_date else None,
+                                    "arrival_transport": db_arrival.arrival_transport.value if db_arrival.arrival_transport else None,
+                                    "departure_date": self._date_to_timestamp(db_arrival.departure_date) if db_arrival.departure_date else None,
+                                    "departure_transport": db_arrival.departure_transport.value if db_arrival.departure_transport else None,
+                                    "badge": await self.find_badge_id_by_uuid(db_arrival.badge.id) if hasattr(db_arrival.badge, 'id') else None,
+                                    # Add more fields as needed from db_arrival
+                                }
+                                grist_data["records"][0]["fields"] = fields
+                                grist_data["records"][0]["id"] = existing_arrival["id"]
+                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025_copy/records"
+                                async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
+                                    if resp.status != 200:
+                                        error_text = await resp.text()
+                                        logger.error(f"Error updating arrival: {resp.status} - {error_text}")
+                                        raise Exception(f"Error updating arrival: {resp.status} - {error_text}")
+                                logger.info(f"Successfully restored arrival {arrival.data.id} from DB to Grist")
+                                return False
                     # Update existing arrival
                     grist_data["records"][0]["id"] = existing_arrival["id"]
                     logger.info(f"Updating existing arrival")
