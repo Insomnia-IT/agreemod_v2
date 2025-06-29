@@ -10,6 +10,8 @@ from app.config import config
 #from app.models.badge import Badge
 from app.schemas.feeder.badge import Badge
 from datetime import datetime
+from database.meta import async_session
+from app.db.repos.badge import BadgeRepo
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +98,49 @@ class GristBadgeWriter:
                     records = await resp.json()
                     existing_badge = records.get('records', [None])[0] if records.get('records') else None
                 if existing_badge:
+                    # Check if 'to_delete' is set in Grist
+                    if existing_badge["fields"].get("to_delete") is not None:
+                        logger.info(f"Updating existing badge with restored data from postgres")
+                        async with async_session() as db_session:
+                            repo = BadgeRepo(db_session)
+                            # badge.id is UUID, ensure it's the right type
+                            db_badge = await repo.retrieve(id=badge.id)
+                            if db_badge:
+                                # Overlay present fields from input badge onto db_badge
+                                for field in present_fields:
+                                    if hasattr(badge, field):
+                                        setattr(db_badge, field, getattr(badge, field))
+                                # Map all fields from db_badge to fields for Grist
+                                fields = {
+                                    "name": db_badge.name,
+                                    "last_name": db_badge.last_name,
+                                    "first_name": db_badge.first_name,
+                                    "gender": db_badge.gender.value if db_badge.gender else None,
+                                    "phone": db_badge.phone,
+                                    "diet": db_badge.diet.value if db_badge.diet else None,
+                                    "feed_type": db_badge.feed,
+                                    "infant": db_badge.child,
+                                    "role": db_badge.role.value if db_badge.role else None,
+                                    "comment": db_badge.comment,
+                                    "position": db_badge.occupation,
+                                    "person": db_badge.person.nocode_int_id if db_badge.person else "",
+                                    "parent": str(db_badge.parent.nocode_int_id) if db_badge.parent else "",
+                                    "directions_ref": ["L"] + [d.nocode_int_id for d in db_badge.directions] if db_badge.directions else None,
+                                    "status": "Из Кормителя",
+                                    # ... add any other fields as needed
+                                }
+                                grist_data["records"][0]["fields"] = fields
+                                grist_data["records"][0]["id"] = existing_badge["id"]
+                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
+                                async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
+                                    if resp.status != 200:
+                                        error_text = await resp.text()
+                                        logger.error(f"Error updating badge: {resp.status} - {error_text}")
+                                        raise Exception(f"Error updating badge: {resp.status} - {error_text}")
+                                logger.info(f"Successfully restored badge {badge.name} from DB to Grist")
+                                return False
                     # Update existing badge
-                    logger.info(f"Updating existing badge")
+                    logger.info(f"Updating existing badge with data from Feeder")
                     grist_data["records"][0]["id"] = existing_badge["id"]
                     logger.info(grist_data)
                     update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records"
