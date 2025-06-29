@@ -1,7 +1,7 @@
 import json
 import logging
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import aio_pika
 import aiohttp
 import os
@@ -128,7 +128,7 @@ class RestoreMessageConsumer:
                 conn = self.get_pg_connection()
                 try:
                     with conn.cursor() as cursor:
-                        current_time = datetime.now()
+                        current_time = datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S')
                         cursor.execute(
                             f"UPDATE {grist_to_postgres_map[table_name]} SET deleted = FALSE, last_updated = %s WHERE nocode_int_id = %s",
                             (current_time, record_id)
