@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import ARRAY, TIMESTAMP, Column, Date, String, UniqueConstraint, Integer
+from sqlalchemy import ARRAY, TIMESTAMP, Column, Date, String, UniqueConstraint, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped
 
@@ -27,6 +27,7 @@ class PersonORM(Base, BaseORM):
     diet: Mapped[str] = Column(String)
     comment: Mapped[str] = Column(String)
     nocode_int_id: Mapped[int] = Column(Integer)
+    deleted: Mapped[bool] = Column(Boolean, nullable=True)
     last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
     _unique_constraint_notion = UniqueConstraint(nocode_int_id)
