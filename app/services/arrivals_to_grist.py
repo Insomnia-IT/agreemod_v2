@@ -131,7 +131,7 @@ class GristArrivalWriter:
 
                                 grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_arrival["id"]
-                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025_copy/records"
+                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2025/records"
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                                     if resp.status != 200:
                                         error_text = await resp.text()
