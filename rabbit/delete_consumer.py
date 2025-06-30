@@ -96,7 +96,7 @@ class DeleteMessageConsumer:
                 headers = {"Authorization": f"Bearer {self.grist_api_key}"}
                 update_data = None
 
-                if table_name == "Badges_2025_copy" or table_name == "Arrivals_2025_copy":
+                if table_name == "Badges_2025" or table_name == "Arrivals_2025":
                     update_data = {
                         "records": [{
                             "id": record_id,
