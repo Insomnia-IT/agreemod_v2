@@ -730,7 +730,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT Arrivals_2025_copy.*, Badges_2025_copy.name as badge_name, Badges_2025_copy.role as badge_role, Badges_2025_copy.diet as badge_diet, Badges_2025_copy.feed_type as badge_feed_type, Badges_2025_copy.delete_reason as badge_delete_reson FROM Arrivals_2025_copy LEFT JOIN Badges_2025_copy ON Arrivals_2025_copy.badge=Badges_2025_copy.id", #Arrivals_2025
+        'sql_query': "SELECT Arrivals_2025.*, Badges_2025.name as badge_name, Badges_2025.role as badge_role, Badges_2025.diet as badge_diet, Badges_2025.feed_type as badge_feed_type, Badges_2025.delete_reason as badge_delete_reson FROM Arrivals_2025 LEFT JOIN Badges_2025 ON Arrivals_2025.badge=Badges_2025.id", #Arrivals_2025
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
