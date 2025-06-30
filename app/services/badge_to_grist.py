@@ -106,12 +106,8 @@ class GristBadgeWriter:
                             # badge.id is UUID, ensure it's the right type
                             db_badge = await repo.retrieve(id=badge.id)
                             if db_badge:
-                                # Overlay present fields from input badge onto db_badge
-                                for field in present_fields:
-                                    if hasattr(badge, field):
-                                        setattr(db_badge, field, getattr(badge, field))
                                 # Map all fields from db_badge to fields for Grist
-                                fields = {
+                                restored_fields = {
                                     "name": db_badge.name,
                                     "last_name": db_badge.last_name,
                                     "first_name": db_badge.first_name,
@@ -127,9 +123,11 @@ class GristBadgeWriter:
                                     "parent": str(db_badge.parent.nocode_int_id) if db_badge.parent else "",
                                     "directions_ref": ["L"] + [d.nocode_int_id for d in db_badge.directions] if db_badge.directions else None,
                                     "status": "Из Кормителя",
-                                    # ... add any other fields as needed
                                 }
-                                grist_data["records"][0]["fields"] = fields
+                                # Then, overlay with the fields from the original request
+                                restored_fields.update(fields)
+
+                                grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_badge["id"]
                                 update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025_copy/records"
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
