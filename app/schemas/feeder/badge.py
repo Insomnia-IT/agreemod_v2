@@ -34,6 +34,12 @@ class Badge(BaseModel):
     notion_id: str | None = None
     directions: list[UUID] = Field(default_factory=list)
 
+    @field_serializer("role", "feed", "gender")
+    def serialize_enums(self, strenum: StrEnum, _info):
+        if not strenum:
+            return None
+        return strenum.value
+
     @field_validator("gender", mode="before")
     @classmethod
     def convert_gender(cls, value: str):
@@ -89,7 +95,7 @@ class BadgeResponse(BaseModel):
     last_name: str = ""
     gender: Gender | None
     phone: str = ""
-    infant: Optional[bool] = Field(..., validation_alias="child")
+    infant: bool = Field(False, validation_alias="child")
     vegan: Optional[bool] = Field(..., validation_alias="diet")
     feed: FeedType = Field(FeedType.NO)
     number: str | None
@@ -100,6 +106,7 @@ class BadgeResponse(BaseModel):
     person: int | UUID| None
     comment: str | None
     nocode_int_id: int
+    ticket: bool | None
     directions: list[UUID] = Field(..., default_factory=list)
 
     @staticmethod
@@ -115,7 +122,7 @@ class BadgeResponse(BaseModel):
     @field_validator("vegan", mode="before")
     @classmethod
     def convert_vegan(cls, value: str):
-        if value == "VEGAN":
+        if value == "Веган":
             return True
         return False
 
@@ -143,3 +150,10 @@ class BadgeResponse(BaseModel):
         if value:
             return value
         return ""
+
+    @field_validator("infant", mode="before")
+    @classmethod
+    def convert_infant(cls, value):
+        if value is None:
+            return False
+        return value

@@ -5,6 +5,13 @@ install:
 	python -m pip install poetry && \
 	python -m poetry install --no-root
 
+# Windows installation
+install-win:
+	python -m venv venv
+	.\venv\Scripts\activate
+	python -m pip install poetry
+	python -m poetry install --no-root
+
 #Докер
 rebuild: stop down build up
 
