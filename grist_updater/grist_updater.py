@@ -380,6 +380,7 @@ class GristSync:
                                 # Получаем nocode_int_id бейджа и team_list
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
                                 team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
+                                self.logger.info(f"team_list_raw for badge {badge_nocode_id}: {team_list_raw}")
 
                                 if isinstance(team_list_raw, str):
                                     # Handle empty string case
