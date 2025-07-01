@@ -407,6 +407,7 @@ class GristSync:
                                     query_config['insert_query'],
                                     (badge_nocode_id, team_list_str, badge_nocode_id)
                                 )
+                                conn.commit()
                             elif query_config['type'] == 'parent':
                                 # Get badge ID and parent ID
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
@@ -421,7 +422,8 @@ class GristSync:
                                         query_config['insert_query'],
                                         (badge_nocode_id, parent_id)
                                     )
-                    conn.commit()
+                                conn.commit()
+                    #conn.commit()
             except Exception as e:
                 logger.error(f"On directions-parent Badges query: {e}")
                 raise e
