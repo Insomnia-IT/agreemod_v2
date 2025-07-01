@@ -394,11 +394,13 @@ class GristSync:
                                     team_list = team_list_raw
 
                                 # Apply transformation if exists
-                                if 'transformations' in query_config and 'fields.directions_ref' in query_config['transformations']:
-                                    team_list_raw = query_config['transformations']['fields.directions_ref'](team_list_raw, context)
+                                #if 'transformations' in query_config and 'fields.directions_ref' in query_config['transformations']:
+                                #    team_list_raw = query_config['transformations']['fields.directions_ref'](team_list_raw, context)
 
                                 # Преобразуем список в строку формата PostgreSQL ARRAY
-                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"                  
+                                team_list_str = "{" + ",".join(map(str, team_list)) + "}"         
+
+                                logger.info(f"Inserting {team_list_str} to {badge_nocode_id}")         
 
                                 # Выполняем запрос для текущего бейджа
                                 cursor.execute(
