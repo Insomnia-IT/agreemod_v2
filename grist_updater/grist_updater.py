@@ -380,7 +380,7 @@ class GristSync:
                                 # Получаем nocode_int_id бейджа и team_list
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
                                 team_list_raw = self._get_nested_value(record, 'fields.directions_ref') or []
-                                logger.info(f"team_list_raw for badge {badge_nocode_id}: {team_list_raw}")
+                                #logger.info(f"team_list_raw for badge {badge_nocode_id}: {team_list_raw}")
 
                                 if isinstance(team_list_raw, str):
                                     # Handle empty string case
@@ -400,7 +400,7 @@ class GristSync:
                                 # Преобразуем список в строку формата PostgreSQL ARRAY
                                 team_list_str = "{" + ",".join(map(str, team_list)) + "}"         
 
-                                logger.info(f"Inserting {team_list_str} to {badge_nocode_id}")         
+                                #logger.info(f"Inserting {team_list_str} to {badge_nocode_id}")         
 
                                 # Выполняем запрос для текущего бейджа
                                 cursor.execute(
@@ -422,6 +422,9 @@ class GristSync:
                                         (badge_nocode_id, parent_id)
                                     )
                     conn.commit()
+            except Exception as e:
+                logger.error(f"On directions-parent Badges query: {e}")
+                raise e
             finally:
                 conn.close()
 
