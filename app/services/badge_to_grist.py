@@ -99,7 +99,7 @@ class GristBadgeWriter:
                     existing_badge = records.get('records', [None])[0] if records.get('records') else None
                 if existing_badge:
                     # Check if 'to_delete' is set in Grist
-                    if existing_badge["fields"].get("to_delete") is not None:
+                    if existing_badge["fields"].get("to_delete") is not None and badge.deleted != True:
                         logger.info(f"Updating existing badge with restored data from postgres")
                         async with async_session() as db_session:
                             repo = BadgeRepo(db_session)

@@ -109,7 +109,7 @@ class GristArrivalWriter:
                     existing_arrival = records.get('records', [None])[0] if records.get('records') else None
                 if existing_arrival:
                     # Check if 'to_delete' is set in Grist
-                    if existing_arrival["fields"].get("to_delete") is not None:
+                    if existing_arrival["fields"].get("to_delete") is not None and arrival.data.deleted != True:
                         logger.info(f"Updating existing arrival with restored data from postgres")
                         from database.meta import async_session
                         from app.db.repos.arrival import ArrivalRepo
