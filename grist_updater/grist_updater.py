@@ -505,7 +505,7 @@ TABLES_CONFIG = [
             'fields.last_year': lambda x, ctx: x if type(x) is not dict else None,
             'fields.updated_at': lambda x, ctx: datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S'),
             'fields.team_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty team_name'),
-            'fields.type_of_team': lambda x, ctx: x if x else None,
+            'fields.type_of_team': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty type'),
         },
         'dependencies': []
     },
