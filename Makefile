@@ -15,6 +15,8 @@ install-win:
 #Докер
 rebuild: stop down build up
 
+setup_project: build up migrate
+
 build:
 	docker compose build
 
