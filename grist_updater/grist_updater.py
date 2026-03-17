@@ -153,6 +153,7 @@ class GristSync:
                  "comment": p['fields'].get('B')
              }
             for p in participations
+            if p['fields'].get('code') and p['fields'].get('A')
         }
 
         roles = await self.fetch_grist_table('Roles')
@@ -161,6 +162,7 @@ class GristSync:
                 "code":p['fields']['Code'],
                 "name":p['fields']['Name']}
             for p in roles
+            if p['fields'].get('Code') and p['fields'].get('Name')
         }
 
         # Fetch arrival types
@@ -170,6 +172,7 @@ class GristSync:
                 "code":p['fields']['code'],
                 "name":p['fields']['title']}
             for p in arrival_types
+            if p['fields'].get('code') and p['fields'].get('title')
         }
         logger.info(self.arrival_mapping)
 
