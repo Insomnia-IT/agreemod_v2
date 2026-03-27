@@ -43,31 +43,57 @@ class DELETE_RECORD:
 RESTORE_RECORD = object()
 
 class GristSync:
-    def __init__(self, state_file='sync_state.json'):
+    def __init__(self):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
-        self.state_file = Path(state_file)
         self.last_sync = self._load_sync_state()
         self.rabbitmq_publisher = None
 
     def _load_sync_state(self) -> Dict[str, float]:
+        conn = self.get_pg_connection()
         try:
-            if self.state_file.exists():
-                with open(self.state_file, 'r') as f:
-                    return json.load(f)
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT table_name, last_sync FROM sync_state")
+                rows = cursor.fetchall()
+                result = {
+                    row[0]: row[1].timestamp() if row[1] else None
+                    for row in rows
+                }
+                return result
+
         except Exception as e:
             logger.error(f"Ошибка загрузки состояния: {e}")
-        return {}
+            return {}
+
+        finally:
+            conn.close()
     
     def _save_sync_state(self):
+        conn = self.get_pg_connection()
         try:
-            with open(self.state_file, 'w') as f:
-                json.dump(self.last_sync, f, indent=2)
+            with conn.cursor() as cursor:
+                for table_name, sync_time in self.last_sync.items():
+                    cursor.execute(
+                        """
+                        INSERT INTO sync_state (table_name, last_sync)
+                        VALUES (%s, to_timestamp(%s))
+                        ON CONFLICT (table_name)
+                        DO UPDATE SET last_sync = EXCLUDED.last_sync
+                        """,
+                        (table_name, sync_time)
+                    )
+            conn.commit()
+
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
+            conn.rollback()
+            raise e
+
+        finally:
+            conn.close()
 
     @staticmethod
     def get_pg_connection():
