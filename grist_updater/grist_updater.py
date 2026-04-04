@@ -13,6 +13,8 @@ from pathlib import Path
 import logging
 import os
 from dictionaries import Gender, FeedType
+from database.meta import async_session
+from database.repo.sync_states import SyncStateRepo
 
 # Configure logging
 logging.basicConfig(
@@ -49,21 +51,21 @@ class GristSync:
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
-        self.last_sync = self._load_sync_state()
+        self.last_sync = {}
         self.rabbitmq_publisher = None
 
-    def _load_sync_state(self) -> Dict[str, float]:
+    async def _load_sync_state(self) -> Dict[str, float]:
         conn = self.get_pg_connection()
         try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT table_name, last_sync FROM sync_state")
-                rows = cursor.fetchall()
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
+                states = await repo.get_all()
                 result = {
-                    row[0]: row[1].timestamp() if row[1] else None
-                    for row in rows
+                    state.table_name: state.last_sync.timestamp()
+                    for state in states
+                    if state.last_sync
                 }
                 return result
-
         except Exception as e:
             logger.error(f"Ошибка загрузки состояния: {e}")
             return {}
@@ -71,29 +73,26 @@ class GristSync:
         finally:
             conn.close()
     
-    def _save_sync_state(self):
+    async def _save_sync_state(self):
         conn = self.get_pg_connection()
         try:
-            with conn.cursor() as cursor:
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
                 for table_name, sync_time in self.last_sync.items():
-                    cursor.execute(
-                        """
-                        INSERT INTO sync_state (table_name, last_sync)
-                        VALUES (%s, to_timestamp(%s))
-                        ON CONFLICT (table_name)
-                        DO UPDATE SET last_sync = EXCLUDED.last_sync
-                        """,
-                        (table_name, sync_time)
+                    await repo.upsert(
+                        table_name,
+                        datetime.fromtimestamp(sync_time)
                     )
-            conn.commit()
 
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
-            conn.rollback()
             raise e
 
         finally:
             conn.close()
+
+    async def init_sync_state(self):
+        self.last_sync = await self._load_sync_state()
 
     @staticmethod
     def get_pg_connection():
