@@ -55,26 +55,20 @@ class GristSync:
         self.rabbitmq_publisher = None
 
     async def _load_sync_state(self) -> Dict[str, float]:
-        conn = self.get_pg_connection()
         try:
             async with async_session() as session:
                 repo = SyncStateRepo(session)
                 states = await repo.get_all()
-                result = {
+                return {
                     state.table_name: state.last_sync.timestamp()
                     for state in states
                     if state.last_sync
                 }
-                return result
         except Exception as e:
             logger.error(f"Ошибка загрузки состояния: {e}")
             return {}
-
-        finally:
-            conn.close()
     
     async def _save_sync_state(self):
-        conn = self.get_pg_connection()
         try:
             async with async_session() as session:
                 repo = SyncStateRepo(session)
@@ -86,10 +80,7 @@ class GristSync:
 
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
-            raise e
-
-        finally:
-            conn.close()
+            raise
 
     async def init_sync_state(self):
         self.last_sync = await self._load_sync_state()
