@@ -3,7 +3,7 @@ import aiohttp
 import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime, timezone, timedelta
-from grist_updater.config import config as app_config
+from grist_updater.config import config as app_config, main_logger
 from typing import Dict, List, Optional, Union
 import json
 import uuid
@@ -14,21 +14,22 @@ import logging
 import os
 from dictionaries import Gender, FeedType
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
-    datefmt="%Y.%m.%d %H:%M:%S",
-)
+# Reuse logging configured in grist_updater.config.
+logger = main_logger
 
 # Set RabbitMQ related loggers to WARNING level
-logging.getLogger("aio_pika").setLevel(logging.WARNING)
-logging.getLogger("aiormq").setLevel(logging.WARNING)
-logging.getLogger("connection").setLevel(logging.WARNING)
-logging.getLogger("channel").setLevel(logging.WARNING)
-logging.getLogger("exchange").setLevel(logging.WARNING)
+for name in (
+    "aio_pika",
+    "aiormq",
+    "aio_pika.connection",
+    "aio_pika.channel",
+    "aio_pika.exchange",
+    "aiormq.connection",
+    "aiormq.channel",
+):
+    logging.getLogger(name).setLevel(logging.WARNING)
 
-logger = logging.getLogger(__name__)
+
 
 # Special constant to indicate record should be skipped
 SKIP_RECORD = object()
