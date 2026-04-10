@@ -5,7 +5,6 @@ from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 from dotenv import load_dotenv
-from isort.settings import _as_bool
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from traceback_with_variables import ColorSchemes, Format
