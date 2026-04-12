@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 async def sync_loop():
     sync = GristSync()
+    await sync.init_sync_state()
     try:
         while True:
             print("\n--- Начало цикла синхронизации ---")
             await sync_cycle_with_retry(sync)
-            sync._save_sync_state()
+            await sync._save_sync_state()
             print("--- Цикл завершен. Ожидание 30 секунд ---")
             await asyncio.sleep(30)
     except Exception as e:

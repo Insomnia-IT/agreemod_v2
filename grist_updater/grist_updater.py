@@ -13,6 +13,8 @@ from pathlib import Path
 import logging
 import os
 from dictionaries import Gender, FeedType
+from database.meta import async_session
+from database.repo.sync_states import SyncStateRepo
 
 # Configure logging
 logging.basicConfig(
@@ -43,31 +45,45 @@ class DELETE_RECORD:
 RESTORE_RECORD = object()
 
 class GristSync:
-    def __init__(self, state_file='sync_state.json'):
+    def __init__(self):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
-        self.state_file = Path(state_file)
-        self.last_sync = self._load_sync_state()
+        self.last_sync = {}
         self.rabbitmq_publisher = None
 
-    def _load_sync_state(self) -> Dict[str, float]:
+    async def _load_sync_state(self) -> Dict[str, float]:
         try:
-            if self.state_file.exists():
-                with open(self.state_file, 'r') as f:
-                    return json.load(f)
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
+                states = await repo.get_all()
+                return {
+                    state.table_name: state.last_sync.timestamp()
+                    for state in states
+                    if state.last_sync
+                }
         except Exception as e:
             logger.error(f"Ошибка загрузки состояния: {e}")
-        return {}
+            return {}
     
-    def _save_sync_state(self):
+    async def _save_sync_state(self):
         try:
-            with open(self.state_file, 'w') as f:
-                json.dump(self.last_sync, f, indent=2)
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
+                for table_name, sync_time in self.last_sync.items():
+                    await repo.upsert(
+                        table_name,
+                        datetime.fromtimestamp(sync_time)
+                    )
+
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
+            raise
+
+    async def init_sync_state(self):
+        self.last_sync = await self._load_sync_state()
 
     @staticmethod
     def get_pg_connection():

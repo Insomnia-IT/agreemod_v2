@@ -5,3 +5,4 @@ from .direction import DirectionORM
 from .participation import ParticipationORM
 from .person import PersonORM
 from .logging import LogsORM
+from .sync_state import SyncStateORM
