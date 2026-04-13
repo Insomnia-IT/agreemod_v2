@@ -9,6 +9,7 @@ COPY grist_updater grist_updater
 COPY database database
 COPY dictionaries dictionaries
 COPY rabbit rabbit
+COPY common common
 
 COPY .env grist_updater/poetry.lock grist_updater/pyproject.toml ./
 
