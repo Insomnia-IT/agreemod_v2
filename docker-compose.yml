@@ -83,7 +83,7 @@ services:
       - LOG_MAX_BYTES=${LOG_MAX_BYTES}
       - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
     volumes:
-      - ./${LOG_DIR}:/var/log/agreemod
+      - ${LOG_DIR}:/var/log/agreemod
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -117,7 +117,7 @@ services:
       - LOG_MAX_BYTES=${LOG_MAX_BYTES}
       - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
     volumes:
-      - ./${LOG_DIR}:/var/log/agreemod
+      - ${LOG_DIR}:/var/log/agreemod
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -144,7 +144,7 @@ services:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
-      - ./${LOG_DIR}:/var/log/agreemod
+      - ${LOG_DIR}:/var/log/agreemod
     depends_on:
       postgres:
         condition: service_healthy
@@ -174,7 +174,7 @@ services:
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
       - ./rabbit:${VOLUME_MOUNT_PREFIX}/rabbit
-      - ./${LOG_DIR}:/var/log/agreemod
+      - ${LOG_DIR}:/var/log/agreemod
     depends_on:
       postgres:
         condition: service_healthy
