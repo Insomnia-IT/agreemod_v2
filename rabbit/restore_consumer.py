@@ -1,5 +1,6 @@
 import json
 import logging
+from common.logging_setup import setup_logging, get_logger
 import asyncio
 from datetime import datetime, timezone, timedelta
 import aio_pika
@@ -12,21 +13,8 @@ from .grist_to_postgres import grist_to_postgres_map
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
-    datefmt="%Y.%m.%d %H:%M:%S",
-)
-
-# Set RabbitMQ related loggers to WARNING level
-logging.getLogger("aio_pika").setLevel(logging.WARNING)
-logging.getLogger("aiormq").setLevel(logging.WARNING)
-logging.getLogger("connection").setLevel(logging.WARNING)
-logging.getLogger("channel").setLevel(logging.WARNING)
-logging.getLogger("exchange").setLevel(logging.WARNING)
-
-logger = logging.getLogger(__name__)
+setup_logging("restore_consumer")
+logger = get_logger("restore_consumer")
 
 class RestoreMessageConsumer:
     def __init__(self, rabbitmq_url):

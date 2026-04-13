@@ -7,6 +7,7 @@ RUN pip install --upgrade poetry
 
 # Copy poetry files
 COPY rabbit rabbit
+COPY common common
 
 COPY .env rabbit/poetry.lock rabbit/pyproject.toml ./
 
