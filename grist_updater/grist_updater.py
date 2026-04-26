@@ -494,6 +494,15 @@ class GristSync:
                 break
         return value
 
+def _safe_other_names(x):
+    """Safely convert other_names to PostgreSQL array literal, return None on failure."""
+    if not x:
+        return None
+    try:
+        return "{" + x.replace('"', '\"').replace("'", "\\'") + "}"
+    except Exception:
+        return None
+
 TABLES_CONFIG = [
     {
         'grist_table': 'Teams',
@@ -622,8 +631,9 @@ TABLES_CONFIG = [
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S'),
-            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\"').replace("'", "\\'") + "}" if x else None,
+            'fields.other_names': lambda x, ctx: _safe_other_names(x),
             'fields.isInBL': lambda x, ctx: False if x == 'Нет' or x is None else True,
+            'fields.gender': lambda x, ctx: x if x in ['М', 'Ж', 'др.'] else None,
         },
         'dependencies': []
     },
