@@ -3,7 +3,7 @@ import aiohttp
 import psycopg2
 from psycopg2.extras import execute_values
 from datetime import datetime, timezone, timedelta
-from grist_updater.config import config as app_config
+from grist_updater.config import config as app_config, main_logger
 from typing import Dict, List, Optional, Union
 import json
 import uuid
@@ -13,22 +13,25 @@ from pathlib import Path
 import logging
 import os
 from dictionaries import Gender, FeedType
+from database.meta import async_session
+from database.repo.sync_states import SyncStateRepo
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
-    datefmt="%Y.%m.%d %H:%M:%S",
-)
+# Reuse logging configured in grist_updater.config.
+logger = main_logger
 
 # Set RabbitMQ related loggers to WARNING level
-logging.getLogger("aio_pika").setLevel(logging.WARNING)
-logging.getLogger("aiormq").setLevel(logging.WARNING)
-logging.getLogger("connection").setLevel(logging.WARNING)
-logging.getLogger("channel").setLevel(logging.WARNING)
-logging.getLogger("exchange").setLevel(logging.WARNING)
+for name in (
+    "aio_pika",
+    "aiormq",
+    "aio_pika.connection",
+    "aio_pika.channel",
+    "aio_pika.exchange",
+    "aiormq.connection",
+    "aiormq.channel",
+):
+    logging.getLogger(name).setLevel(logging.WARNING)
 
-logger = logging.getLogger(__name__)
+
 
 # Special constant to indicate record should be skipped
 SKIP_RECORD = object()
@@ -43,31 +46,45 @@ class DELETE_RECORD:
 RESTORE_RECORD = object()
 
 class GristSync:
-    def __init__(self, state_file='sync_state.json'):
+    def __init__(self):
         self.status_mapping: Dict[int, str] = {}  # {grist_status_id: status_code}
         self.roles: List[str] = []
         self.badges_map: Dict[int, str] = {}
         self.roles_mapping: Dict[str, str] = {}
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
-        self.state_file = Path(state_file)
-        self.last_sync = self._load_sync_state()
+        self.last_sync = {}
         self.rabbitmq_publisher = None
 
-    def _load_sync_state(self) -> Dict[str, float]:
+    async def _load_sync_state(self) -> Dict[str, float]:
         try:
-            if self.state_file.exists():
-                with open(self.state_file, 'r') as f:
-                    return json.load(f)
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
+                states = await repo.get_all()
+                return {
+                    state.table_name: state.last_sync.timestamp()
+                    for state in states
+                    if state.last_sync
+                }
         except Exception as e:
             logger.error(f"Ошибка загрузки состояния: {e}")
-        return {}
+            return {}
     
-    def _save_sync_state(self):
+    async def _save_sync_state(self):
         try:
-            with open(self.state_file, 'w') as f:
-                json.dump(self.last_sync, f, indent=2)
+            async with async_session() as session:
+                repo = SyncStateRepo(session)
+                for table_name, sync_time in self.last_sync.items():
+                    await repo.upsert(
+                        table_name,
+                        datetime.fromtimestamp(sync_time)
+                    )
+
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
+            raise
+
+    async def init_sync_state(self):
+        self.last_sync = await self._load_sync_state()
 
     @staticmethod
     def get_pg_connection():
@@ -561,7 +578,7 @@ TABLES_CONFIG = [
             INSERT INTO person (
                 id, name, last_name, first_name, nickname, other_names, 
                 telegram, phone, email, gender, birth_date, city, comment, 
-                nocode_int_id, last_updated
+                nocode_int_id, last_updated, banned
             ) VALUES %s
             ON CONFLICT (nocode_int_id) 
             DO UPDATE SET
@@ -577,10 +594,11 @@ TABLES_CONFIG = [
                 birth_date = EXCLUDED.birth_date,
                 city = EXCLUDED.city,
                 comment = EXCLUDED.comment,
-                last_updated = EXCLUDED.last_updated
+                last_updated = EXCLUDED.last_updated,
+                banned = EXCLUDED.banned
         """,
         'sql_query': "SELECT * FROM People",
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.ntn_id': 'id',
             'fields.name': 'name',
@@ -596,14 +614,16 @@ TABLES_CONFIG = [
             'fields.city': 'city',
             'fields.comment': 'comment',
             'fields.id': 'nocode_int_id',
-            'fields.updated_at': 'last_updated'
+            'fields.updated_at': 'last_updated',
+            'fields.isInBL': 'banned'
         },
         'transformations': {
             'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S'),
-            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\\"').replace("'", "\\'") + "}" if x else None,
+            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\"').replace("'", "\\'") + "}" if x else None,
+            'fields.isInBL': lambda x, ctx: False if x == 'Нет' or x is None else True,
         },
         'dependencies': []
     },

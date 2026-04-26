@@ -75,6 +75,15 @@ services:
       - POSTGRES__USER=${POSTGRES__USER}
       - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
       - POSTGRES__NAME=${POSTGRES__NAME}
+      - DEBUG=${DEBUG}
+      - LOG_DIR=/var/log/delete_consumer
+      - LOG_FILE_ENABLED=${LOG_FILE_ENABLED}
+      - LOG_STDOUT_ENABLED=${LOG_STDOUT_ENABLED}
+      - LOG_FILE_NAME=delete_consumer.log
+      - LOG_MAX_BYTES=${LOG_MAX_BYTES}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
+    volumes:
+      - ${LOG_DIR}/delete_consumer:/var/log/delete_consumer
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -100,6 +109,15 @@ services:
       - POSTGRES__USER=${POSTGRES__USER}
       - POSTGRES__PASSWORD=${POSTGRES__PASSWORD}
       - POSTGRES__NAME=${POSTGRES__NAME}
+      - DEBUG=${DEBUG}
+      - LOG_DIR=/var/log/restore_consumer
+      - LOG_FILE_ENABLED=${LOG_FILE_ENABLED}
+      - LOG_STDOUT_ENABLED=${LOG_STDOUT_ENABLED}
+      - LOG_FILE_NAME=restore_consumer.log
+      - LOG_MAX_BYTES=${LOG_MAX_BYTES}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
+    volumes:
+      - ${LOG_DIR}/restore_consumer:/var/log/restore_consumer
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -114,10 +132,19 @@ services:
       context: ./
     ports:
       - ${API_PROXY}:${API_PORT}
+    environment:
+      - DEBUG=${DEBUG}
+      - LOG_DIR=/var/log/app
+      - LOG_FILE_ENABLED=${LOG_FILE_ENABLED}
+      - LOG_STDOUT_ENABLED=${LOG_STDOUT_ENABLED}
+      - LOG_FILE_NAME=app.log
+      - LOG_MAX_BYTES=${LOG_MAX_BYTES}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
     volumes:
       - ./app:${VOLUME_MOUNT_PREFIX}/app
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
+      - ${LOG_DIR}/app:/var/log/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -135,11 +162,19 @@ services:
       - RABBITMQ__PASSWORD=${RABBITMQ__DEFAULT_PASS}
       - RABBITMQ__QUEUE_PORT=5672
       - RABBITMQ__WEB_PORT=${RABBITMQ__WEB_PORT}
+      - DEBUG=${DEBUG}
+      - LOG_DIR=/var/log/updater
+      - LOG_FILE_ENABLED=${LOG_FILE_ENABLED}
+      - LOG_STDOUT_ENABLED=${LOG_STDOUT_ENABLED}
+      - LOG_FILE_NAME=updater.log
+      - LOG_MAX_BYTES=${LOG_MAX_BYTES}
+      - LOG_BACKUP_COUNT=${LOG_BACKUP_COUNT}
     volumes:
       - ./grist_updater:${VOLUME_MOUNT_PREFIX}/grist_updater
       - ./database:${VOLUME_MOUNT_PREFIX}/database
       - ./dictionaries:${VOLUME_MOUNT_PREFIX}/dictionaries
       - ./rabbit:${VOLUME_MOUNT_PREFIX}/rabbit
+      - ${LOG_DIR}/updater:/var/log/updater
     depends_on:
       postgres:
         condition: service_healthy

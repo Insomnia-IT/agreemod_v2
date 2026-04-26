@@ -1,5 +1,6 @@
 import logging
 import typing
+from common.logging_setup import setup_logging, get_logger
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -8,6 +9,7 @@ from traceback_with_variables import ColorSchemes, Format
 
 
 load_dotenv()
+
 
 
 class CodaConfig(BaseSettings):
@@ -112,13 +114,8 @@ config = Config()
 #     return Config()
 
 
-logging.basicConfig(
-    level=logging.DEBUG if config.DEBUG else logging.INFO,
-    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
-    datefmt="%Y.%m.%d %H:%M:%S",
-)
-
-main_logger = logging.getLogger("agreemod")
+setup_logging("grist_updater")
+main_logger = get_logger("grist_updater")
 # std_handler = logging.StreamHandler(sys.stdout)
 # logger.addHandler(std_handler)
 

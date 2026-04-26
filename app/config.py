@@ -1,5 +1,6 @@
 import logging
 import typing
+from common.logging_setup import setup_logging, get_logger
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -108,13 +109,9 @@ config = Config()
 #     return Config()
 
 
-logging.basicConfig(
-    level=logging.DEBUG if config.DEBUG else logging.INFO,
-    format="%(asctime)s [%(module)s] [%(levelname)s]: %(message)s",
-    datefmt="%Y.%m.%d %H:%M:%S",
-)
+setup_logging(logger_name="agreemod")
+main_logger = get_logger("agreemod")
 
-main_logger = logging.getLogger("agreemod")
 # std_handler = logging.StreamHandler(sys.stdout)
 # logger.addHandler(std_handler)
 

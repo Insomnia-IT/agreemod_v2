@@ -10,6 +10,7 @@ WORKDIR /opt/app
 COPY app app
 COPY database database
 COPY dictionaries dictionaries
+COPY common common
 
 COPY .env app/poetry.lock app/pyproject.toml ./
 

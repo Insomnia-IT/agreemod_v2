@@ -23,6 +23,7 @@ class PersonResponse(BaseModel):
     city: str | None = None
     vegan: bool = Field(..., validation_alias="diet")
     nocode_int_id: int
+    banned: bool = False
 
     model_config = ConfigDict(
         json_encoders={
