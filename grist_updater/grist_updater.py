@@ -495,13 +495,16 @@ class GristSync:
         return value
 
 def _safe_other_names(x):
-    """Safely convert other_names to PostgreSQL array literal, return None on failure."""
+    """Convert other_names to PostgreSQL array literal.
+    
+    If the value contains braces, skip it entirely (return None).
+    Otherwise apply the original formatting logic.
+    """
     if not x:
         return None
-    try:
-        return "{" + x.replace('"', '\"').replace("'", "\\'") + "}"
-    except Exception:
+    if '{' in str(x) or '}' in str(x) or '"' in str(x):
         return None
+    return "{" + x.replace('"', '\"').replace("'", "\\'") + "}"
 
 TABLES_CONFIG = [
     {
