@@ -28,6 +28,7 @@ class PersonORM(Base, BaseORM):
     comment: Mapped[str] = Column(String)
     nocode_int_id: Mapped[int] = Column(Integer)
     deleted: Mapped[bool] = Column(Boolean, nullable=True)
+    banned: Mapped[bool] = Column(Boolean, nullable=True, default=False)
     last_updated: Mapped[datetime] = Column(TIMESTAMP)
 
     _unique_constraint_notion = UniqueConstraint(nocode_int_id)

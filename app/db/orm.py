@@ -43,6 +43,7 @@ class PersonAppORM(PersonORM):
             comment=person.comment,
             nocode_int_id=person.nocode_int_id,
             last_updated=person.last_updated,
+            banned=person.banned if person.banned else False,
         )
 
     def to_model(self) -> Person:
@@ -63,7 +64,8 @@ class PersonAppORM(PersonORM):
             comment=self.comment,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
-            deleted=self.deleted if self.deleted else False
+            deleted=self.deleted if self.deleted else False,
+            banned=self.banned if self.banned else False
         )
         return person
 
