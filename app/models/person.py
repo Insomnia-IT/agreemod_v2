@@ -26,6 +26,7 @@ class Person(DomainModel):
     nocode_int_id: int | None = None
     last_updated: datetime | None = None
     deleted: bool | None = False
+    banned: bool | None = False
 
     @field_validator("gender", mode="before")
     def convert_gender(cls, value: str):

@@ -108,6 +108,7 @@ class BadgeResponse(BaseModel):
     nocode_int_id: int
     ticket: bool | None
     directions: list[UUID] = Field(..., default_factory=list)
+    responsible_id: UUID | None = Field(None, validation_alias="parent")
 
     @staticmethod
     def get_strenum_name(strenum: type[StrEnum], value: str):

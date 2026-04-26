@@ -578,7 +578,7 @@ TABLES_CONFIG = [
             INSERT INTO person (
                 id, name, last_name, first_name, nickname, other_names, 
                 telegram, phone, email, gender, birth_date, city, comment, 
-                nocode_int_id, last_updated
+                nocode_int_id, last_updated, banned
             ) VALUES %s
             ON CONFLICT (nocode_int_id) 
             DO UPDATE SET
@@ -594,10 +594,11 @@ TABLES_CONFIG = [
                 birth_date = EXCLUDED.birth_date,
                 city = EXCLUDED.city,
                 comment = EXCLUDED.comment,
-                last_updated = EXCLUDED.last_updated
+                last_updated = EXCLUDED.last_updated,
+                banned = EXCLUDED.banned
         """,
         'sql_query': "SELECT * FROM People",
-        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.ntn_id': 'id',
             'fields.name': 'name',
@@ -613,14 +614,16 @@ TABLES_CONFIG = [
             'fields.city': 'city',
             'fields.comment': 'comment',
             'fields.id': 'nocode_int_id',
-            'fields.updated_at': 'last_updated'
+            'fields.updated_at': 'last_updated',
+            'fields.isInBL': 'banned'
         },
         'transformations': {
             'fields.name': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty name'),
             'fields.ntn_id': lambda x, ctx: str(uuid.uuid4()) if not x else x,
             'fields.birth_date': lambda x, ctx: datetime.fromtimestamp(x).strftime('%Y-%m-%d') if x else None,
             'fields.updated_at': lambda x, ctx: datetime.now(tz=timezone(timedelta(hours=3))).strftime('%Y-%m-%d %H:%M:%S'),
-            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\\"').replace("'", "\\'") + "}" if x else None,
+            'fields.other_names': lambda x, ctx: "{" + x.replace('"', '\"').replace("'", "\\'") + "}" if x else None,
+            'fields.isInBL': lambda x, ctx: False if x == 'Нет' or x is None else True,
         },
         'dependencies': []
     },
