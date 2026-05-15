@@ -5,7 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM, PersonAppORM
 from app.db.repos.base import BaseSqlaRepo
@@ -61,6 +61,8 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
                     BadgeDirectionsAppORM.direction,
                 )
             )
+        if include_parent:
+            query = query.options(selectinload(BadgeAppORM.parent))
         if from_date:
             query = query.filter(BadgeAppORM.last_updated > from_date)
         if filters:

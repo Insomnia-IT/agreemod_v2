@@ -151,7 +151,7 @@ class BadgeAppORM(BadgeORM):
             gender=self.gender,
             phone=self.phone,
             parent=(
-                self.parent.id if include_parent and person_uuid and self.parent is not None else self.parent_id
+                self.parent.id if person_uuid and self.parent is not None else self.parent_id
             ),
             child=self.child,
             diet = self.diet if self.diet else None,
