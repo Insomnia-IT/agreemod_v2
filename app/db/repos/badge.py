@@ -153,24 +153,6 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             return []
         unique_results = list(results.unique())
         
-        # Manually load parents for badges that have parent_id
-        if include_parent:
-            # Collect all unique parent_ids
-            parent_ids = list(set([r.parent_id for r in unique_results if r.parent_id is not None]))
-            
-            if parent_ids:
-                # Load all parent badges in a single query
-                parents = await self.session.scalars(
-                    select(BadgeAppORM).where(BadgeAppORM.nocode_int_id.in_(parent_ids))
-                )
-                # Create a mapping of nocode_int_id -> BadgeAppORM
-                parent_map = {p.nocode_int_id: p for p in parents}
-                
-                # Manually set the parent relationship
-                for badge in unique_results:
-                    if badge.parent_id is not None and badge.parent_id in parent_map:
-                        badge.parent = parent_map[badge.parent_id]
-        
         badges = [
             result.to_model(
                 person_uuid=person_uuid,
