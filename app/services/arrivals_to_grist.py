@@ -32,7 +32,7 @@ class GristArrivalWriter:
             uuid_no_dashes = str(badge_uuid).replace('-', '')
             filter_obj = {"UUID": [uuid_no_dashes]}
             filter_param = urllib.parse.quote(json.dumps(filter_obj))
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2025/records?filter={filter_param}"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
