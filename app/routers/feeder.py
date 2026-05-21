@@ -26,7 +26,11 @@ async def sync(
     from_date: datetime = Query(..., description="Дата и время в формате UTC (например, 2024-07-01T12:00:00Z). Обязательно указывать в UTC (MSK-3)!"),
     service: FeederService = Depends(get_feeder_service),
 ):
-    return await service.sync(from_date + timedelta(hours=3))
+    # Convert timezone-aware datetime to timezone-naive for database queries
+    from_date_with_offset = from_date + timedelta(hours=3)
+    # Remove timezone info to match TIMESTAMP WITHOUT TIME ZONE columns
+    from_date_naive = from_date_with_offset.replace(tzinfo=None)
+    return await service.sync(from_date_naive)
 
 
 @router_feeder.post("/feeder/back-sync", summary="API для синхронизации с кормителем")

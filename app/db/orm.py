@@ -102,7 +102,11 @@ class DirectionAppORM(DirectionORM):
 
 
 class BadgeAppORM(BadgeORM):
-    parent: Mapped["BadgeAppORM"] = relationship("BadgeAppORM", lazy="selectin")
+    parent: Mapped["BadgeAppORM"] = relationship(
+        "BadgeAppORM",
+        remote_side="BadgeAppORM.nocode_int_id",
+        lazy="selectin"
+    )
     person: Mapped[PersonAppORM] = relationship("PersonAppORM", lazy="selectin")
     directions: Mapped[List["BadgeDirectionsAppORM"]] = relationship(back_populates="badge", lazy="selectin")
 

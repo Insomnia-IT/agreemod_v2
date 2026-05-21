@@ -5,7 +5,7 @@ from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.db.orm import BadgeAppORM, BadgeDirectionsAppORM, DirectionAppORM, PersonAppORM
 from app.db.repos.base import BaseSqlaRepo
@@ -151,8 +151,9 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
         )
         if not results:
             return []
-        unique_results = results.unique()
-        return [
+        unique_results = list(results.unique())
+        
+        badges = [
             result.to_model(
                 person_uuid=person_uuid,
                 include_person=include_person,
@@ -161,6 +162,7 @@ class BadgeRepo(BaseSqlaRepo[BadgeAppORM]):
             )
             for result in unique_results
         ]
+        return badges
 
     async def create(self, data: Badge):
         new_badge = BadgeAppORM.to_orm(data)
