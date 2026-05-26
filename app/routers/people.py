@@ -82,12 +82,12 @@ async def get_telebot_person(
         person = await repo.retrieve(None, PersonFiltersDTO(telegram="@" + telegram, strict=True))
     if not person:
         return None
-    participations = await repo_part.retrieve_personal(str(person.notion_id), True)
+    participations = await repo_part.retrieve_personal(person.nocode_int_id, True)
 
     roles = [i.role.lower() for i in participations if i.role]
     organiser = "организатор" in roles
     person_for_telebot = TelebotResponseSchema(
-        uuid=person.notion_id,
+        uuid=person.id,
         nickname=person.nickname,
         lastname=person.last_name,
         name=person.name,
