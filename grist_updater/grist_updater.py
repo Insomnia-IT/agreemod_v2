@@ -324,6 +324,22 @@ class GristSync:
         )
         #logger.info(f"Published restore message for record {record_id} in table {table_name}")
 
+    async def publish_create_participations_message(self, record_id: int):
+        """Publish create participations message to RabbitMQ"""
+        if not self.rabbitmq_publisher:
+            await self.init_rabbitmq()
+
+        channel = await self.rabbitmq_publisher.channel()
+        message = {
+            "id": record_id
+        }
+
+        await channel.default_exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key="create_participations"
+        )
+        logger.info(f"Published create participations message for record {record_id}")
+
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
         records = await self.fetch_grist_data(config['grist_table'])
@@ -441,6 +457,51 @@ class GristSync:
                     conn.commit()
             finally:
                 conn.close()
+
+    async def sync_directions_2026(self):
+        """Check changes in Directions2026 and publish events"""
+        url = f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/sql"
+        headers = {"Authorization": f"Bearer {app_config.grist.api_key}"}
+
+        last_sync = self.last_sync.get("Directions2026")
+
+        where_clause = (
+            f"WHERE Directions2026.last_updated_at26 > {last_sync}"
+            if last_sync
+            else ""
+        )
+
+        query = f"SELECT * FROM Directions2026 {where_clause}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url,
+                headers=headers,
+                params={"q": query},
+            ) as resp:
+                if resp.status != 200:
+                    error = await resp.text()
+                    raise Exception(f"SQL Error ({resp.status}): {error}")
+
+                data = await resp.json()
+
+        records = data.get("records")
+
+        if not records:
+            return
+
+        for record in records:
+            record_id = self._get_nested_value(record, "fields.id")
+
+            if record_id is None:
+                continue
+
+            await self.publish_create_participations_message(record_id)
+
+        self.last_sync["Directions2026"] = max(
+            record["fields"].get("last_updated_at26", 0)
+            for record in records
+        )
 
     def _transform_record(
         self, 
