@@ -618,7 +618,7 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 nocode_int_id = EXCLUDED.nocode_int_id
         """,
-        'sql_query': "SELECT Participations.*, People.name as people_table_name, Teams.team_name as team_table_name FROM Participations LEFT JOIN People ON Participations.person = People.id LEFT JOIN Teams ON Participations.team = Teams.id",
+        'sql_query': "SELECT Participations.*, People.name as people_table_name, Teams.team_name as team_table_name, Teams.type_of_team as team_type FROM Participations LEFT JOIN People ON Participations.person = People.id LEFT JOIN Teams ON Participations.team = Teams.id",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -642,6 +642,7 @@ TABLES_CONFIG = [
             'fields.team': lambda x, ctx: x if x != 0 and isinstance(x, int) else DELETE_RECORD(reason='Invalid team ID'),
             'fields.people_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Person is Invalid and marked for delete'),
             'fields.team_table_name': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Team is Invalid and marked for delete'),
+            'fields.team_type': lambda x, ctx: x if (x is not None and x != "" and x != 0) else DELETE_RECORD(reason='Team has invalid type and is not in database'),
         },
         'dependencies': ['People', 'Teams']
     },
