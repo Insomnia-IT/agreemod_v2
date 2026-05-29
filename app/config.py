@@ -22,6 +22,8 @@ class GristConfig(BaseSettings):
     doc_id: str
     api_key: str
 
+class GoogleConfig(BaseSettings):
+    api_key: str
 
 class NotionConfig(BaseModel):
     token: str = Field(alias="token")
@@ -81,6 +83,7 @@ class Config(BaseSettings):
     postgres: PostgresConfig
     rabbitmq: RabbitMQ
     grist: GristConfig
+    google: GoogleConfig
 
     ROUTER_GET_QUERY_CACHE_TIMEOUT: int = 15
 
