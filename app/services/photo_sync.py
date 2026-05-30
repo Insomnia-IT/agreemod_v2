@@ -56,12 +56,14 @@ class PhotoSyncService:
                     )
                     if not matched_file:
                         logger.warning("No match filename=%s row_id=%s", filename, row["id"])
+                        await self.update_comment(row["id"], "Фото не найдено в папке Google Drive")
                         continue
                     await self.upload_photo_to_grist(
                         row_id=row["id"],
                         file_id=matched_file["id"],
                         file_name=matched_file["name"],
                     )
+                    await self.update_comment(row["id"], None)
                 except Exception as e:
                     if str(e) == "GOOGLE_RATE_LIMIT":
                         logger.error("Google Drive rate limit exceeded")
@@ -69,7 +71,7 @@ class PhotoSyncService:
                             "status": "error",
                             "message": "Google Drive rate limit exceeded",
                         }
-
+                    await self.update_comment(row["id"], "Ошибка загрузки фото")
                     logger.exception("Row processing failed row_id=%s err=%s", row.get("id"), e)
                     continue
                     
@@ -187,3 +189,11 @@ class PhotoSyncService:
                 raise Exception(await resp.text())
 
         logger.info("Unused attachments removed")
+
+    async def update_comment(self, row_id: int, comment: str | None):
+        url = f"{self.server}/api/docs/{self.doc_id}/tables/Import_purgatory/records"
+        payload = {"records": [{"id": row_id, "fields": {"comment": comment}}]}
+
+        async with self.session.patch(url, headers=self.headers, json=payload) as resp:
+            if resp.status != 200:
+                raise Exception(await resp.text())
