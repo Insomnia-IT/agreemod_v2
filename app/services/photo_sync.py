@@ -8,6 +8,9 @@ from app.config import config
 
 logger = logging.getLogger(__name__)
 
+class GoogleRateLimitError(Exception):
+    pass
+
 
 class PhotoSyncService:
     def __init__(self):
@@ -26,67 +29,104 @@ class PhotoSyncService:
         if self.session:
             await self.session.close()
 
-    async def sync_folder(self, record_id: int):
+    async def sync(self, record_id: int):
+        await self.init()
+        try:
+            return await self.sync_folder(record_id)
+        finally:
+            await self.close()
+
+    async def sync_all(self):
         await self.init()
 
         try:
-            logger.info("Starting photo sync for record_id=%s", record_id)
-
-            record = await self.get_record(record_id)
-            folder_url = record.get("photo_folder")
-            if not folder_url:
-                raise ValueError("photo_folder is empty")
-
-            folder_id = self.extract_google_drive_folder_id(folder_url)
-            logger.info("Resolved Google Drive folder for record_id=%s", record_id)
-
-            files = await self.get_drive_files(folder_id)
-            rows = await self.get_import_purgatory_rows(record_id)
-
-            logger.info("Found %s image files in folder", len(files))
-
-            for row in rows:
+            records = await self.get_import_series_records()
+            result = {"processed": 0, "success": 0, "failed": 0}
+            for record in records:
                 try:
-                    filename = row.get("filename")
-                    if not filename:
-                        continue
-                    matched_file = next(
-                        (f for f in files if f["name"].lower().startswith(filename.lower())),
-                        None,
-                    )
-                    if not matched_file:
-                        logger.warning("No match filename=%s row_id=%s", filename, row["id"])
-                        await self.update_comment(row["id"], "Фото не найдено в папке Google Drive")
-                        continue
-                    await self.upload_photo_to_grist(
-                        row_id=row["id"],
-                        file_id=matched_file["id"],
-                        file_name=matched_file["name"],
-                    )
-                    await self.update_comment(row["id"], None)
-                except Exception as e:
-                    if str(e) == "GOOGLE_RATE_LIMIT":
-                        logger.error("Google Drive rate limit exceeded")
-                        return {
-                            "status": "error",
-                            "message": "Google Drive rate limit exceeded",
-                        }
-                    await self.update_comment(row["id"], "Ошибка загрузки фото")
-                    logger.exception("Row processing failed row_id=%s err=%s", row.get("id"), e)
-                    continue
-                    
+                    await self.sync_folder(record["id"])
+                    result["success"] += 1
 
-            logger.info("Photo sync finished for record_id=%s (files=%s rows=%s)", record_id, len(files), len(rows))
+                except GoogleRateLimitError:
+                    logger.error("Google rate limit hit - stopping batch sync")
+                    result["stopped_reason"] = "google_rate_limit"
+                    break
 
-            await self.remove_unused_attachments()
-            
-            return {
-                "status": "success",
-                "record_id": record_id,
-            }
-        
+                except Exception:
+                    logger.exception("Sync failed for record_id=%s", record["id"])
+                    result["failed"] += 1
+
+                result["processed"] += 1
+
+            return result
+
         finally:
             await self.close()
+
+    async def sync_folder(self, record_id: int):
+        logger.info("Starting photo sync for record_id=%s", record_id)
+
+        record = await self.get_record(record_id)
+        folder_url = record.get("photo_folder")
+        if not folder_url:
+            raise ValueError("photo_folder is empty")
+
+        folder_id = self.extract_google_drive_folder_id(folder_url)
+        logger.info("Resolved Google Drive folder for record_id=%s", record_id)
+
+        files = await self.get_drive_files(folder_id)
+        rows = await self.get_import_purgatory_rows(record_id)
+
+        logger.info("Found %s image files in folder", len(files))
+
+        for row in rows:
+            try:
+                filename = row.get("filename")
+                if not filename:
+                    continue
+                matched_file = next(
+                    (f for f in files if f["name"].lower().startswith(filename.lower())),
+                    None,
+                )
+                if not matched_file:
+                    logger.warning("No match filename=%s row_id=%s", filename, row["id"])
+                    await self.update_comment(row["id"], "Фото не найдено в папке Google Drive")
+                    continue
+                await self.upload_photo_to_grist(
+                    row_id=row["id"],
+                    file_id=matched_file["id"],
+                    file_name=matched_file["name"],
+                )
+                await self.update_comment(row["id"], None)
+            except GoogleRateLimitError:
+                logger.error("Google Drive rate limit exceeded")
+                raise
+
+            except Exception as e:
+                await self.update_comment(row["id"], "Ошибка загрузки фото")
+                logger.exception("Row processing failed row_id=%s err=%s", row.get("id"), e)
+                continue
+                
+
+        logger.info("Photo sync finished for record_id=%s (files=%s rows=%s)", record_id, len(files), len(rows))
+
+        await self.remove_unused_attachments()
+        
+        return {
+            "status": "success",
+            "record_id": record_id,
+        }
+
+    async def get_import_series_records(self):
+        url = f"{self.server}/api/docs/{self.doc_id}/sql"
+        payload = {"sql": "SELECT id FROM Import_series"}
+
+        async with self.session.post(url, headers=self.headers, json=payload) as resp:
+            if resp.status != 200:
+                raise Exception(await resp.text())
+            data = await resp.json()
+
+        return [r["fields"] for r in data.get("records", [])]        
 
     async def get_record(self, record_id: int):
         url = f"{self.server}/api/docs/{self.doc_id}/sql"
@@ -162,7 +202,7 @@ class PhotoSyncService:
             text = await resp.text()
 
             if resp.status in (403, 429) or "automated queries" in text.lower():
-                raise Exception("GOOGLE_RATE_LIMIT")
+                raise GoogleRateLimitError()
 
             raise Exception(text)
 
@@ -197,3 +237,4 @@ class PhotoSyncService:
         async with self.session.patch(url, headers=self.headers, json=payload) as resp:
             if resp.status != 200:
                 raise Exception(await resp.text())
+
