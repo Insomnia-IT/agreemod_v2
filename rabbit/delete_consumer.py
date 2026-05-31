@@ -84,7 +84,7 @@ class DeleteMessageConsumer:
                 headers = {"Authorization": f"Bearer {self.grist_api_key}"}
                 update_data = None
 
-                if table_name == "Badges_2025" or table_name == "Arrivals_2025":
+                if table_name == "Badges_2026" or table_name == "Arrivals_2026" or table_name == "Participations" or table_name == "People":
                     update_data = {
                         "records": [{
                             "id": record_id,
@@ -110,7 +110,8 @@ class DeleteMessageConsumer:
                             error = await resp.text()
                             logger.error(f"Failed to update Grist record: {error}")
                             return
-                        logger.info(f"Successfully marked record {record_id} for deletion in {table_name}")
+                        deletion_reason = body.get('reason', None)
+                        logger.info(f"Successfully marked record {record_id} for deletion in {table_name}, reason: {deletion_reason}")
 
                 # Update PostgreSQL record
                 conn = self.get_pg_connection()
