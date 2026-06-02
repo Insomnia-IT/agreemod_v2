@@ -10,7 +10,7 @@ from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
 from app.models.participation import Participation
 from app.models.person import Person
-from app.schemas.person import PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+from app.schemas.person import ParticipationShort, PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
 from app.utils.verify_credentials import verify_credentials
 
 
@@ -70,12 +70,16 @@ async def get_orgs_and_volunteers(
 async def get_telebot_person(
     username: Annotated[str, Depends(verify_credentials)],
     telegram: str,
+    year: int | None = Q("Год участия", None),
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
     repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
 ):
     """
-    API для работы с телеграм ботом по промокодам
-    https://github.com/Insomnia-IT/promocode_bot
+    API для работы с телеграм ботами по промокодам.
+
+    Используется в:
+    - https://github.com/Insomnia-IT/promocode_bot
+    - https://git.asocialpsihopat.net/samson/promocode_bot_cw
     """
     person = await repo.retrieve(None, PersonFiltersDTO(telegram=telegram, strict=True))
     if not person:
@@ -83,6 +87,9 @@ async def get_telebot_person(
     if not person:
         return None
     participations = await repo_part.retrieve_personal(person.nocode_int_id, True)
+
+    if year:
+        participations = [p for p in participations if p.year == year]
 
     roles = [i.role.lower() for i in participations if i.role]
     organiser = "организатор" in roles
@@ -98,6 +105,14 @@ async def get_telebot_person(
         role="организатор" if organiser else "волонтёр",
         volunteer=roles,
         organize=roles,
+        participations=[
+            ParticipationShort(
+                year=p.year,
+                direction_uuid=p.direction.id,
+                role=str(p.role) if p.role else "",
+            )
+            for p in participations if p.direction
+        ],
     )
     return person_for_telebot
 

@@ -30,10 +30,21 @@ class PersonFiltersDTO(BaseModel):
 class PersonResponseSchema(BaseModel): ...
 
 
+class ParticipationShort(BaseModel):
+    """Краткое представление участия человека в направлении."""
+
+    year: int
+    direction_uuid: UUID
+    role: str
+
+
 class TelebotResponseSchema(BaseModel):
     """
-    модель скопирована из https://github.com/Insomnia-IT/promocode_bot
-    бот ожидает получить пользователя в таком виде
+    Ответ для ботов выдачи промокодов.
+
+    Используется в:
+    - https://github.com/Insomnia-IT/promocode_bot
+    - https://git.asocialpsihopat.net/samson/promocode_bot_cw
     """
 
     uuid: UUID
@@ -50,3 +61,4 @@ class TelebotResponseSchema(BaseModel):
 
     volunteer: list[str]
     organize: list[str]
+    participations: list[ParticipationShort] = []
