@@ -70,6 +70,7 @@ async def get_orgs_and_volunteers(
 async def get_telebot_person(
     username: Annotated[str, Depends(verify_credentials)],
     telegram: str,
+    year: int | None = Q("Год участия", None),
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
     repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
 ):
@@ -86,6 +87,9 @@ async def get_telebot_person(
     if not person:
         return None
     participations = await repo_part.retrieve_personal(person.nocode_int_id, True)
+
+    if year:
+        participations = [p for p in participations if p.year == year]
 
     roles = [i.role.lower() for i in participations if i.role]
     organiser = "организатор" in roles
