@@ -766,7 +766,7 @@ TABLES_CONFIG = [
                 }
             }
         ],
-        'sql_query': "SELECT * FROM Badges_2026", #Badges_2026
+        'sql_query': "SELECT Badges_2026.*, People.to_delete as person_to_delete FROM Badges_2026 LEFT JOIN People ON Badges_2026.person = People.id", #Badges_2026
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -791,6 +791,7 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
+            'fields.person_to_delete': lambda x, ctx: DELETE_RECORD(reason='Person is deleted') if x else None,
             'fields.name': lambda x, ctx: x if x and isinstance(x, str) else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
             'fields.feed_type': lambda x, ctx: x if x in FeedType._value2member_map_ else DELETE_RECORD(reason='Empty or invalid feed type'),
