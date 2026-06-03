@@ -383,28 +383,25 @@ class GristSync:
                 #print(f"Error transforming record {record}: {e}")
                 continue
 
-        if not transformed:
-            return
-        
-        logger.info(transformed[0])
+        if transformed:
+            logger.info(transformed[0])
 
-        # Вставка в PostgreSQL
-        conn = self.get_pg_connection()
-        try:
-            with conn.cursor() as cursor:
-                execute_values(
-                    cursor,
-                    config['insert_query'],
-                    transformed,
-                    template=config['template']
-                )
-                conn.commit()
-                self.last_sync[config['grist_table']] = datetime.now().timestamp()
-        except Exception as e:
-            logger.error(e)
-            raise e
-        finally:
-            conn.close()
+            # Вставка в PostgreSQL
+            conn = self.get_pg_connection()
+            try:
+                with conn.cursor() as cursor:
+                    execute_values(
+                        cursor,
+                        config['insert_query'],
+                        transformed,
+                        template=config['template']
+                    )
+                    conn.commit()
+            except Exception as e:
+                logger.error(e)
+                raise e
+            finally:
+                conn.close()
 
         if 'additional_queries' in config:
             conn = self.get_pg_connection()
@@ -459,6 +456,11 @@ class GristSync:
                     conn.commit()
             finally:
                 conn.close()
+
+        # Stamp last_sync only after both the main insert AND all additional_queries
+        # have committed successfully. If either fails the exception propagates and
+        # last_sync is not advanced, so the next cycle will re-fetch and retry.
+        self.last_sync[config['grist_table']] = datetime.now().timestamp()
 
     async def sync_directions_2026(self):
         """Check changes in Directions2026 and publish events"""
@@ -860,7 +862,7 @@ TABLES_CONFIG = [
             'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
             'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
         },
-        'dependencies': []
+        'dependencies': ['Badges_2026']
     }
 ]
 
