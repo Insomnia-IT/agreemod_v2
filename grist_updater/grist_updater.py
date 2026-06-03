@@ -444,16 +444,18 @@ class GristSync:
                                 # Get badge ID and parent ID
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
                                 parent_id = self._get_nested_value(record, 'fields.parent')
-                                
+
                                 # Apply transformation if exists
                                 if 'transformations' in query_config and 'fields.parent' in query_config['transformations']:
                                     parent_id = query_config['transformations']['fields.parent'](parent_id, context)
-                                
-                                if parent_id is not None:
-                                    cursor.execute(
-                                        query_config['insert_query'],
-                                        (badge_nocode_id, parent_id)
-                                    )
+
+                                # Always execute — NULL parent_id clears a stale relationship,
+                                # non-NULL sets it. Skipping when None would leave stale parent_ids
+                                # in the DB after a parent is removed in Grist.
+                                cursor.execute(
+                                    query_config['insert_query'],
+                                    (parent_id, badge_nocode_id)
+                                )
                     conn.commit()
             finally:
                 conn.close()
@@ -754,11 +756,9 @@ TABLES_CONFIG = [
             {
                 'type': 'parent',
                 'insert_query': """
-                    UPDATE badge b
-                    SET parent_id = p.nocode_int_id
-                    FROM badge p
-                    WHERE b.nocode_int_id = %s
-                    AND p.nocode_int_id = %s;
+                    UPDATE badge
+                    SET parent_id = (SELECT nocode_int_id FROM badge WHERE nocode_int_id = %s)
+                    WHERE nocode_int_id = %s;
                 """,
                 'fields': ['fields.id', 'fields.parent'],
                 'transformations': {
