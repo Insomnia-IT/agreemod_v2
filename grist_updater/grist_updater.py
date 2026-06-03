@@ -444,16 +444,18 @@ class GristSync:
                                 # Get badge ID and parent ID
                                 badge_nocode_id = self._get_nested_value(record, 'fields.id')
                                 parent_id = self._get_nested_value(record, 'fields.parent')
-                                
+
                                 # Apply transformation if exists
                                 if 'transformations' in query_config and 'fields.parent' in query_config['transformations']:
                                     parent_id = query_config['transformations']['fields.parent'](parent_id, context)
-                                
-                                if parent_id is not None:
-                                    cursor.execute(
-                                        query_config['insert_query'],
-                                        (badge_nocode_id, parent_id)
-                                    )
+
+                                # Always execute — NULL parent_id clears a stale relationship,
+                                # non-NULL sets it. Skipping when None would leave stale parent_ids
+                                # in the DB after a parent is removed in Grist.
+                                cursor.execute(
+                                    query_config['insert_query'],
+                                    (parent_id, badge_nocode_id)
+                                )
                     conn.commit()
             finally:
                 conn.close()
@@ -754,11 +756,9 @@ TABLES_CONFIG = [
             {
                 'type': 'parent',
                 'insert_query': """
-                    UPDATE badge b
-                    SET parent_id = p.nocode_int_id
-                    FROM badge p
-                    WHERE b.nocode_int_id = %s
-                    AND p.nocode_int_id = %s;
+                    UPDATE badge
+                    SET parent_id = (SELECT nocode_int_id FROM badge WHERE nocode_int_id = %s)
+                    WHERE nocode_int_id = %s;
                 """,
                 'fields': ['fields.id', 'fields.parent'],
                 'transformations': {
@@ -766,7 +766,7 @@ TABLES_CONFIG = [
                 }
             }
         ],
-        'sql_query': "SELECT * FROM Badges_2026", #Badges_2026
+        'sql_query': "SELECT Badges_2026.*, People.to_delete as person_to_delete FROM Badges_2026 LEFT JOIN People ON Badges_2026.person = People.id", #Badges_2026
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -791,6 +791,7 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
+            'fields.person_to_delete': lambda x, ctx: DELETE_RECORD(reason='Person is deleted') if x else None,
             'fields.name': lambda x, ctx: x if x and isinstance(x, str) else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
             'fields.feed_type': lambda x, ctx: x if x in FeedType._value2member_map_ else DELETE_RECORD(reason='Empty or invalid feed type'),
@@ -828,7 +829,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT Arrivals_2026.*, Badges_2026.name as badge_name, Badges_2026.role as badge_role, Badges_2026.diet as badge_diet, Badges_2026.feed_type as badge_feed_type, Badges_2026.delete_reason as badge_delete_reson FROM Arrivals_2026 LEFT JOIN Badges_2026 ON Arrivals_2026.badge=Badges_2026.id", #Arrivals_2026
+        'sql_query': "SELECT Arrivals_2026.*, Badges_2026.name as badge_name, Badges_2026.role as badge_role, Badges_2026.diet as badge_diet, Badges_2026.feed_type as badge_feed_type, Badges_2026.delete_reason as badge_delete_reson, Badges_2026.to_delete as badge_to_delete, People.to_delete as person_to_delete FROM Arrivals_2026 LEFT JOIN Badges_2026 ON Arrivals_2026.badge=Badges_2026.id LEFT JOIN People ON Badges_2026.person=People.id", #Arrivals_2026
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -843,6 +844,8 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'fields.badge_delete_reson': lambda x, ctx: DELETE_RECORD(reason='Badge marked for delete') if isinstance(x, str) and ("FEEDER" in x) else None,
+            'fields.badge_to_delete': lambda x, ctx: DELETE_RECORD(reason='Badge is deleted') if x else None,
+            'fields.person_to_delete': lambda x, ctx: DELETE_RECORD(reason='Person linked to badge is deleted') if x else None,
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
             'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
