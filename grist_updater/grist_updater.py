@@ -419,7 +419,17 @@ class GristSync:
                                     if not team_list_raw.strip('[]'):
                                         team_list = []
                                     else:
-                                        team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                                        try:
+                                            team_list = list(map(int, team_list_raw.strip('[]').split(',')))
+                                        except ValueError:
+                                            # Grist returns AltText('...') or similar when a
+                                            # reference cell points to a deleted/missing row.
+                                            logger.warning(
+                                                f"Badge {badge_nocode_id}: could not parse "
+                                                f"directions_ref {team_list_raw!r} as int list, "
+                                                f"treating as no directions"
+                                            )
+                                            team_list = []
                                 elif isinstance(team_list_raw, dict):
                                     continue
                                 else:
@@ -794,6 +804,14 @@ TABLES_CONFIG = [
         'transformations': {
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.person_to_delete': lambda x, ctx: DELETE_RECORD(reason='Person is deleted') if x else None,
+            'fields.directions_ref': lambda x, ctx: (
+                DELETE_RECORD(reason='Broken directions_ref (AltText or invalid reference)')
+                if isinstance(x, str) and x.strip('[]') and any(
+                    not part.strip().lstrip('-').isdigit()
+                    for part in x.strip('[]').split(',')
+                )
+                else x
+            ),
             'fields.name': lambda x, ctx: x if x and isinstance(x, str) else DELETE_RECORD(reason='Empty name'),
             'fields.diet': lambda x, ctx: x if x else DELETE_RECORD(reason='Empty diet'),
             'fields.feed_type': lambda x, ctx: x if x in FeedType._value2member_map_ else DELETE_RECORD(reason='Empty or invalid feed type'),
