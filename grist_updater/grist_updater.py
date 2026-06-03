@@ -829,7 +829,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT Arrivals_2026.*, Badges_2026.name as badge_name, Badges_2026.role as badge_role, Badges_2026.diet as badge_diet, Badges_2026.feed_type as badge_feed_type, Badges_2026.delete_reason as badge_delete_reson FROM Arrivals_2026 LEFT JOIN Badges_2026 ON Arrivals_2026.badge=Badges_2026.id", #Arrivals_2026
+        'sql_query': "SELECT Arrivals_2026.*, Badges_2026.name as badge_name, Badges_2026.role as badge_role, Badges_2026.diet as badge_diet, Badges_2026.feed_type as badge_feed_type, Badges_2026.delete_reason as badge_delete_reson, Badges_2026.to_delete as badge_to_delete, People.to_delete as person_to_delete FROM Arrivals_2026 LEFT JOIN Badges_2026 ON Arrivals_2026.badge=Badges_2026.id LEFT JOIN People ON Badges_2026.person=People.id", #Arrivals_2026
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -844,6 +844,8 @@ TABLES_CONFIG = [
         },
         'transformations': {
             'fields.badge_delete_reson': lambda x, ctx: DELETE_RECORD(reason='Badge marked for delete') if isinstance(x, str) and ("FEEDER" in x) else None,
+            'fields.badge_to_delete': lambda x, ctx: DELETE_RECORD(reason='Badge is deleted') if x else None,
+            'fields.person_to_delete': lambda x, ctx: DELETE_RECORD(reason='Person linked to badge is deleted') if x else None,
             'fields.delete_reason': lambda x, ctx: SKIP_RECORD if isinstance(x,str) and ("FEEDER" in x) else x,
             'fields.badge': lambda x, ctx: x if isinstance(x, int) and x!= 0 else DELETE_RECORD(reason='Empty or invalid Badge'),
             'fields.badge_name': lambda x, ctx: x if x else DELETE_RECORD(reason='Badge marked for delete'),
