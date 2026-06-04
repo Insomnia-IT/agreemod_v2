@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from uuid import UUID
 
-from sqlalchemy import delete
+from sqlalchemy import delete, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 
@@ -36,7 +36,7 @@ class PersonRepo(BaseSqlaRepo[PersonAppORM]):
             query = query.where(PersonAppORM.last_updated > from_date)
         if filters and filters.strict:
             if filters.telegram:
-                query = query.filter_by(telegram=filters.telegram)
+                query = query.where(func.lower(PersonAppORM.telegram) == func.lower(filters.telegram))
             if filters.phone:
                 query = query.filter_by(phone=filters.phone)
             if filters.email:

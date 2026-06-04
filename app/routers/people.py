@@ -81,9 +81,10 @@ async def get_telebot_person(
     - https://github.com/Insomnia-IT/promocode_bot
     - https://git.asocialpsihopat.net/samson/promocode_bot_cw
     """
-    person = await repo.retrieve(None, PersonFiltersDTO(telegram=telegram, strict=True))
+    clean = telegram.strip().lstrip("@").lower()
+    person = await repo.retrieve(None, PersonFiltersDTO(telegram="@" + clean, strict=True))
     if not person:
-        person = await repo.retrieve(None, PersonFiltersDTO(telegram="@" + telegram, strict=True))
+        person = await repo.retrieve(None, PersonFiltersDTO(telegram=clean, strict=True))
     if not person:
         return None
     participations = await repo_part.retrieve_personal(person.nocode_int_id, True)
