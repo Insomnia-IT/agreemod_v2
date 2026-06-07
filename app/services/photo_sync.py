@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 class GoogleRateLimitError(Exception):
     pass
 
+class AttachmentTooLargeError(Exception):
+    pass
+
 
 class PhotoSyncService:
     def __init__(self):
@@ -104,13 +107,19 @@ class PhotoSyncService:
                 )
                 await self.update_comment(row["id"], None)
                 await asyncio.sleep(random.uniform(0.2, 0.7))
+            
             except GoogleRateLimitError:
                 logger.error("Google Drive rate limit exceeded")
                 raise
 
+            except AttachmentTooLargeError as e:
+                await self.update_comment(row["id"], "Размер фото не должен превышать 1 МБ")
+                logger.warning("Attachment too large %s row_id=%s", e, row["id"])
+                continue
+
             except Exception as e:
                 await self.update_comment(row["id"], "Ошибка загрузки фото")
-                logger.exception("Row processing failed row_id=%s err=%s", row.get("id"), e)
+                logger.exception("Row processing failed row_id=%s", row.get("id"))
                 continue
                 
 
@@ -226,6 +235,8 @@ class PhotoSyncService:
 
         async with self.session.post(url, headers=self.headers, data=form) as resp:
             if resp.status != 200:
+                if resp.status == 413:
+                    raise AttachmentTooLargeError(f"filename={file_name} size={len(file_bytes)/1024/1024:.2f} MB")
                 raise Exception(await resp.text())
             result = await resp.json()
 
