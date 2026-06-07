@@ -157,6 +157,7 @@ services:
     build:
       dockerfile: docker/api.dockerfile
       context: ./
+    restart: unless-stopped
     ports:
       - ${API_PROXY}:${API_PORT}
     environment:

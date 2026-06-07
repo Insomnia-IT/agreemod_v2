@@ -8,7 +8,6 @@ from uuid import UUID
 import asyncpg
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.coda.writer import CodaWriter
 from app.config import config
@@ -143,10 +142,6 @@ class FeederService:
 
         #await self.session.commit()
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-    )
     async def sync(self, from_date: datetime):
         get_badges = await self.badges.retrieve_many(include_parent=True, from_date=from_date, include_directions=True, person_uuid=True) #include_infant=True
         badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]

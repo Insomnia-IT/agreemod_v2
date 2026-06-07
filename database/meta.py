@@ -37,7 +37,15 @@ if config.TESTING:
 else:
     engine_params = dict(
         pool_size=config.postgres.MIN_POOL_SIZE,
-        max_overflow=config.postgres.MIN_POOL_SIZE + config.postgres.MAX_POOL_SIZE,
+        max_overflow=config.postgres.MAX_POOL_SIZE,
+        # Test every connection before handing it out of the pool.
+        # This prevents a corrupted/stale asyncpg connection from being
+        # given to a request, which would crash the process with
+        # "free(): invalid pointer" at the C level.
+        pool_pre_ping=True,
+        # Recycle connections after 30 minutes to prevent accumulation
+        # of internal asyncpg buffer state from long-lived connections.
+        pool_recycle=1800,
     )
 
 engine = create_async_engine(
