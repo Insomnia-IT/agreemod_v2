@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 import aiohttp
 import asyncio
@@ -23,11 +24,15 @@ class PhotoSyncService:
 
     async def init(self):
         if not self.session:
-            self.session = aiohttp.ClientSession()
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            }
+            self.session = aiohttp.ClientSession(headers=headers)
 
     async def close(self):
         if self.session:
             await self.session.close()
+            self.session = None
 
     async def sync(self, record_id: int):
         await self.init()
@@ -98,6 +103,7 @@ class PhotoSyncService:
                     file_name=matched_file["name"],
                 )
                 await self.update_comment(row["id"], None)
+                await asyncio.sleep(random.uniform(0.2, 0.7))
             except GoogleRateLimitError:
                 logger.error("Google Drive rate limit exceeded")
                 raise
@@ -193,10 +199,16 @@ class PhotoSyncService:
         logger.info("Uploaded %s -> row %s", file_name, row_id)
 
     async def download_drive_file(self, file_id: str):
-        url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media&key={config.google.api_key}"
+        url = f"https://docs.google.com/uc?export=download&id={file_id}"
+        browser_headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "keep-alive"
+        }
 
-        async with self.session.get(url) as resp:
-            if resp.status == 200:
+        async with self.session.get(url, headers=browser_headers) as resp:
+            content_type = resp.headers.get("Content-Type", "")
+            if resp.status == 200 and "text/html" not in content_type:
                 return await resp.read()
 
             text = await resp.text()
