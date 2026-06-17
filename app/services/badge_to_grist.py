@@ -73,7 +73,7 @@ class GristBadgeWriter:
             elif 'deleted' in present_fields and badge.deleted == False:
                 fields["to_delete"] = None
                 fields["delete_reason"] = None
-            fields["status"] = "Из Кормителя"
+            fields["feeder_update"] = int(datetime.now().timestamp())
 
             grist_data = {
                 "records": [{
@@ -122,7 +122,7 @@ class GristBadgeWriter:
                                     "person": db_badge.person.nocode_int_id if db_badge.person else "",
                                     "parent": str(db_badge.parent.nocode_int_id) if db_badge.parent else "",
                                     "directions_ref": ["L"] + [d.nocode_int_id for d in db_badge.directions] if db_badge.directions else None,
-                                    "status": "Из Кормителя",
+                                    "feeder_update": int(datetime.now().timestamp()),
                                 }
                                 # Then, overlay with the fields from the original request
                                 restored_fields.update(fields)
