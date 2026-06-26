@@ -56,7 +56,8 @@ jobs:
             cd "$DIR/agreemod_v2"
             git fetch origin "$BRANCH"
             git checkout "$BRANCH"
-            git pull origin "$BRANCH"
+            git reset --hard origin/"$BRANCH"
+            # git pull origin "$BRANCH"
           fi
 
           cp env.example .env
