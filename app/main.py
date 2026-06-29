@@ -17,6 +17,7 @@ from app.routers.people import router as router_people
 from app.routers.places import router as router_directions
 from app.routers.sync_state import router as router_sync_state
 from app.routers.photo_import import router as router_photo_import
+from app.routers.badge_photo import router as router_badge_photo
 
 
 logger = logging.getLogger(__name__)
@@ -65,6 +66,7 @@ def get_app() -> FastAPI:
     app.include_router(router_badges, tags=["badges"])
     app.include_router(router_sync_state, tags=["sync-state"])
     app.include_router(router_photo_import, tags=["photo-import"])
+    app.include_router(router_badge_photo, tags=["badge-photo"])
 
     @app.exception_handler(RepresentativeError)
     def exception_handler(request, ex: RepresentativeError):  # noqa
