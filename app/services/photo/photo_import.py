@@ -109,7 +109,6 @@ class PhotoImportService:
                     file_name=matched_file["name"],
                 )
                 await self.update_comment(purgatory_record["id"], None)
-                await asyncio.sleep(random.uniform(0.2, 0.7))
             
             except GoogleRateLimitError:
                 logger.error("Google Drive rate limit exceeded")
