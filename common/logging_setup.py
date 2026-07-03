@@ -57,6 +57,9 @@ def setup_logging(logger_name: str) -> None:
 
     root._agreemod_configured = True
 
+    # Disable PIL debug logs
+    logging.getLogger("PIL").setLevel(logging.WARNING)
+    logging.getLogger("PIL.TiffImagePlugin").setLevel(logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:

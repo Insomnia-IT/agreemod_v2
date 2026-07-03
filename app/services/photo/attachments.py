@@ -1,13 +1,39 @@
 import logging
+from io import BytesIO
 
 import aiohttp
+from PIL import Image
 
 
 logger = logging.getLogger(__name__)
 
+MAX_ATTACHMENT_SIZE = 1024 * 1024  # 1 MB
+MIN_SIDE_SIZE = 500
 
-class AttachmentTooLargeError(Exception):
-    pass
+
+def resize_image(file_bytes: bytes) -> bytes:
+    image = Image.open(BytesIO(file_bytes))
+
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    width, height = image.size
+    min_side = min(width, height)
+
+    if min_side > MIN_SIDE_SIZE:
+        scale = MIN_SIDE_SIZE / min_side
+        image = image.resize(
+            (
+                int(width * scale),
+                int(height * scale),
+            ),
+            Image.Resampling.LANCZOS,
+        )
+
+    output = BytesIO()
+    image.save(output, format="JPEG", optimize=True)
+
+    return output.getvalue()
 
 
 async def upload_attachment(
@@ -18,6 +44,14 @@ async def upload_attachment(
     file_bytes: bytes,
     file_name: str,
 ):
+    if len(file_bytes) > MAX_ATTACHMENT_SIZE:
+        logger.info(
+            "Image %s is larger than 1 MB (%.2f MB), resizing",
+            file_name,
+            len(file_bytes) / 1024 / 1024,
+        )
+        file_bytes = resize_image(file_bytes)
+
     url = f"{server}/api/docs/{doc_id}/attachments"
 
     form = aiohttp.FormData()
@@ -30,10 +64,6 @@ async def upload_attachment(
 
     async with session.post(url, headers=headers, data=form) as resp:
         if resp.status != 200:
-            if resp.status == 413:
-                raise AttachmentTooLargeError(
-                    f"filename={file_name} size={len(file_bytes) / 1024 / 1024:.2f} MB"
-                )
             raise Exception(await resp.text())
 
         result = await resp.json()
