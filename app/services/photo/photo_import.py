@@ -6,7 +6,6 @@ from googleapiclient.discovery import build
 from app.config import config
 
 from .attachments import (
-    AttachmentTooLargeError,
     remove_unused_attachments,
     upload_attachment,
 )
@@ -113,11 +112,6 @@ class PhotoImportService:
             except GoogleRateLimitError:
                 logger.error("Google Drive rate limit exceeded")
                 raise
-
-            except AttachmentTooLargeError as e:
-                await self.update_comment(purgatory_record["id"], "Размер фото не должен превышать 1 МБ")
-                logger.warning("Attachment too large %s record_id=%s", e, purgatory_record["id"])
-                continue
 
             except Exception:
                 await self.update_comment(purgatory_record["id"], "Ошибка загрузки фото")
