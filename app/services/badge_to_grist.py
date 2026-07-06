@@ -120,7 +120,7 @@ class GristBadgeWriter:
                                     "comment": db_badge.comment,
                                     "position": db_badge.occupation,
                                     "person": db_badge.person.nocode_int_id if db_badge.person else "",
-                                    "parent": str(db_badge.parent.nocode_int_id) if db_badge.parent else "",
+                                    "parent": str(db_badge.parent) if db_badge.parent else "",
                                     "directions_ref": ["L"] + [d.nocode_int_id for d in db_badge.directions] if db_badge.directions else None,
                                     "feeder_update": int(datetime.now().timestamp()),
                                 }
