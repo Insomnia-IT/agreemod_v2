@@ -108,6 +108,10 @@ class GristArrivalWriter:
                     records = await resp.json()
                     existing_arrival = records.get('records', [None])[0] if records.get('records') else None
                 if existing_arrival:
+                    # Skip badge field if it hasn't changed in Grist
+                    if "badge" in fields and fields["badge"] == existing_arrival["fields"].get("badge"):
+                        logger.info(f"Badge unchanged for arrival {arrival.data.id}, skipping from payload")
+                        del fields["badge"]
                     # Check if 'to_delete' is set in Grist
                     if existing_arrival["fields"].get("to_delete") is not None and arrival.data.deleted != True:
                         logger.info(f"Updating existing arrival with restored data from postgres")
