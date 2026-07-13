@@ -130,6 +130,7 @@ class GristBadgeWriter:
                                 grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_badge["id"]
                                 update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records"
+                                logger.info(f"Restoring badge {badge.id} to Grist: {grist_data}")
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                                     if resp.status != 200:
                                         error_text = await resp.text()
@@ -151,8 +152,8 @@ class GristBadgeWriter:
                     return False
                 else:
                     # Create new badge
-                    logger.info(f"Creating new badge")
                     grist_data["records"][0]['fields']['UUID'] = uuid_no_dashes #str(badge.id)
+                    logger.info(f"Creating new badge {badge.id}: {grist_data}")
                     async with session.post(url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()

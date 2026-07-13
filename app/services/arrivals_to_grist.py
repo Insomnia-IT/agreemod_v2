@@ -91,8 +91,8 @@ class GristArrivalWriter:
                     "fields": fields
                 }]
             }
-            print(arrival)
-            print(grist_data)
+            logger.info(f"Working on arrival data: {arrival}")
+            logger.info(f"Prepared Grist fields: {grist_data}")
 
             # Check if arrival exists in Grist
             uuid_no_dashes = str(arrival.data.id).replace('-', '')
@@ -132,6 +132,7 @@ class GristArrivalWriter:
                                 grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_arrival["id"]
                                 update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2026/records"
+                                logger.info(f"Restoring arrival {arrival.data.id} to Grist: {grist_data}")
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                                     if resp.status != 200:
                                         error_text = await resp.text()
@@ -152,7 +153,7 @@ class GristArrivalWriter:
                 else:
                     # Create new arrival
                     grist_data["records"][0]['fields']['UUID'] = uuid_no_dashes
-                    logger.info(f"Creating new arrival")
+                    logger.info(f"Creating new arrival {arrival.data.id}: {grist_data}")
                     async with session.post(url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()
