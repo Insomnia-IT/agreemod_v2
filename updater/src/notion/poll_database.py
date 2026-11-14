@@ -205,7 +205,7 @@ class NotionPoller(Poller):
 class CodaPoller(Poller):
     def __init__(self, db: CodaDatabase) -> None:
         self.set_status = {
-            "get_participations": UpdaterStates.set_participation_updater,
+            "get_engagement": UpdaterStates.set_engagement_updater,
             "get_arrivals": UpdaterStates.set_arrival_updater,
         }
         self.database = db

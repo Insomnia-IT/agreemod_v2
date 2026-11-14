@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class ParticipationRole(StrEnum):
+class EngagementRole(StrEnum):
     ORGANIZER = "организатор"  # красный
 
     VICE = "зам руководителя"  # зелёный
@@ -29,12 +29,12 @@ class ParticipationRole(StrEnum):
     @property
     def is_team(self):
         if self in [
-            ParticipationRole.ORGANIZER,
-            ParticipationRole.CAMP_LEAD,
-            ParticipationRole.VICE,
-            ParticipationRole.TEAM_LEAD,
-            ParticipationRole.VOLUNTEER,
-            ParticipationRole.MEDIC,
+            EngagementRole.ORGANIZER,
+            EngagementRole.CAMP_LEAD,
+            EngagementRole.VICE,
+            EngagementRole.TEAM_LEAD,
+            EngagementRole.VOLUNTEER,
+            EngagementRole.MEDIC,
         ]:
             return True
         return False
@@ -42,8 +42,8 @@ class ParticipationRole(StrEnum):
     @property
     def is_lead(self):
         if self in [
-            ParticipationRole.ORGANIZER,
-            ParticipationRole.CAMP_LEAD,
+            EngagementRole.ORGANIZER,
+            EngagementRole.CAMP_LEAD,
         ]:
             return True
         return False
@@ -51,14 +51,14 @@ class ParticipationRole(StrEnum):
     @property
     def free_feed(self):
         if self in [
-            ParticipationRole.ORGANIZER,
-            ParticipationRole.CAMP_LEAD,
-            ParticipationRole.VICE,
-            ParticipationRole.TEAM_LEAD,
-            ParticipationRole.VOLUNTEER,
-            ParticipationRole.MEDIC,
-            ParticipationRole.LECTOR,
-            ParticipationRole.MASTER,
-            ParticipationRole.ARTIST,
+            EngagementRole.ORGANIZER,
+            EngagementRole.CAMP_LEAD,
+            EngagementRole.VICE,
+            EngagementRole.TEAM_LEAD,
+            EngagementRole.VOLUNTEER,
+            EngagementRole.MEDIC,
+            EngagementRole.LECTOR,
+            EngagementRole.MASTER,
+            EngagementRole.ARTIST,
         ]:
             return True

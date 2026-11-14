@@ -84,7 +84,7 @@ class RestoreMessageConsumer:
                 headers = {"Authorization": f"Bearer {self.grist_api_key}"}
                 update_data = None
 
-                if table_name == "Badges_2026" or table_name == "Arrivals_2026":
+                if table_name == "Badge_yearly" or table_name == "Arrival_yearly":
                     update_data = {
                         "records": [{
                             "id": record_id,

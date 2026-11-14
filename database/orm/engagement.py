@@ -9,7 +9,7 @@ from database.meta import Base
 from database.orm.base import BaseORM
 
 
-class ParticipationORM(Base, BaseORM):
+class EngagementORM(Base, BaseORM):
     """ TODO: док стринг не в полной мере отображает действительность
     Атрибут            Содержимое      Тип данных    Cardinality
     year               Год             Число         Req
@@ -21,7 +21,7 @@ class ParticipationORM(Base, BaseORM):
     nocode_int_id          Идентификатор   Notion        Строка UUID  Opt
     """
 
-    __tablename__ = "participation"
+    __tablename__ = "engagement"
 
     id: Mapped[uuid.UUID] = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     coda_index: Mapped[str] = Column(String, nullable=True)
@@ -33,10 +33,10 @@ class ParticipationORM(Base, BaseORM):
         Integer, ForeignKey("direction.nocode_int_id"), nullable=False
     )  # req fk
     role_code: Mapped[str] = Column(
-        String, ForeignKey("participation_role.code")
+        String, ForeignKey("engagement_role.code")
     )  # req fk
     status_code: Mapped[str] = Column(
-        String, ForeignKey("participation_status.code"), nullable=True
+        String, ForeignKey("engagement_status.code"), nullable=True
     )  # req fk
     nocode_int_id: Mapped[int] = Column(Integer)  # opt
     deleted: Mapped[bool] = Column(Boolean, nullable=True)

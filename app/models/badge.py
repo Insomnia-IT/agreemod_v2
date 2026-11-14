@@ -6,7 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from dictionaries import DietType
-from dictionaries.dictionaries import BadgeColor, ParticipationRole
+from dictionaries.dictionaries import BadgeColor, EngagementRole
 from dictionaries.gender import Gender
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer, field_validator, model_validator
 
@@ -29,7 +29,7 @@ class Badge(DomainModel):
     feed: str | None = None
     number: str | None = None
     batch: int | None = None
-    role: ParticipationRole
+    role: EngagementRole
     photo: str | None = None
     person: Person | int | UUID | None = None
     comment: str | None = None
@@ -50,22 +50,22 @@ class Badge(DomainModel):
     @property
     def color(self) -> BadgeColor:
         match self.role:
-            case ParticipationRole.ORGANIZER:
+            case EngagementRole.ORGANIZER:
                 return BadgeColor.RED
 
-            case ParticipationRole.VOLUNTEER | ParticipationRole.VICE | ParticipationRole.TEAM_LEAD:
+            case EngagementRole.VOLUNTEER | EngagementRole.VICE | EngagementRole.TEAM_LEAD:
                 return BadgeColor.GREEN
 
-            case ParticipationRole.MEDIC:
+            case EngagementRole.MEDIC:
                 return BadgeColor.PURPLE
 
-            case ParticipationRole.CAMP_LEAD | ParticipationRole.CAMP_GUY:
+            case EngagementRole.CAMP_LEAD | EngagementRole.CAMP_GUY:
                 return BadgeColor.BLUE
 
-            case ParticipationRole.FELLOW:
+            case EngagementRole.FELLOW:
                 return BadgeColor.YELLOW
 
-            case ParticipationRole.CONTRACTOR:
+            case EngagementRole.CONTRACTOR:
                 return BadgeColor.GRAY
 
             case _:
@@ -74,7 +74,7 @@ class Badge(DomainModel):
     model_config = ConfigDict(
         json_encoders={
             DietType: lambda t: t.name,
-            ParticipationRole: lambda p: p.name,
+            EngagementRole: lambda p: p.name,
             Gender: lambda g: g.name,
         },
         use_enum_values=False,
@@ -101,7 +101,7 @@ class Badge(DomainModel):
     @classmethod
     def convert_role(cls, value: str):
         try:
-            return ParticipationRole[value]
+            return EngagementRole[value]
         except KeyError:
             return value
 

@@ -138,11 +138,11 @@ REST API сервис, предоставляющий endpoints для рабо�
 **Частота работы:** каждые 30 секунд
 
 **Что делает:**
-1. Получает изменения из таблиц Grist (Teams, People, Participations, Badges_2026, Arrivals_2026) с момента последней синхронизации
+1. Получает изменения из таблиц Grist (Teams, People, Engagement, Badge_yearly, Arrival_yearly) с момента последней синхронизации
 2. Трансформирует данные согласно маппингу полей и валидации
 3. Вставляет/обновляет записи в PostgreSQL
 4. Сохраняет состояние синхронизации в таблице `sync_state`
-5. Проверяет изменения в `Directions2026` и отправляет сообщения в очередь `create_participations`
+5. Проверяет изменения в `Direction` и отправляет сообщения в очередь `create_engagement`
 
 **Обработка ошибок:**
 - При ошибках синхронизации используется retry с экспоненциальным backoff (до 3 попыток для цикла, до 5 для таблицы)
@@ -174,20 +174,20 @@ REST API сервис, предоставляющий endpoints для рабо�
 - Обновляет запись в PostgreSQL: устанавливает `deleted` = FALSE
 - Работает последовательно с задержкой 50мс между запросами
 
-#### Create Participations Consumer (`create_participations_consumer`)
+#### Create Engagement Consumer (`create_engagement_consumer`)
 
-Слушает очередь `create_participations`:
-- Получает сообщения с `id` направления из `Directions2026`
-- Получает список организаторов из поля `head26`
-- Проверяет наличие участия (`Participations`) для организатора
+Слушает очередь `create_engagement`:
+- Получает сообщения с `id` направления из `Direction`
+- Получает список организаторов из поля `head`
+- Проверяет наличие участия (`Engagement`) для организатора
 - Если участие отсутствует - создаёт его автоматически
-- При создании участия используетcя id человека из поля `head26`, текущий год, роль организатора и команду из поля `direction_location26`
+- При создании участия используется id человека из поля `head26`, текущий год, роль организатора и команду из поля `direction_location26`
 - Работает последовательно с задержкой 50мс между запросами
 
 **Когда отправляются сообщения:**
 - **Delete:** когда в API или updater выявляется невалидная запись (пустые обязательные поля, некорректные связи)
 - **Restore:** когда в Grist снимается флаг удаления (`to_delete` очищается)
-- **Create Participations:** когда изменяется запись в `Directions2026`
+- **Create Engagement:** когда изменяется запись в `Direction`
 
 ### Feeder Sync (`GET /feeder/sync`)
 
@@ -197,7 +197,7 @@ REST API сервис, предоставляющий endpoints для рабо�
 2. API извлекает из PostgreSQL все записи, измененные с указанной даты:
    - Бейджи (badges)
    - Заезды (arrivals)
-   - Участия (engagements/participations)
+   - Участия (engagement)
    - Персоны (persons)
    - Направления (directions)
 3. Данные сериализуются и возвращаются в ответе
@@ -230,7 +230,7 @@ REST API сервис, предоставляющий endpoints для рабо�
 - **`last_updated`** — всегда перезаписывается текущим временем сервера (МСК, UTC+3) в момент синхронизации, а не значением из Grist.
 - **Инкрементальная выборка** — из Grist забираются только записи с `updated_at >= last_sync - 300с` (с запасом в 5 минут); состояние хранится в таблице `sync_state`.
 - **Валидация и удаление** — если трансформация поля возвращает `DELETE_RECORD`, запись отправляется в очередь `delete_records` (см. раздел RabbitMQ Consumers); `SKIP_RECORD` — запись просто пропускается; флаг `to_delete` в Grist управляет удалением/восстановлением.
-- **Справочники** (`participation_role`, `participation_status`) подгружаются отдельно из таблиц Grist `Roles` и `Participation_statuses`; в основных таблицах хранятся не Grist-id справочника, а его текстовый `code`.
+- **Справочники** (`engagement_role`, `engagement_status`) подгружаются отдельно из таблиц Grist `Roles` и `Engagement_status`; в основных таблицах хранятся не Grist-id справочника, а его текстовый `code`.
 
 ### `direction` — Направления / службы (Grist: `Teams`)
 
@@ -269,16 +269,16 @@ REST API сервис, предоставляющий endpoints для рабо�
 | `banned` | `isInBL` | `Нет`/пусто → `False`, иначе `True` |
 | `last_updated` | `updated_at` | заменяется на текущее время сервера |
 
-### `participation` — Участия (Grist: `Participations`)
+### `engagement.py` — Участия (Grist: `Engagement`)
 
 Связь человека со службой в конкретном году с ролью и статусом. SQL-выборка из Grist делает `JOIN` с `People` и `Teams`, чтобы провалидировать связанные сущности.
 
-| Колонка PostgreSQL | Колонка Grist (`Participations`) | Преобразование |
+| Колонка PostgreSQL | Колонка Grist (`Engagement`) | Преобразование |
 |---|---|---|
 | `id` (UUID) | `UUID` | если пусто — генерируется новый UUID |
 | `year` | `year` | целое и ≠ 0, иначе `DELETE_RECORD` |
-| `role_code` (FK → `participation_role.code`) | `role` | Grist-id → `code` через `roles_mapping`; нет соответствия → `DELETE_RECORD` |
-| `status_code` (FK → `participation_status.code`) | `status` | Grist-id → `code` через `status_mapping`; нет соответствия → `DELETE_RECORD` |
+| `role_code` (FK → `engagement_role.code`) | `role` | Grist-id → `code` через `roles_mapping`; нет соответствия → `DELETE_RECORD` |
+| `status_code` (FK → `engagement_status.code`) | `status` | Grist-id → `code` через `status_mapping`; нет соответствия → `DELETE_RECORD` |
 | `person_id` (FK → `person.nocode_int_id`) | `person` | целое и ≠ 0, иначе `DELETE_RECORD` |
 | `direction_id` (FK → `direction.nocode_int_id`) | `team` | целое и ≠ 0, иначе `DELETE_RECORD` |
 | `nocode_int_id` | `id` | |
@@ -286,11 +286,11 @@ REST API сервис, предоставляющий endpoints для рабо�
 
 Дополнительные проверки по JOIN-полям: пустое имя человека, имя команды или тип команды → `DELETE_RECORD`. Зависит от таблиц `People` и `Teams` (синхронизируются раньше).
 
-### `badge` — Бейджи (Grist: `Badges_2026`)
+### `badge` — Бейджи (Grist: `Badge_yearly`)
 
 Бейдж участника на конкретный год.
 
-| Колонка PostgreSQL | Колонка Grist (`Badges_2026`) | Преобразование |
+| Колонка PostgreSQL | Колонка Grist (`Badge_yearly`) | Преобразование |
 |---|---|---|
 | `id` (UUID) | `UUID` | если пусто — генерируется новый UUID |
 | `name` | `name` | обязательное; пустое/не-строка → `DELETE_RECORD` |
@@ -301,7 +301,7 @@ REST API сервис, предоставляющий endpoints для рабо�
 | `diet` | `diet` | обязательное; пустое → `DELETE_RECORD` |
 | `feed` | `feed_type` | только значения из `FeedType`, иначе `DELETE_RECORD` |
 | `batch` | `batch` | не-int → `NULL` |
-| `role_code` (FK → `participation_role.code`) | `role` | Grist-id → `code` через `roles_mapping`; нет соответствия → `DELETE_RECORD` |
+| `role_code` (FK → `engagement_role.code`) | `role` | Grist-id → `code` через `roles_mapping`; нет соответствия → `DELETE_RECORD` |
 | `comment` | `comment` | |
 | `nocode_int_id` | `id` | |
 | `occupation` | `position` | не-строка → `NULL` |
@@ -317,18 +317,18 @@ REST API сервис, предоставляющий endpoints для рабо�
 - **`parent_id`** — иерархия бейджей: из поля `parent` проставляется ссылка на родительский бейдж (0/не-int → `NULL`).
 - Запись с `delete_reason`, содержащим `FEEDER`, пропускается (`SKIP_RECORD`), чтобы не перетирать данные из back-sync. Зависит от таблицы `Teams`.
 
-### `arrival` — Заезды (Grist: `Arrivals_2026`)
+### `arrival` — Заезды (Grist: `Arrival_yearly`)
 
-Информация о заезде/отъезде по бейджу. SQL-выборка делает `JOIN` с `Badges_2026` для валидации бейджа.
+Информация о заезде/отъезде по бейджу. SQL-выборка делает `JOIN` с `Badge_yearly` для валидации бейджа.
 
-| Колонка PostgreSQL | Колонка Grist (`Arrivals_2026`) | Преобразование |
+| Колонка PostgreSQL | Колонка Grist (`Arrival_yearly`) | Преобразование |
 |---|---|---|
 | `id` (UUID) | `UUID` | если пусто — генерируется новый UUID |
 | `arrival_date` | `arrival_date` | timestamp → `YYYY-MM-DD`; пусто → `DELETE_RECORD` |
 | `arrival_transport` (FK → `transport_type.code`) | `arrival_transport` | Grist-id → `code` через `arrivals_mapping` (по умолчанию id=1) |
 | `departure_date` | `departure_date` | timestamp → `YYYY-MM-DD`; пусто → `DELETE_RECORD` |
 | `departure_transport` (FK → `transport_type.code`) | `departure_transport` | Grist-id → `code` через `arrivals_mapping` (по умолчанию id=1) |
-| `status` (FK → `participation_status.code`) | `status` | Grist-id → `code` через `status_mapping`; нет соответствия → `DELETE_RECORD` |
+| `status` (FK → `engagement_status.code`) | `status` | Grist-id → `code` через `status_mapping`; нет соответствия → `DELETE_RECORD` |
 | `badge_id` (FK → `badge.nocode_int_id`) | `badge` | целое и ≠ 0, иначе `DELETE_RECORD` |
 | `nocode_int_id` | `id` | |
 | `last_updated` | `updated_at` | заменяется на текущее время сервера |
@@ -339,10 +339,10 @@ REST API сервис, предоставляющий endpoints для рабо�
 
 | Таблица PostgreSQL | Таблица Grist | Поля |
 |---|---|---|
-| `participation_role` | `Roles` | `code` ← `Code`, `name` ← `Name` |
-| `participation_status` | `Participation_statuses` | `code` ← `code`, `name` ← `A`, `to_list` ← `to_list`, `comment` ← `B` |
+| `engagement_role` | `Roles` | `code` ← `Code`, `name` ← `Name` |
+| `engagement_status` | `Engagement_status` | `code` ← `code`, `name` ← `A`, `to_list` ← `to_list`, `comment` ← `B` |
 | `transport_type` | `Arrival_type` | `code` ← `code`, `name` ← `title` (используется как `arrivals_mapping`) |
 
 ### Порядок синхронизации
 
-Таблицы обрабатываются с учётом зависимостей (топологическая сортировка по полю `dependencies`): сначала `Teams` и `People`, затем `Participations` (зависит от обеих), `Badges_2026` (зависит от `Teams`) и `Arrivals_2026`. Отдельно отслеживается таблица `Directions2026` — её изменения порождают сообщения в очередь `create_participations`.
+Таблицы обрабатываются с учётом зависимостей (топологическая сортировка по полю `dependencies`): сначала `Teams` и `People`, затем `Engagement` (зависит от обеих), `Badge_yearly` (зависит от `Teams`) и `Arrival_yearly`. Отдельно отслеживается таблица `Direction` — её изменения порождают сообщения в очередь `create_engagement`.

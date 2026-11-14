@@ -86,7 +86,7 @@ class GristBadgeWriter:
             filter_obj = {"UUID": [uuid_no_dashes]}
             filter_param = urllib.parse.quote(json.dumps(filter_obj))
             url = (
-                f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records"
+                f"{self.server}/api/docs/{self.doc_id}/tables/Badge_yearly/records"
                 f"?filter={filter_param}"
             )
             async with aiohttp.ClientSession() as session:
@@ -129,7 +129,7 @@ class GristBadgeWriter:
 
                                 grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_badge["id"]
-                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records"
+                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badge_yearly/records"
                                 logger.info(f"Restoring badge {badge.id} to Grist: {grist_data}")
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                                     if resp.status != 200:
@@ -142,7 +142,7 @@ class GristBadgeWriter:
                     logger.info(f"Updating existing badge with data from Feeder")
                     grist_data["records"][0]["id"] = existing_badge["id"]
                     logger.info(grist_data)
-                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records"
+                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Badge_yearly/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()

@@ -4,13 +4,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.db.repos.participation import ParticipationRepo
+from app.db.repos.engagement import EngagementRepo
 from app.db.repos.person import PersonRepo
 from app.dependencies.db import get_sqla_repo
 from app.documenters import Q
-from app.models.participation import Participation
+from app.models.engagement import Engagement
 from app.models.person import Person
-from app.schemas.person import ParticipationShort, PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
+from app.schemas.person import EngagementShort, PersonFiltersDTO, PersonResponseSchema, TelebotResponseSchema
 from app.utils.verify_credentials import verify_credentials
 
 
@@ -72,7 +72,7 @@ async def get_telebot_person(
     telegram: str,
     year: int | None = Q("Год участия", None),
     repo: PersonRepo = Depends(get_sqla_repo(PersonRepo)),
-    repo_part: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+    repo_part: EngagementRepo = Depends(get_sqla_repo(EngagementRepo)),
 ):
     """
     API для работы с телеграм ботами по промокодам.
@@ -87,12 +87,12 @@ async def get_telebot_person(
         person = await repo.retrieve(None, PersonFiltersDTO(telegram=clean, strict=True))
     if not person:
         return None
-    participations = await repo_part.retrieve_personal(person.nocode_int_id, True)
+    engagement = await repo_part.retrieve_personal(person.nocode_int_id, True)
 
     if year:
-        participations = [p for p in participations if p.year == year]
+        engagement = [p for p in engagement if p.year == year]
 
-    roles = [i.role.lower() for i in participations if i.role]
+    roles = [i.role.lower() for i in engagement if i.role]
     organiser = "организатор" in roles
     person_for_telebot = TelebotResponseSchema(
         uuid=person.id,
@@ -106,26 +106,26 @@ async def get_telebot_person(
         role="организатор" if organiser else "волонтёр",
         volunteer=roles,
         organize=roles,
-        participations=[
-            ParticipationShort(
+        engagement=[
+            EngagementShort(
                 year=p.year,
                 direction_uuid=p.direction.id,
                 role=str(p.role) if p.role else "",
             )
-            for p in participations if p.direction
+            for p in engagement if p.direction
         ],
     )
     return person_for_telebot
 
 
 @router.get(
-    "/participation",
+    "/engagement",
     summary="Участие",
-    response_model=list[Participation],
+    response_model=list[Engagement],
 )
-async def get_participation(
+async def get_engagement(
     username: Annotated[str, Depends(verify_credentials)],
-    repo: ParticipationRepo = Depends(get_sqla_repo(ParticipationRepo)),
+    repo: EngagementRepo = Depends(get_sqla_repo(EngagementRepo)),
     page: int = Q("page", 1, description="page"),
     page_size: int = Q("page size", 10, description="page_size"),
 ):

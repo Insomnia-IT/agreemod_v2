@@ -14,7 +14,7 @@ class BadgeORM(Base, BaseORM):
     infant: признак, что это ребенок
     diet: особенности питания, строка на основе справочника app.dictionaries.diet_type
     feed: платное / бесплатное питание, строка на основе справочника app.dictionaries.feed_type
-    role: ForeignKey, строка на основе справочника app.dictionaries.participation_role
+    role: ForeignKey, строка на основе справочника app.dictionaries.engagement_role
     person: ForeignKey, строка на основе таблицы app.models.person
     direction ForeignKey, строка на основе таблицы app.models.direction
     """
@@ -39,7 +39,7 @@ class BadgeORM(Base, BaseORM):
     number: Mapped[str] = Column(String)
     batch: Mapped[int] = Column(Integer)
     occupation: Mapped[str] = Column(String)
-    role_code: Mapped[str] = Column(String, ForeignKey("participation_role.code"))
+    role_code: Mapped[str] = Column(String, ForeignKey("engagement_role.code"))
     photo: Mapped[str] = Column(String)
     person_id: Mapped[int] = Column(
         Integer,
