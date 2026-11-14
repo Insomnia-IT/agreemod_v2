@@ -7,7 +7,7 @@ from updater.src.notion.models.primitives.select import Select
 from updater.src.notion.models.primitives.title import Title
 
 
-class ParticipationRoleNotion(NotionModel):
+class EngagementRoleNotion(NotionModel):
     code: RichText = Field(..., alias="Code")
     name: Title = Field(..., alias="Name")
     is_lead: Checkbox = Field(..., alias="Рук")

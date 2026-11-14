@@ -11,15 +11,15 @@ from common.logging_setup import setup_logging, get_logger
 
 load_dotenv()
 
-setup_logging("create_participations_consumer")
-logger = get_logger("create_participations_consumer")
+setup_logging("create_engagement_consumer")
+logger = get_logger("create_engagement_consumer")
 
 YEAR = 2026
 ORGANIZER_ROLE_ID = 1
-DIRECTIONS_TABLE = "Directions2026"
+DIRECTIONS_TABLE = "Direction"
 
 
-class CreateParticipationsConsumer:
+class CreateEngagementConsumer:
     def __init__(self, rabbitmq_url):
         self.rabbitmq_url = rabbitmq_url
         self.connection = None
@@ -41,7 +41,7 @@ class CreateParticipationsConsumer:
                     reconnect_interval=5,
                 )
                 self.channel = await self.connection.channel()
-                self.queue = await self.channel.declare_queue("create_participations", durable=True)
+                self.queue = await self.channel.declare_queue("create_engagement", durable=True)
                 logger.info(f"Successfully connected to RabbitMQ on {self.rabbitmq_url}")
                 return
             except Exception as e:
@@ -69,8 +69,8 @@ class CreateParticipationsConsumer:
             data = await resp.json()
             return data.get("records", [])
 
-    async def create_participation(self, session, person_id, team_id):
-        url = (f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/Participations/records")
+    async def create_engagement(self, session, person_id, team_id):
+        url = (f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/Engagement/records")
         headers = {"Authorization": f"Bearer {self.grist_api_key}"}
         fields = {
             "year": YEAR,
@@ -89,7 +89,7 @@ class CreateParticipationsConsumer:
         async with session.post(url, headers=headers, json=payload) as resp:
             if resp.status not in (200, 201):
                 error = await resp.text()
-                raise Exception(f"Failed to create participation: {error}")
+                raise Exception(f"Failed to create engagement: {error}")
 
     async def process_message(self, message: aio_pika.IncomingMessage):
         if self._processing:
@@ -118,8 +118,8 @@ class CreateParticipationsConsumer:
                         return
 
                     direction = direction_records[0]
-                    team_id = direction["fields"].get("direction_location26")
-                    heads = direction["fields"].get("head26", [])
+                    team_id = direction["fields"].get("direction_location")
+                    heads = direction["fields"].get("head", [])
                     if isinstance(heads, str):
                         heads = [
                             int(x.strip())
@@ -127,7 +127,7 @@ class CreateParticipationsConsumer:
                             if x.strip()
                         ]
                     if not isinstance(heads, list):
-                        logger.warning(f"Invalid head26 format for direction {direction_id}")
+                        logger.warning(f"Invalid head format for direction {direction_id}")
                         return
 
                     for person_id in heads:
@@ -136,21 +136,21 @@ class CreateParticipationsConsumer:
 
                         existing = await self.fetch_records(
                             session,
-                            "Participations",
+                            "Engagement",
                             f"WHERE person = {person_id} "
                             f"AND year = {YEAR} "
                             f"AND team = {team_id}"
                         )
                         if existing:
-                            logger.info(f"Participation already exists for person {person_id} and team {team_id}")
+                            logger.info(f"Engagement already exists for person {person_id} and team {team_id}")
                             continue
 
-                        await self.create_participation(
+                        await self.create_engagement(
                             session,
                             person_id,
                             team_id,
                         )
-                        logger.info(f"Created participation for person {person_id} and team {team_id}")
+                        logger.info(f"Created engagement for person {person_id} and team {team_id}")
 
                         await asyncio.sleep(0.05)
 
@@ -165,7 +165,7 @@ class CreateParticipationsConsumer:
             try:
                 await self.connect()
                 await self.queue.consume(self.process_message)
-                logger.info("Started consuming create participations messages")
+                logger.info("Started consuming create engagement messages")
 
                 while self._running and self.connection and not self.connection.is_closed:
                     await asyncio.sleep(0.01)
@@ -187,7 +187,7 @@ async def main():
     rabbitmq_port = os.getenv("RABBITMQ__QUEUE_PORT", "5672")
     rabbitmq_url = f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}/"
 
-    consumer = CreateParticipationsConsumer(rabbitmq_url)
+    consumer = CreateEngagementConsumer(rabbitmq_url)
 
     try:
         await consumer.start_consuming()

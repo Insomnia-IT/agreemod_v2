@@ -2,7 +2,7 @@ from enum import StrEnum
 from uuid import UUID
 from datetime import datetime
 
-from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
+from dictionaries.dictionaries import EngagementRole, EngagementStatus
 from pydantic import BaseModel, Field, field_serializer
 
 
@@ -11,9 +11,9 @@ class EngagementResponse(BaseModel):
     deleted: bool = False
     year: int
     person: int | UUID
-    role: ParticipationRole
+    role: EngagementRole
     position: str | None = Field(..., validation_alias="role")
-    status: ParticipationStatus | None
+    status: EngagementStatus | None
     direction: int | UUID
     last_updated: datetime | None
 

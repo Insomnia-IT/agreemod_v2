@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class ParticipationStatus(StrEnum):
+class EngagementStatus(StrEnum):
     PLANNED = "планируется"
     CANCELLED = "отменилось"
     PENDING = "ждём ответа"

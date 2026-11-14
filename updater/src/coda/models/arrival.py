@@ -2,7 +2,7 @@ from datetime import date, datetime, time
 from enum import StrEnum
 from uuid import UUID
 
-from dictionaries.dictionaries import ParticipationStatus
+from dictionaries.dictionaries import EngagementStatus
 from dictionaries.transport_type import TransportType
 from pydantic import BaseModel, Field, field_serializer, field_validator
 
@@ -20,7 +20,7 @@ class CodaArrival(BaseModel):
         default=TransportType.UNDEFINED, alias="Способ выезда"
     )
     departure_registered: str | None = None
-    status: ParticipationStatus = Field(..., alias="Статус")
+    status: EngagementStatus = Field(..., alias="Статус")
     extra_data: dict = Field(default_factory=dict)
     comment: str = Field(..., alias="Комментарии")
     last_updated: datetime = Field(default_factory=datetime.now)

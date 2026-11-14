@@ -15,4 +15,4 @@ COPY .env rabbit/poetry.lock rabbit/pyproject.toml ./
 RUN poetry config virtualenvs.create false && poetry install --only main --no-interaction --no-ansi --no-root
 
 # Run the consumer
-CMD ["python", "-m", "rabbit.create_participations_consumer"]
+CMD ["python", "-m", "rabbit.create_engagement_consumer"]

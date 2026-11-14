@@ -160,17 +160,17 @@ class GristSync:
             conn.close()
             
     async def update_utility_data(self):
-        # 2. Получение статусов из таблицы Participations
-        participations = await self.fetch_grist_table('Participation_statuses')
+        # 2. Получение статусов из таблицы Engagement
+        engagement = await self.fetch_grist_table('Engagement_status')
         self.status_mapping = {
              p['id']: {
                  "code": p['fields'].get('code'),
-                 "name": p['fields'].get('A'),
+                 "name": p['fields'].get('status'),
                  "to_list": p['fields'].get('to_list', True),
-                 "comment": p['fields'].get('B')
+                 "comment": p['fields'].get('description')
              }
-            for p in participations
-            if p['fields'].get('code') and p['fields'].get('A')
+            for p in engagement
+            if p['fields'].get('code') and p['fields'].get('level')
         }
 
         roles = await self.fetch_grist_table('Roles')
@@ -199,7 +199,7 @@ class GristSync:
             pass
 
         try:
-            await self._insert_participation_statuses()
+            await self._insert_engagement_statuses()
         except Exception:
             pass
 
@@ -210,7 +210,7 @@ class GristSync:
             with conn.cursor() as cursor:
                 execute_values(
                     cursor,
-                    "INSERT INTO participation_role (code, name) VALUES %s",
+                    "INSERT INTO engagement_role (code, name) VALUES %s",
                     [(role['code'], role['name']) for key, role in self.roles_mapping.items()],
                     template="(%s, %s)"
                 )
@@ -218,7 +218,7 @@ class GristSync:
         finally:
             conn.close()
 
-    async def _insert_participation_statuses(self):
+    async def _insert_engagement_statuses(self):
         """Вставка статусов участия в PostgreSQL"""
         conn = self.get_pg_connection()
         try:
@@ -227,7 +227,7 @@ class GristSync:
                     try:
                         cursor.execute(
                             """
-                            INSERT INTO participation_status (code, name, to_list, comment)
+                            INSERT INTO engagement_status (code, name, to_list, comment)
                             VALUES (%s, %s, %s, %s)
                             ON CONFLICT (code) DO UPDATE SET
                                 name = EXCLUDED.name,
@@ -324,8 +324,8 @@ class GristSync:
         )
         #logger.info(f"Published restore message for record {record_id} in table {table_name}")
 
-    async def publish_create_participations_message(self, record_id: int):
-        """Publish create participations message to RabbitMQ"""
+    async def publish_create_engagement_message(self, record_id: int):
+        """Publish create engagement message to RabbitMQ"""
         if not self.rabbitmq_publisher:
             await self.init_rabbitmq()
 
@@ -336,9 +336,9 @@ class GristSync:
 
         await channel.default_exchange.publish(
             aio_pika.Message(body=json.dumps(message).encode()),
-            routing_key="create_participations"
+            routing_key="create_engagement"
         )
-        logger.info(f"Published create participations message for record {record_id}")
+        logger.info(f"Published create engagement message for record {record_id}")
 
     async def sync_table(self, config: Dict):
         """Основной метод синхронизации для одной таблицы"""
@@ -472,20 +472,20 @@ class GristSync:
         # last_sync is not advanced, so the next cycle will re-fetch and retry.
         self.last_sync[config['grist_table']] = datetime.now().timestamp()
 
-    async def sync_directions_2026(self):
-        """Check changes in Directions2026 and publish events"""
+    async def sync_direction(self):
+        """Check changes in Direction and publish events"""
         url = f"{app_config.grist.server}/api/docs/{app_config.grist.doc_id}/sql"
         headers = {"Authorization": f"Bearer {app_config.grist.api_key}"}
 
-        last_sync = self.last_sync.get("Directions2026")
+        last_sync = self.last_sync.get("Direction")
 
         where_clause = (
-            f"WHERE Directions2026.last_updated_at26 > {last_sync}"
+            f"WHERE Direction.updated_at > {last_sync}"
             if last_sync
             else ""
         )
 
-        query = f"SELECT * FROM Directions2026 {where_clause}"
+        query = f"SELECT * FROM Direction {where_clause}"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -510,10 +510,10 @@ class GristSync:
             if record_id is None:
                 continue
 
-            await self.publish_create_participations_message(record_id)
+            await self.publish_create_engagement_message(record_id)
 
-        self.last_sync["Directions2026"] = max(
-            record["fields"].get("last_updated_at26", 0)
+        self.last_sync["Direction"] = max(
+            record["fields"].get("updated_at", 0)
             for record in records
         )
 
@@ -617,9 +617,9 @@ TABLES_CONFIG = [
         'dependencies': []
     },
     {
-        'grist_table': 'Participations',
+        'grist_table': 'Engagement',
         'insert_query': """
-            INSERT INTO participation (
+            INSERT INTO engagement (
                 id, year, role_code, status_code, person_id, direction_id, last_updated, nocode_int_id
             ) VALUES %s
             ON CONFLICT (nocode_int_id) 
@@ -632,7 +632,7 @@ TABLES_CONFIG = [
                 last_updated = EXCLUDED.last_updated,
                 nocode_int_id = EXCLUDED.nocode_int_id
         """,
-        'sql_query': "SELECT Participations.*, People.name as people_table_name, Teams.team_name as team_table_name, Teams.type_of_team as team_type FROM Participations LEFT JOIN People ON Participations.person = People.id LEFT JOIN Teams ON Participations.team = Teams.id",
+        'sql_query': "SELECT Engagement.*, People.name as people_table_name, Teams.team_name as team_table_name, Teams.type_of_team as team_type FROM Engagement LEFT JOIN People ON Engagement.person = People.id LEFT JOIN Teams ON Engagement.team = Teams.id",
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -717,7 +717,7 @@ TABLES_CONFIG = [
         'dependencies': []
     },
     {
-        'grist_table': 'Badges_2026',#'Badges_2026',
+        'grist_table': 'Badge_yearly',#'Badge_yearly',
         'insert_query': """
             INSERT INTO badge (
                 id, name, last_name, first_name, gender, 
@@ -778,7 +778,7 @@ TABLES_CONFIG = [
                 }
             }
         ],
-        'sql_query': "SELECT Badges_2026.*, People.to_delete as person_to_delete FROM Badges_2026 LEFT JOIN People ON Badges_2026.person = People.id", #Badges_2026
+        'sql_query': "SELECT Badge_yearly.*, People.to_delete as person_to_delete FROM Badge_yearly LEFT JOIN People ON Badge_yearly.person = People.id", #Badge_yearly
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -831,7 +831,7 @@ TABLES_CONFIG = [
         'dependencies': ['Teams']
     },
     {
-        'grist_table': 'Arrivals_2026', #'Arrivals_2026',
+        'grist_table': 'Arrival_yearly', #'Arrival_yearly',
         'insert_query': """
             INSERT INTO arrival (
                 id, arrival_date, arrival_transport, 
@@ -849,7 +849,7 @@ TABLES_CONFIG = [
                 badge_id = EXCLUDED.badge_id,
                 id = EXCLUDED.id
         """,
-        'sql_query': "SELECT Arrivals_2026.*, Badges_2026.name as badge_name, Badges_2026.role as badge_role, Badges_2026.diet as badge_diet, Badges_2026.feed_type as badge_feed_type, Badges_2026.delete_reason as badge_delete_reson, Badges_2026.to_delete as badge_to_delete, People.to_delete as person_to_delete FROM Arrivals_2026 LEFT JOIN Badges_2026 ON Arrivals_2026.badge=Badges_2026.id LEFT JOIN People ON Badges_2026.person=People.id", #Arrivals_2026
+        'sql_query': "SELECT Arrival_yearly.*, Badge_yearly.name as badge_name, Badge_yearly.role as badge_role, Badge_yearly.diet as badge_diet, Badge_yearly.feed_type as badge_feed_type, Badge_yearly.delete_reason as badge_delete_reson, Badge_yearly.to_delete as badge_to_delete, People.to_delete as person_to_delete FROM Arrival_yearly LEFT JOIN Badge_yearly ON Arrival_yearly.badge=Badge_yearly.id LEFT JOIN People ON Badge_yearly.person=People.id", #Arrival_yearly
         'template': "(%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         'field_mapping': {
             'fields.UUID': 'id',
@@ -880,7 +880,7 @@ TABLES_CONFIG = [
             'fields.arrival_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None),
             'fields.departure_transport': lambda x, ctx: ctx['arrivals_mapping'].get(x, ctx['arrivals_mapping'].get(1, {})).get('code', None)
         },
-        'dependencies': ['Badges_2026']
+        'dependencies': ['Badge_yearly']
     }
 ]
 
