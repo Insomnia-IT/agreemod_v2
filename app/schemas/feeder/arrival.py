@@ -3,7 +3,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from dictionaries import TransportType
-from dictionaries.dictionaries import ParticipationStatus
+from dictionaries.dictionaries import EngagementStatus
 from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
@@ -11,7 +11,7 @@ class Arrival(BaseModel):
     id: UUID
     deleted: bool | None = None
     badge_id: UUID | None = Field(None, validation_alias="badge")
-    status: ParticipationStatus | None = None
+    status: EngagementStatus | None = None
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
     departure_date: date | None = None
@@ -21,7 +21,7 @@ class Arrival(BaseModel):
     @classmethod
     def convert_status(cls, value: str):
         try:
-            return ParticipationStatus[value].value
+            return EngagementStatus[value].value
         except KeyError:
             return value
 
@@ -44,7 +44,7 @@ class ArrivalResponse(BaseModel):
     id: UUID
     deleted: bool = False
     badge: UUID | None = None
-    status: ParticipationStatus
+    status: EngagementStatus
     arrival_date: date | None = None
     arrival_transport: TransportType | None = None
     departure_date: date | None = None

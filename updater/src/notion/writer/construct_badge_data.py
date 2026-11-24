@@ -4,9 +4,9 @@
 
 from typing import Dict, Optional
 
-# from dictionaries.dictionaries import ParticipationRole
+# from dictionaries.dictionaries import EngagementRole
 
-badge_data = {  # TODO: читать это из базы?! Или из ParticipationRole?
+badge_data = {  # TODO: читать это из базы?! Или из EngagementRole?
     "Волонтёр": "0459773f-44c7-48ca-b93a-3e34d6734af5",
     "Аниматор": "057f0f30-0918-445b-aa16-0f1c1c54e216",
     "Медик": "35d3f838-3b6d-47aa-8fe8-9f42c7e5cf5d",
@@ -68,7 +68,7 @@ def construct_badge_data(
             data["Роль"] = {
                 "relation": [
                     {
-                        # "id": ParticipationRole[role_id].value
+                        # "id": EngagementRole[role_id].value
                         "id": role_name  # TODO: читать из enum
                     }
                 ]

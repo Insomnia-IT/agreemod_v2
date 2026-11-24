@@ -2,17 +2,17 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
+from dictionaries.dictionaries import EngagementRole, EngagementStatus
 from pydantic import BaseModel, Field, field_serializer, field_validator
 
 
-class CodaParticipation(BaseModel):
+class CodaEngagement(BaseModel):
     coda_index: str = Field(..., alias="id")
     year: int = Field(..., alias="Год")
     person_id: UUID = Field(..., alias="person_id")
     direction_id: UUID = Field(..., alias="direction_id")
-    role_code: ParticipationRole = Field(..., alias="Роль")
-    status_code: ParticipationStatus = Field(ParticipationStatus.PLANNED, alias="Статус")
+    role_code: EngagementRole = Field(..., alias="Роль")
+    status_code: EngagementStatus = Field(EngagementStatus.PLANNED, alias="Статус")
     notion_id: UUID | None = None
     last_updated: datetime = Field(default_factory=datetime.now)
 

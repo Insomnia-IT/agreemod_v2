@@ -12,7 +12,7 @@ class UpdaterStates:
             cls._instance = super(UpdaterStates, cls).__new__(cls)
             cls._instance.people_updating = False
             cls._instance.location_updating = False
-            cls._instance.participation_updating = False
+            cls._instance.engagement_updating = False
             cls._instance.arrival_updating = False
             cls._instance.badge_updating = False
             cls._instance.all_updating = False
@@ -33,9 +33,9 @@ class UpdaterStates:
             logger.warning("status must be bool!")
 
     @classmethod
-    def set_participation_updater(cls, status: bool):
+    def set_engagement_updater(cls, status: bool):
         if isinstance(status, bool):
-            cls._instance.participation_updating = status
+            cls._instance.engagement_updating = status
         else:
             logger.warning("status must be bool!")
 

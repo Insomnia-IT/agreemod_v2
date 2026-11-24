@@ -30,7 +30,7 @@ class PersonFiltersDTO(BaseModel):
 class PersonResponseSchema(BaseModel): ...
 
 
-class ParticipationShort(BaseModel):
+class EngagementShort(BaseModel):
     """Краткое представление участия человека в направлении."""
 
     year: int
@@ -61,4 +61,4 @@ class TelebotResponseSchema(BaseModel):
 
     volunteer: list[str]
     organize: list[str]
-    participations: list[ParticipationShort] = []
+    engagement: list[EngagementShort] = []

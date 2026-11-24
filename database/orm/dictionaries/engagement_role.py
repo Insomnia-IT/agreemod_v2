@@ -5,8 +5,8 @@ from sqlalchemy.orm import Mapped
 from database.meta import Base
 
 
-class ParticipationRoleORM(Base):
-    __tablename__ = "participation_role"
+class EngagementRoleORM(Base):
+    __tablename__ = "engagement_role"
 
     code: Mapped[str] = Column(String, primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)

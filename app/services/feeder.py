@@ -15,7 +15,7 @@ from app.db.repos.arrival import ArrivalRepo
 from app.db.repos.badge import BadgeRepo
 from app.db.repos.direction import DirectionRepo
 from app.db.repos.logging import LogsRepo
-from app.db.repos.participation import ParticipationRepo
+from app.db.repos.engagement import EngagementRepo
 from app.db.repos.person import PersonRepo
 from app.models.logging import Logs
 from app.models.badge import Badge
@@ -67,7 +67,7 @@ class FeederService:
         self.badges = BadgeRepo(session)
         self.directions = DirectionRepo(session)
         self.arrivals = ArrivalRepo(session)
-        self.participations = ParticipationRepo(session)
+        self.engagement = EngagementRepo(session)
         self.persons = PersonRepo(session)
         self.logs = LogsRepo(session)
         #self.coda_writer = CodaWriter(api_key=config.coda.api_key, doc_id=config.coda.doc_id)
@@ -147,7 +147,7 @@ class FeederService:
         badges = [BadgeResponse.model_validate(x.model_dump()) for x in get_badges]
         get_arrivals = await self.arrivals.retrieve_all(from_date=from_date, badge_uuid=True)
         arrivals = [ArrivalResponse.model_validate(x.model_dump()) for x in get_arrivals]
-        get_engagements = await self.participations.retrieve_all(from_date=from_date, uuid_ids=True)
+        get_engagements = await self.engagement.retrieve_all(from_date=from_date, uuid_ids=True)
         engagements = [EngagementResponse.model_validate(x.model_dump()) for x in get_engagements]
         get_persons = await self.persons.retrieve_all(from_date=from_date)
         persons = [PersonResponse.model_validate(x.model_dump()) for x in get_persons]

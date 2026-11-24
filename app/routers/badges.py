@@ -4,7 +4,7 @@ import os
 
 from typing import Annotated
 
-from dictionaries.dictionaries import BadgeColor, DirectionType, ParticipationRole
+from dictionaries.dictionaries import BadgeColor, DirectionType, EngagementRole
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import FileResponse
 
@@ -28,7 +28,7 @@ def _get_badges_filters_dto(
     batch: int | None = Q("Номер партии", None),
     color: BadgeColor | None = Q("Цвет бейджа", None),
     direction: DirectionType | None = Q("Название службы (направления)", None),
-    role: ParticipationRole | None = Q("Роль", None),
+    role: EngagementRole | None = Q("Роль", None),
     occupation: str = Q("Тип участия", None),
     infants: str | None = Q("Найти детей по notion_id бейджа родителя", None),
 ) -> BadgeFilterDTO:

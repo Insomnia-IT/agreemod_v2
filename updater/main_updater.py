@@ -32,7 +32,7 @@ async def main(notion: NotionClient, coda: CodaClient):
 
             if not any(
                     [
-                        coda_updater.states.participation_updating,
+                        coda_updater.states.engagement_updating,
                         coda_updater.states.arrival_updating,
                     ]
             ):
