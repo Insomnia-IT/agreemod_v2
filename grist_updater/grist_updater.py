@@ -170,7 +170,7 @@ class GristSync:
                  "comment": p['fields'].get('description')
              }
             for p in participations
-            if p['fields'].get('code') and p['fields'].get('level')
+            if p['fields'].get('code') and p['fields'].get('status')
         }
 
         roles = await self.fetch_grist_table('Roles')
