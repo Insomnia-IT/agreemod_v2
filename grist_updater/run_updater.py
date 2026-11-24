@@ -62,7 +62,7 @@ async def sync_table_with_retry(sync, config, max_retries=5):
             await asyncio.sleep(delay)
 
 async def sync_directions_with_retry(sync, max_retries=5):
-    """Attempt to sync Directions2026 with retries and exponential backoff"""
+    """Attempt to sync Directions with retries and exponential backoff"""
     retry_count = 0
     while retry_count < max_retries:
         try:
@@ -71,11 +71,11 @@ async def sync_directions_with_retry(sync, max_retries=5):
         except Exception as e:
             retry_count += 1
             if retry_count == max_retries:
-                logger.error(f"Failed to sync Directions2026 after {max_retries} attempts", exc_info=True)
+                logger.error(f"Failed to sync Directions after {max_retries} attempts", exc_info=True)
                 raise
 
             delay = min(300, (2 * retry_count) + random.uniform(0, 1))
-            logger.warning(f"Error syncing Directions2026, attempt {retry_count}/{max_retries}. Retrying in {delay:.2f} seconds...")
+            logger.warning(f"Error syncing Directions, attempt {retry_count}/{max_retries}. Retrying in {delay:.2f} seconds...")
             await asyncio.sleep(delay)
 
 async def main_cycle(sync):
@@ -87,7 +87,7 @@ async def main_cycle(sync):
         print(f"Синхронизация таблицы: {config['grist_table']}")
         await sync_table_with_retry(sync, config)
 
-    print("Синхронизация Directions2026")
+    print("Синхронизация Directions")
     await sync_directions_with_retry(sync)
 
 if __name__ == "__main__":

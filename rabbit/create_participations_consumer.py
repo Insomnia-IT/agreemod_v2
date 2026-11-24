@@ -16,7 +16,7 @@ logger = get_logger("create_participations_consumer")
 
 YEAR = 2026
 ORGANIZER_ROLE_ID = 1
-DIRECTIONS_TABLE = "Directions2026"
+DIRECTIONS_TABLE = "Direction"
 
 
 class CreateParticipationsConsumer:
@@ -70,7 +70,7 @@ class CreateParticipationsConsumer:
             return data.get("records", [])
 
     async def create_participation(self, session, person_id, team_id):
-        url = (f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/Participations/records")
+        url = (f"{self.grist_server}/api/docs/{self.grist_doc_id}/tables/Engagement/records")
         headers = {"Authorization": f"Bearer {self.grist_api_key}"}
         fields = {
             "year": YEAR,
@@ -118,8 +118,8 @@ class CreateParticipationsConsumer:
                         return
 
                     direction = direction_records[0]
-                    team_id = direction["fields"].get("direction_location26")
-                    heads = direction["fields"].get("head26", [])
+                    team_id = direction["fields"].get("direction_location")
+                    heads = direction["fields"].get("head", [])
                     if isinstance(heads, str):
                         heads = [
                             int(x.strip())
@@ -127,7 +127,7 @@ class CreateParticipationsConsumer:
                             if x.strip()
                         ]
                     if not isinstance(heads, list):
-                        logger.warning(f"Invalid head26 format for direction {direction_id}")
+                        logger.warning(f"Invalid head format for direction {direction_id}")
                         return
 
                     for person_id in heads:
@@ -136,7 +136,7 @@ class CreateParticipationsConsumer:
 
                         existing = await self.fetch_records(
                             session,
-                            "Participations",
+                            "Engagement",
                             f"WHERE person = {person_id} "
                             f"AND year = {YEAR} "
                             f"AND team = {team_id}"

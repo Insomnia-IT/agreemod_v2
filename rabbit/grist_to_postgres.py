@@ -1,7 +1,7 @@
 grist_to_postgres_map = {
-    "Badges_2026": "badge", #Badges_2026
-    "Arrivals_2026": "arrival", #Arrivals_2026
+    "Badge_yearly": "badge", 
+    "Arrival_yearly": "arrival", 
     "Teams": "direction",
-    "Participations": "participation",
+    "Engagement": "participation",
     "People": "person"
 }
