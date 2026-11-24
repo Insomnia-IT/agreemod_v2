@@ -32,7 +32,7 @@ class GristArrivalWriter:
             uuid_no_dashes = str(badge_uuid).replace('-', '')
             filter_obj = {"UUID": [uuid_no_dashes]}
             filter_param = urllib.parse.quote(json.dumps(filter_obj))
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badge_yearly/records?filter={filter_param}"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Badges_2026/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -98,7 +98,7 @@ class GristArrivalWriter:
             uuid_no_dashes = str(arrival.data.id).replace('-', '')
             filter_obj = {"UUID": [uuid_no_dashes]}
             filter_param = urllib.parse.quote(json.dumps(filter_obj))
-            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrival_yearly/records?filter={filter_param}"
+            url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2026/records?filter={filter_param}"
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as resp:
                     if resp.status != 200:
@@ -135,7 +135,7 @@ class GristArrivalWriter:
 
                                 grist_data["records"][0]["fields"] = restored_fields
                                 grist_data["records"][0]["id"] = existing_arrival["id"]
-                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrival_yearly/records"
+                                update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2026/records"
                                 logger.info(f"Restoring arrival {arrival.data.id} to Grist: {grist_data}")
                                 async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                                     if resp.status != 200:
@@ -148,7 +148,7 @@ class GristArrivalWriter:
                     grist_data["records"][0]["id"] = existing_arrival["id"]
                     logger.info(f"Updating existing arrival")
                     logger.info(grist_data)
-                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrival_yearly/records"
+                    update_url = f"{self.server}/api/docs/{self.doc_id}/tables/Arrivals_2026/records"
                     async with session.patch(update_url, headers=self.headers, json=grist_data) as resp:
                         if resp.status != 200:
                             error_text = await resp.text()

@@ -5,7 +5,7 @@ from typing import Type
 from updater.src.notion.databases import (
     CodaDatabase,
     NotionDatabase,
-)  # Directions,; Engagement,; Persons,
+)  # Directions,; Participations,; Persons,
 from updater.src.notion.poll_database import CodaPoller, NotionPoller, Poller
 from updater.src.states import UpdaterStates
 
@@ -45,24 +45,24 @@ class Updater:
     #     if user_id and bot:
     #         await bot.send_message(user_id, "Обновление таблицы Человеков завершено")
 
-    # async def run_engagement_notion_to_db(self, user_id=None, bot=None):
+    # async def run_participation_notion_to_db(self, user_id=None, bot=None):
     #     """Notion to DB
     #     Эту синхронизацию не нужно было делать.
     #     Её не нужно включать в основной поток синхронизации.
     #     """
-    #     async with NotionPoller(Engagement()) as poll:
+    #     async with NotionPoller(Participations()) as poll:
     #         await poll.poll_database(
     #             self.notion,
     #         )
-    #     self.states.stop_engagement_updater()
+    #     self.states.stop_participation_updater()
     #     if user_id and bot:
     #         await bot.send_message(user_id, "Обновление таблицы Участия завершено")
 
-    # async def run_engagement_db_to_notion(self, user_id=None, bot=None):
+    # async def run_participation_db_to_notion(self, user_id=None, bot=None):
     #     """DB to Notion"""
-    #     self.states.start_engagement_updater()
+    #     self.states.start_participation_updater()
     #     # get db data
-    #     await write_database(self.notion, "Engagement")
-    #     self.states.stop_engagement_updater()
+    #     await write_database(self.notion, "Participations")
+    #     self.states.stop_participation_updater()
     #     if user_id and bot:
     #         await bot.send_message(user_id, "Обновление таблицы Участия завершено")

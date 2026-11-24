@@ -37,7 +37,7 @@ class ArrivalORM(Base, BaseORM):
     departure_date: Mapped[date] = Column(Date, nullable=False)
     departure_transport: Mapped[str] = Column(String, ForeignKey("transport_type.code"))
     departure_registered: Mapped[time] = Column(String)
-    status: Mapped[str] = Column(String, ForeignKey("engagement_status.code"))
+    status: Mapped[str] = Column(String, ForeignKey("participation_status.code"))
     extra_data: Mapped[dict | list] = Column(JSONB)
     comment: Mapped[str] = Column(String)
     last_updated: Mapped[time] = Column(TIMESTAMP)

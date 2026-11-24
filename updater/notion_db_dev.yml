@@ -14,7 +14,7 @@ anonymous_badges:
   name: anonymous_badges
   id: dcb0ace1c2b04375ae68ceb33279d554
 
-get_engagement:
+get_participations:
   name: Engagement
   id: Engagement
 

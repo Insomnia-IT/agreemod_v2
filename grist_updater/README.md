@@ -15,7 +15,7 @@ Grist Updater работает в бесконечном цикле, перио�
 ### Этапы цикла
 
 1. **Обновление справочников** (`update_utility_data`)
-   - Загрузка статусов участия из `Engagement_statuses`
+   - Загрузка статусов участия из `Participation_statuses`
    - Загрузка ролей из `Roles`
    - Загрузка типов заездов из `Arrival_type`
    - Синхронизация справочников в PostgreSQL
@@ -25,14 +25,14 @@ Grist Updater работает в бесконечном цикле, перио�
    |---------|---------------|-------------------|-------------|
    | 1 | `Teams` | `direction` | - |
    | 2 | `People` | `person` | - |
-   | 3 | `Engagement` | `engagement.py` | People, Teams |
-   | 4 | `Badge_yearly` | `badge` + `badge_directions` | Teams |
-   | 5 | `Arrival_yearly` | `arrival` | - |
+   | 3 | `Participations` | `participation` | People, Teams |
+   | 4 | `Badges_2026` | `badge` + `badge_directions` | Teams |
+   | 5 | `Arrivals_2026` | `arrival` | - |
 
-3. **Обработка Direction**
-   - Проверка изменённых записей в `Direction`
-   - Отправка сообщений в очередь `create_engagement`
-   - Создание `Engagement` для организаторов направлений при отсутствии участия
+3. **Обработка Directions2026**
+   - Проверка изменённых записей в `Directions2026`
+   - Отправка сообщений в очередь `create_participations`
+   - Создание `Participations` для организаторов направлений при отсутствии участия
 
 ### Зависимости
 
@@ -80,15 +80,15 @@ Grist Updater работает в бесконечном цикле, перио�
 
 ## Особенности таблиц
 
-### Badge_yearly
+### Badges_2026
 
 Имеет дополнительные запросы:
 - **directions** — синхронизация связей бейджа с направлениями (таблица `badge_directions`)
 - **parent** — установка родительского бейджа
 
-### Arrival_yearly
+### Arrivals_2026
 
-- JOIN с таблицей Badge_yearly для получения дополнительных полей валидации
+- JOIN с таблицей Badges_2026 для получения дополнительных полей валидации
 - Проверка существования связанного бейджа
 
 ## Файлы

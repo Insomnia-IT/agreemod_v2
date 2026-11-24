@@ -4,7 +4,7 @@ from datetime import date, datetime, time
 from uuid import UUID
 
 from dictionaries import TransportType
-from dictionaries.dictionaries import EngagementStatus
+from dictionaries.dictionaries import ParticipationStatus
 from pydantic import ConfigDict
 
 from app.dto.badge import BadgeDTO
@@ -19,7 +19,7 @@ class Arrival(DomainModel):
     departure_date: date
     departure_transport: TransportType | None = None
     departure_registered: time | None = None
-    status: EngagementStatus
+    status: ParticipationStatus
     extra_data: dict | None = None
     comment: str | None = None
     last_updated: datetime | None = None
@@ -31,16 +31,16 @@ class Arrival(DomainModel):
     model_config = ConfigDict(
         json_encoders={
             TransportType: lambda t: t.name,
-            EngagementStatus: lambda s: s.name,
+            ParticipationStatus: lambda s: s.name,
         },
         use_enum_values=False,
     )
 
     # @field_validator("status", mode="before")
     # @classmethod
-    # def convert_status(cls, value: str) -> EngagementStatus:
+    # def convert_status(cls, value: str) -> ParticipationStatus:
     #     try:
-    #         return EngagementStatus[value]
+    #         return ParticipationStatus[value]
     #     except KeyError:
     #         return value
 

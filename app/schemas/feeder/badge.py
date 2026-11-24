@@ -5,7 +5,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from dictionaries import FeedType
-from dictionaries.dictionaries import EngagementRole
+from dictionaries.dictionaries import ParticipationRole
 from dictionaries.diet_type import DietType
 from dictionaries.gender import Gender
 from pydantic import BaseModel, Field, field_serializer, field_validator, model_validator
@@ -26,7 +26,7 @@ class Badge(BaseModel):
     feed: FeedType | None = None
     number: str | None = None
     batch: int | None = None
-    role: EngagementRole | None = None
+    role: ParticipationRole | None = None
     occupation: str | None = Field(None, validation_alias="position")
     photo: str | None = None
     person: str | None = None
@@ -64,7 +64,7 @@ class Badge(BaseModel):
     @classmethod
     def convert_role(cls, value: str):
         try:
-            return EngagementRole[value].value
+            return ParticipationRole[value].value
         except KeyError:
             return value
 
@@ -100,7 +100,7 @@ class BadgeResponse(BaseModel):
     feed: FeedType = Field(FeedType.NO)
     number: str | None
     batch: str | None
-    role: EngagementRole
+    role: ParticipationRole
     position: str = Field(..., validation_alias="occupation")
     photo: str
     person: int | UUID| None

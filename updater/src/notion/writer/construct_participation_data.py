@@ -3,7 +3,7 @@ from updater.src.config import config
 from updater.src.notion.client import NotionClient
 
 
-def construct_engagement_data(
+def construct_participation_data(
         person_id: Optional[str] = None,
         year: Optional[str] = None,
         services_and_locations_id: Optional[str] = None,
@@ -68,7 +68,7 @@ def construct_engagement_data(
 
 if __name__ == '__main__':
     # Пример использования функции-конструктора
-    new_page_data = construct_engagement_data(
+    new_page_data = construct_participation_data(
         person_id="bd94bff7-4bd3-4a71-b3c0-d8a5a571a3df",
         year="4027",
         services_and_locations_id="b30c7137-a840-45d2-85e0-033d9b5d8d44",

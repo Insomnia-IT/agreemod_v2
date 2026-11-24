@@ -7,16 +7,16 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from app.db.orm import EngagementAppORM
+from app.db.orm import ParticipationAppORM
 from app.db.repos.base import BaseSqlaRepo
 from app.errors import RepresentativeError
-from app.models.engagement import Engagement
+from app.models.participation import Participation
 
 
 logger = logging.getLogger(__name__)
 
 
-class EngagementRepo(BaseSqlaRepo[EngagementAppORM]):
+class ParticipationRepo(BaseSqlaRepo[ParticipationAppORM]):
 
     def get_query(
         self,
@@ -27,22 +27,22 @@ class EngagementRepo(BaseSqlaRepo[EngagementAppORM]):
         page: int = None,
         from_date: datetime = None,
     ):
-        query = select(EngagementAppORM)
+        query = select(ParticipationAppORM)
         if id:
-            query = query.filter(EngagementAppORM.id == id)
+            query = query.filter(ParticipationAppORM.id == id)
         if include_person:
-            query = query.options(selectinload(EngagementAppORM.person))
+            query = query.options(selectinload(ParticipationAppORM.person))
         if include_direction:
-            query = query.options(selectinload(EngagementAppORM.direction))
+            query = query.options(selectinload(ParticipationAppORM.direction))
         if page and limit:
             offset = (page - 1) * limit
             query = query.limit(limit).offset(offset)
         if from_date:
-            query = query.where(EngagementAppORM.last_updated > from_date)
+            query = query.where(ParticipationAppORM.last_updated > from_date)
         return query
 
-    async def retrieve(self, id, include_person: bool, include_direction: bool) -> Engagement | None:
-        result: EngagementAppORM | None = await self.session.scalar(
+    async def retrieve(self, id, include_person: bool, include_direction: bool) -> Participation | None:
+        result: ParticipationAppORM | None = await self.session.scalar(
             self.get_query(
                 id=id,
                 include_person=include_person,
@@ -53,9 +53,9 @@ class EngagementRepo(BaseSqlaRepo[EngagementAppORM]):
             return None
         return result.to_model(include_person=include_person, include_direction=include_direction)
 
-    async def retrieve_personal(self, person_id: int, include_direction: bool = False) -> list[Engagement]:
+    async def retrieve_personal(self, person_id: int, include_direction: bool = False) -> list[Participation]:
         results = await self.session.scalars(
-            self.get_query(include_direction=include_direction).filter(EngagementAppORM.person_id == person_id)
+            self.get_query(include_direction=include_direction).filter(ParticipationAppORM.person_id == person_id)
         )
         return [result.to_model(include_direction=include_direction) for result in results]
 
@@ -67,7 +67,7 @@ class EngagementRepo(BaseSqlaRepo[EngagementAppORM]):
         include_person: bool = False,
         uuid_ids: bool = False,
         from_date: datetime = None,
-    ) -> List[Engagement]:
+    ) -> List[Participation]:
         results = await self.session.scalars(
             self.get_query(
                 limit=page_size,
@@ -81,24 +81,24 @@ class EngagementRepo(BaseSqlaRepo[EngagementAppORM]):
             result.to_model(include_person=include_person, include_direction=include_direction, uuid_ids=uuid_ids) for result in results
         ]
 
-    async def create(self, data: Engagement):
-        new_engagement = EngagementAppORM.to_orm(data)
-        self.session.add(new_engagement)
+    async def create(self, data: Participation):
+        new_participation = ParticipationAppORM.to_orm(data)
+        self.session.add(new_participation)
         try:
-            await self.session.flush([new_engagement])
+            await self.session.flush([new_participation])
         except IntegrityError as e:
             logger.error(f"{e.__class__.__name__}: {e}")
             # raise e
-            raise RepresentativeError(title=f"engagement with {data.id=} already exists")
-        return new_engagement
+            raise RepresentativeError(title=f"participation with {data.id=} already exists")
+        return new_participation
 
-    async def update(self, data: Engagement):
-        await self.session.merge(EngagementAppORM.to_orm(data))
+    async def update(self, data: Participation):
+        await self.session.merge(ParticipationAppORM.to_orm(data))
         await self.session.flush()
 
     async def delete(self, id):
-        await self.session.execute(delete(EngagementAppORM).where(EngagementAppORM.id == id))
+        await self.session.execute(delete(ParticipationAppORM).where(ParticipationAppORM.id == id))
 
-    async def retrieve_many(self, filters: dict = None) -> list[Engagement]:
+    async def retrieve_many(self, filters: dict = None) -> list[Participation]:
         result = await self.session.scalars(self.get_query())
         return [x.to_model() for x in result]

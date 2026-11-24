@@ -5,9 +5,9 @@ from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.badge_directions import BadgeDirectionsORM
 from database.orm.direction import DirectionORM
 from database.orm.logging import LogsORM
-from database.orm.engagement import EngagementORM
+from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
-from dictionaries.dictionaries import DirectionType, EngagementRole, EngagementStatus
+from dictionaries.dictionaries import DirectionType, ParticipationRole, ParticipationStatus
 from dictionaries.diet_type import DietType
 from dictionaries.feed_type import FeedType
 from dictionaries.gender import Gender
@@ -19,7 +19,7 @@ from app.models.arrival import Arrival
 from app.models.badge import Anons, Badge, DirectionDTO
 from app.models.direction import Direction
 from app.models.logging import Logs
-from app.models.engagement import Engagement
+from app.models.participation import Participation
 from app.models.person import Person
 from uuid import UUID
 
@@ -128,7 +128,7 @@ class BadgeAppORM(BadgeORM):
             feed=model.feed if model.feed else FeedType.NO.name,
             number=model.number,
             batch=model.batch,
-            role_code=model.role.name,  # if isinstance(model.role, EngagementRole) else EngagementRole(model.role).name if model.role else None,
+            role_code=model.role.name,  # if isinstance(model.role, ParticipationRole) else ParticipationRole(model.role).name if model.role else None,
             photo=model.photo,
             occupation=model.occupation,
             person_id=model.person.id if type(model.person)==Person else model.person if type(model.person)==UUID else None,
@@ -162,7 +162,7 @@ class BadgeAppORM(BadgeORM):
             feed=self.feed,
             number=self.number,
             batch=self.batch,
-            role=EngagementRole[self.role_code].value,
+            role=ParticipationRole[self.role_code].value,
             photo=self.photo,
             person=self.person.to_model() if self.person and include_person else self.person.id if person_uuid and self.person else self.person_id if self.person_id else None,
             directions=(
@@ -193,7 +193,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_date=model.departure_date,
             departure_transport=model.departure_transport.name,  # if isinstance(model.departure_transport, TransportType) else model.departure_transport,
             departure_registered=model.departure_registered.isoformat() if model.departure_registered else None,
-            status=model.status.name,  # if isinstance(model.status, EngagementStatus) else model.status,
+            status=model.status.name,  # if isinstance(model.status, ParticipationStatus) else model.status,
             extra_data=model.extra_data,
             comment=model.comment,
             last_updated=model.last_updated,
@@ -211,7 +211,7 @@ class ArrivalAppORM(ArrivalORM):
             departure_date=self.departure_date,
             departure_transport=TransportType[self.departure_transport].value if self.departure_transport else None,
             departure_registered=self.departure_registered,
-            status=EngagementStatus[self.status].value if self.status else None,
+            status=ParticipationStatus[self.status].value if self.status else None,
             extra_data=self.extra_data,
             comment=self.comment,
             last_updated=self.last_updated,
@@ -220,12 +220,12 @@ class ArrivalAppORM(ArrivalORM):
         )
 
 
-class EngagementAppORM(EngagementORM):
+class ParticipationAppORM(ParticipationORM):
     person: Mapped[PersonAppORM] = relationship("PersonAppORM", lazy="selectin")
     direction: Mapped[DirectionAppORM] = relationship("DirectionAppORM", lazy="selectin")
 
     @classmethod
-    def to_orm(cls, model: Engagement):
+    def to_orm(cls, model: Participation):
         return cls(
             id=model.id,
             year=model.year,
@@ -237,8 +237,8 @@ class EngagementAppORM(EngagementORM):
             last_updated=model.last_updated,
         )
 
-    def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Engagement:
-        return Engagement(
+    def to_model(self, include_person: bool = False, include_direction: bool = False, uuid_ids: bool = False) -> Participation:
+        return Participation(
             id=self.id,
             year=self.year,
             person=self.person.to_model() if include_person else self.person.id if uuid_ids and self.person else self.person_id if self.person_id else None,
@@ -248,8 +248,8 @@ class EngagementAppORM(EngagementORM):
                 else self.direction.id if uuid_ids
                 else self.direction_id
             ),
-            role=EngagementRole[self.role_code].value if self.role_code else None,
-            status=EngagementStatus[self.status_code].value if self.status_code else None,
+            role=ParticipationRole[self.role_code].value if self.role_code else None,
+            status=ParticipationStatus[self.status_code].value if self.status_code else None,
             nocode_int_id=self.nocode_int_id,
             last_updated=self.last_updated,
             deleted=self.deleted if self.deleted else False

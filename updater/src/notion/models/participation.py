@@ -1,5 +1,5 @@
 from uuid import UUID
-from dictionaries.dictionaries import EngagementRole, EngagementStatus
+from dictionaries.dictionaries import ParticipationRole, ParticipationStatus
 from pydantic import BaseModel, Field, field_validator
 from updater.src.notion.models.primitives.relation import Relation
 from updater.src.notion.models.primitives.rich_text import RichText
@@ -7,7 +7,7 @@ from updater.src.notion.models.primitives.select import Select
 from updater.src.notion.models.primitives.title import Title
 
 
-class Engagement(BaseModel):
+class Participation(BaseModel):
     id: UUID
     # name: Title = Field(..., alias="Name") # имя в notion есть но его нет в orm
     person_id: Relation = Field(..., alias="Человек")
@@ -28,22 +28,22 @@ class Engagement(BaseModel):
     def role_code_convert(cls, value: Select):
         if value.value:
             key_to_look = value.value.lower()
-            engagement_role = cls.get_key_from_value(key_to_look, EngagementRole)
-            return engagement_role
+            participation_role = cls.get_key_from_value(key_to_look, ParticipationRole)
+            return participation_role
         else:
-            return EngagementRole.OTHER.name
+            return ParticipationRole.OTHER.name
 
     @field_validator("status_code", mode="after")
     @classmethod
     def status_code_convert(cls, value: Select):
         if value.value:
             key_to_look = value.value.lower()
-            engagement_role = cls.get_key_from_value(
-                key_to_look, EngagementStatus
+            participation_role = cls.get_key_from_value(
+                key_to_look, ParticipationStatus
             )
-            return engagement_role
+            return participation_role
         else:
-            return EngagementStatus.PENDING.name
+            return ParticipationStatus.PENDING.name
 
     @field_validator("year", mode="after")
     @classmethod
@@ -87,5 +87,5 @@ if __name__ == "__main__":
     }
 
     # Create an instance of the Volunteer model
-    volunteer = Engagement(**volunteer_data)
+    volunteer = Participation(**volunteer_data)
     print(volunteer_data)

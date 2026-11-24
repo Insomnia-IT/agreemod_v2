@@ -7,11 +7,11 @@ import yaml
 from database.orm.arrival import ArrivalORM
 from database.orm.badge import AnonsORM, BadgeORM
 from database.orm.direction import DirectionORM
-from database.orm.engagement import EngagementORM
+from database.orm.participation import ParticipationORM
 from database.orm.person import PersonORM
 from pydantic import BaseModel
 from updater.src.coda.models.arrival import CodaArrival
-from updater.src.coda.models.engagement import CodaEngagement
+from updater.src.coda.models.participation import CodaParticipation
 from updater.src.notion.models.badge import Anons, Badge
 from updater.src.notion.models.direction import Direction
 from updater.src.notion.models.person import Person
@@ -73,10 +73,10 @@ class Badges(NotionDatabase):
     orm: type = BadgeORM
 
 
-class Engagement(CodaDatabase):
-    name: str = "get_engagement"
-    model: type = CodaEngagement
-    orm: type = EngagementORM
+class Participations(CodaDatabase):
+    name: str = "get_participations"
+    model: type = CodaParticipation
+    orm: type = ParticipationORM
 
 
 class Arrivals(CodaDatabase):

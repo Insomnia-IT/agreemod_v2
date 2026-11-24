@@ -2,7 +2,7 @@ from uuid import UUID
 
 import psycopg2
 
-from dictionaries.dictionaries import BadgeColor, EngagementRole
+from dictionaries.dictionaries import BadgeColor, ParticipationRole
 from dictionaries.diet_type import DietType
 from dictionaries.feed_type import FeedType
 from dictionaries.gender import Gender
@@ -32,7 +32,7 @@ class Badge(NotionModel):
     feed: Select = Field(..., alias="Тип питания")
     number: RichText = Field(..., alias="Номер")
     batch: Select = Field(..., alias="Партия")
-    # engagement_code: Relation = Field(..., alias='Роль')
+    # participation_code: Relation = Field(..., alias='Роль')
     occupation: RichText = Field(..., alias="Должность")
     role_code: Relation = Field(..., alias="Роль")
     photo: Files = Field(..., alias="Фото")
@@ -105,23 +105,23 @@ class Badge(NotionModel):
                 port=config.postgres.port,
             )
             cur = conn.cursor()
-            cur.execute("SELECT code, notion_id FROM public.engagement_role")
+            cur.execute("SELECT code, notion_id FROM public.participation_role")
             roles = cur.fetchall()
         finally:
             conn.close()
         if value.value:
             notion_id_to_look = value.value[0]
-            engagement_role = next(
+            participation_role = next(
                 (
                     code
                     for code, notion_id in roles
                     if UUID(notion_id) == notion_id_to_look
                 ),
-                EngagementRole.FELLOW.name,
+                ParticipationRole.FELLOW.name,
             )
-            return engagement_role
+            return participation_role
         else:
-            return EngagementRole.FELLOW.name
+            return ParticipationRole.FELLOW.name
 
     @field_validator("phone", mode="after")
     @classmethod

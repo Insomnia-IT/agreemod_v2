@@ -4,8 +4,8 @@ from sqlalchemy.orm import Mapped
 from database.meta import Base
 
 
-class EngagementStatusORM(Base):
-    __tablename__ = "engagement_status"
+class ParticipationStatusORM(Base):
+    __tablename__ = "participation_status"
 
     code: Mapped[str] = Column(String, primary_key=True)
     name: Mapped[str] = Column(String, nullable=False)
