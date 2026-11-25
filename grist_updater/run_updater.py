@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 async def sync_loop():
     sync = GristSync()
-    await sync.init_sync_state()
     try:
         while True:
             print("\n--- Начало цикла синхронизации ---")
@@ -79,6 +78,9 @@ async def sync_directions_with_retry(sync, max_retries=5):
             await asyncio.sleep(delay)
 
 async def main_cycle(sync):
+    # The API can reset sync_state while this long-lived worker is running.
+    # Reload it at each cycle boundary instead of keeping the startup snapshot.
+    await sync.init_sync_state()
     print("Обновление ролей и статусов...")
     await sync.update_utility_data()
     

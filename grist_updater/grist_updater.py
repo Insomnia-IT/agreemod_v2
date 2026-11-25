@@ -53,6 +53,7 @@ class GristSync:
         self.roles_mapping: Dict[str, str] = {}
         self.arrival_mapping: Dict[int, str] = {}  # {grist_arrival_type_id: arrival_type_code}
         self.last_sync = {}
+        self._loaded_sync_state = {}
         self.rabbitmq_publisher = None
 
     async def _load_sync_state(self) -> Dict[str, float]:
@@ -74,10 +75,22 @@ class GristSync:
             async with async_session() as session:
                 repo = SyncStateRepo(session)
                 for table_name, sync_time in self.last_sync.items():
-                    await repo.upsert(
+                    expected_sync_time = self._loaded_sync_state.get(table_name)
+                    saved = await repo.update_if_unchanged(
                         table_name,
-                        datetime.fromtimestamp(sync_time)
+                        datetime.fromtimestamp(sync_time),
+                        (
+                            datetime.fromtimestamp(expected_sync_time)
+                            if expected_sync_time is not None
+                            else None
+                        ),
                     )
+                    if not saved:
+                        logger.warning(
+                            "Sync state for %s changed while the cycle was running; "
+                            "keeping the database value",
+                            table_name,
+                        )
 
         except Exception as e:
             logger.error(f"Ошибка сохранения состояния: {e}")
@@ -85,6 +98,7 @@ class GristSync:
 
     async def init_sync_state(self):
         self.last_sync = await self._load_sync_state()
+        self._loaded_sync_state = self.last_sync.copy()
 
     @staticmethod
     def get_pg_connection():
@@ -512,7 +526,7 @@ class GristSync:
 
             await self.publish_create_participations_message(record_id)
 
-        self.last_sync["Directions"] = max(
+        self.last_sync["Direction"] = max(
             record["fields"].get("updated_at", 0)
             for record in records
         )
