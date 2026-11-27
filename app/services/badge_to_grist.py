@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from uuid import UUID
 import json
 import urllib.parse
@@ -15,6 +15,9 @@ from app.db.repos.badge import BadgeRepo
 
 logger = logging.getLogger(__name__)
 
+BadgeUpdate = Tuple[Badge, set, Optional[int], Optional[datetime]]
+
+
 class GristBadgeWriter:
     def __init__(self):
         self.server = config.grist.server
@@ -28,9 +31,9 @@ class GristBadgeWriter:
             return None
         return int(datetime.combine(date_obj, datetime.min.time()).timestamp())
 
-    async def update_badge(self, badge_tuple: Tuple[Badge, set]) -> bool:
+    async def update_badge(self, badge_tuple: BadgeUpdate) -> bool:
         """Update or create a badge in Grist. Return True if created, False if updated."""
-        badge, present_fields = badge_tuple
+        badge, present_fields, actor_nocode_int_id, feeder_update_at = badge_tuple
         if badge.id is None:
             return False
         logger.info(f"Working on badge:{badge}")
@@ -73,7 +76,8 @@ class GristBadgeWriter:
             elif 'deleted' in present_fields and badge.deleted == False:
                 fields["to_delete"] = None
                 fields["delete_reason"] = None
-            fields["feeder_update"] = int(datetime.now().timestamp())
+            fields["feeder_update_by"] = actor_nocode_int_id
+            fields["feeder_update_at"] = int((feeder_update_at or datetime.now()).timestamp())
 
             grist_data = {
                 "records": [{
@@ -122,7 +126,6 @@ class GristBadgeWriter:
                                     "person": db_badge.person.nocode_int_id if db_badge.person else "",
                                     "parent": str(db_badge.parent) if db_badge.parent else "",
                                     "directions_ref": ["L"] + [d.nocode_int_id for d in db_badge.directions] if db_badge.directions else None,
-                                    "feeder_update": int(datetime.now().timestamp()),
                                 }
                                 # Then, overlay with the fields from the original request
                                 restored_fields.update(fields)
@@ -166,14 +169,14 @@ class GristBadgeWriter:
             logger.error(f"Error syncing badge to Grist: {e}")
             raise
 
-async def update_badge_with_retry(writer: "GristBadgeWriter", badge_tuple: Tuple[Badge, set]):
+async def update_badge_with_retry(writer: "GristBadgeWriter", badge_tuple: BadgeUpdate):
     """Helper to call update_badge and retry if it's a new badge."""
     was_created = await writer.update_badge(badge_tuple)
     if was_created:
         # TODO: Somehow Grist doesn't allow me to make first entry correct, so we have to do it twice
         await writer.update_badge(badge_tuple)
 
-async def grist_badges_writer(badges: List[Tuple[Badge, set]]):
+async def grist_badges_writer(badges: List[BadgeUpdate]):
     """Sync multiple badges to Grist"""
     logger.info(f"Working on {len(badges)} badges")
     try:
@@ -187,4 +190,4 @@ async def grist_badges_writer(badges: List[Tuple[Badge, set]]):
         logger.info("Finished syncing badges to Grist")
     except Exception as e:
         logger.critical(f"Error syncing badges to Grist: {e}")
-        raise 
+        raise

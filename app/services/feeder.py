@@ -82,6 +82,7 @@ class FeederService:
             person_ids = []
             #parent_ids = []
             direction_ids = []
+            actor_badge_ids = []
             
             for badge in badges:
                 if badge.data.person:
@@ -90,15 +91,19 @@ class FeederService:
                 #    parent_ids.append(badge.data.parent)
                 if badge.data.directions:
                     direction_ids.extend(badge.data.directions)
+                if badge.actor_badge:
+                    actor_badge_ids.append(badge.actor_badge)
             
             # Get all linked entities from database
             persons = await self.persons.retrieve_many(idIn=person_ids) if person_ids else []
             #parents = await self.badges.retrieve_many(idIn=parent_ids) if parent_ids else []
             directions = await self.directions.retrieve_many(idIn=direction_ids) if direction_ids else []
+            actor_badges = await self.badges.retrieve_many(idIn=actor_badge_ids) if actor_badge_ids else []
             
             # Create a mapping of IDs to entities for quick lookup
             person_map = {str(p.id): p for p in persons}
             #parent_map = {str(p.id): p for p in parents}
+            actor_badge_map = {str(b.id): b.nocode_int_id for b in actor_badges}
             direction_map = {str(d.id): DirectionDTO(
                 id=d.id,
                 name=d.name,
@@ -122,22 +127,26 @@ class FeederService:
                 if badge_data.get('vegan'):
                     badge_data['diet'] = DietType.STANDARD.value if badge_data.get('vegan') else DietType.VEGAN.value
                 badge_obj = Badge.model_construct(**badge_data)
-                enriched_badges.append((badge_obj, present_fields))  # Store as a tuple of (badge, present_fields)
+                actor_nocode_int_id = actor_badge_map.get(str(badge.actor_badge)) if badge.actor_badge else None
+                enriched_badges.append((badge_obj, present_fields, actor_nocode_int_id, badge.date))
             
             # Pass enriched badges to Grist writer
             await grist_badges_writer(enriched_badges)
 
 
     async def back_sync_arrivals(self, intake: BackSyncIntakeSchema):
-        update_arrivals = []
-        delete_arrivals = []
         arrivals = intake.arrivals
         if arrivals:
-            # Create list of tuples (arrival, present_fields)
+            actor_badge_ids = [arrival.actor_badge for arrival in arrivals if arrival.actor_badge]
+            actor_badges = await self.badges.retrieve_many(idIn=actor_badge_ids) if actor_badge_ids else []
+            actor_badge_map = {str(b.id): b.nocode_int_id for b in actor_badges}
+
+            # Create list of tuples (arrival, present_fields, actor nocode_int_id)
             enriched_arrivals = []
             for arrival in arrivals:
                 present_fields = set(arrival.data.model_fields_set)
-                enriched_arrivals.append((arrival, present_fields))
+                actor_nocode_int_id = actor_badge_map.get(str(arrival.actor_badge)) if arrival.actor_badge else None
+                enriched_arrivals.append((arrival, present_fields, actor_nocode_int_id))
             await grist_arrivals_writer(enriched_arrivals)
 
         #await self.session.commit()

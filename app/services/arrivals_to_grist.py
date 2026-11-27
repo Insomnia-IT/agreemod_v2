@@ -13,6 +13,9 @@ from app.schemas.feeder.arrival import ArrivalWithMetadata
 
 logger = logging.getLogger(__name__)
 
+ArrivalUpdate = Tuple[ArrivalWithMetadata, set, Optional[int]]
+
+
 class GristArrivalWriter:
     def __init__(self):
         self.server = config.grist.server
@@ -48,9 +51,9 @@ class GristArrivalWriter:
             logger.error(f"Error finding badge in Grist: {e}")
             raise
 
-    async def update_arrival(self, arrival_tuple: Tuple[ArrivalWithMetadata, set]):
+    async def update_arrival(self, arrival_tuple: ArrivalUpdate):
         """Update or create a arrival in Grist"""
-        arrival, present_fields = arrival_tuple
+        arrival, present_fields, actor_nocode_int_id = arrival_tuple
         logger.info(f"Working on arrival:{arrival}")
         if arrival.data.id is None:
             return False
@@ -85,6 +88,8 @@ class GristArrivalWriter:
             elif 'deleted' in present_fields and arrival.data.deleted == False:
                 fields["to_delete"] = None
                 fields["delete_reason"] = None
+            fields["feeder_update_by"] = actor_nocode_int_id
+            fields["feeder_update_at"] = int((arrival.date or datetime.now()).timestamp())
 
             grist_data = {
                 "records": [{
@@ -169,7 +174,7 @@ class GristArrivalWriter:
             logger.error(f"Error syncing arrival to Grist: {e}")
             raise
 
-async def grist_arrivals_writer(arrivals: List[Tuple[ArrivalWithMetadata, set]]):
+async def grist_arrivals_writer(arrivals: List[ArrivalUpdate]):
     """Sync multiple arrivals to Grist"""
     logger.info(f"Working on {len(arrivals)} arrivals")
     try:
@@ -183,4 +188,4 @@ async def grist_arrivals_writer(arrivals: List[Tuple[ArrivalWithMetadata, set]])
         logger.info("Finished syncing arrivals to Grist")
     except Exception as e:
         logger.critical(f"Error syncing arrivals to Grist: {e}")
-        raise 
+        raise
